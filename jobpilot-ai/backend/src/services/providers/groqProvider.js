@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+const { canonicalizeSkillList } = require("../skillCanonicalizer");
 
 function parseJsonResponse(text) {
   const trimmed = text.trim();
@@ -33,7 +34,7 @@ function buildResumeAgentPrompt(resume) {
     "  \"experience_level\": string",
     "}",
     "Rules:",
-    "- skills must be lowercase concise tokens.",
+    "- skills must be lowercase concise tokens and use canonical forms when obvious (e.g., software, ai, cloud, aws, react, node).",
     "- experience_level must be one of: junior, mid, senior, lead.",
     "- no markdown, no extra keys.",
     "Resume:",
@@ -51,7 +52,7 @@ function buildJobAgentPrompt(job) {
     "  \"role_level\": string",
     "}",
     "Rules:",
-    "- skills must be lowercase concise tokens.",
+    "- skills must be lowercase concise tokens and use canonical forms when obvious (e.g., software, ai, cloud, aws, react, node).",
     "- role_level must be one of: junior, mid, senior, lead.",
     "- no markdown, no extra keys.",
     "Job Description:",
@@ -157,24 +158,33 @@ function createGroqProvider() {
     async extractResume(resumeText) {
       const raw = await callAgent(buildResumeAgentPrompt(resumeText));
       return {
-        skills: normalizeArray(raw.skills),
+        skills: canonicalizeSkillList(normalizeArray(raw.skills)),
         experience_level: normalizeLevel(raw.experience_level)
       };
     },
     async extractJob(jobText) {
       const raw = await callAgent(buildJobAgentPrompt(jobText));
       return {
-        skills: normalizeArray(raw.skills),
+        skills: canonicalizeSkillList(normalizeArray(raw.skills)),
         role_level: normalizeLevel(raw.role_level)
       };
     },
     async matchSkills({ resume, job }) {
-      const resumeSkills = normalizeArray(resume?.skills);
-      const jobSkills = normalizeArray(job?.skills);
+      const resumeSkills = canonicalizeSkillList(normalizeArray(resume?.skills));
+      const jobSkills = canonicalizeSkillList(normalizeArray(job?.skills));
 
-      const raw = await callAgent(buildMatchingAgentPrompt(resume, job));
-      const strengths = normalizeArray(raw.strengths).filter((skill) => resumeSkills.includes(skill) && jobSkills.includes(skill));
-      const missing = normalizeArray(raw.missing).filter((skill) => jobSkills.includes(skill) && !resumeSkills.includes(skill));
+      const raw = await callAgent(buildMatchingAgentPrompt(
+        { ...resume, skills: resumeSkills },
+        { ...job, skills: jobSkills }
+      ));
+      const llmStrengths = canonicalizeSkillList(normalizeArray(raw.strengths));
+      const exactStrengths = resumeSkills.filter((skill) => jobSkills.includes(skill));
+      const strengths = [...new Set([
+        ...exactStrengths,
+        ...llmStrengths.filter((skill) => resumeSkills.includes(skill) && jobSkills.includes(skill))
+      ])];
+
+      const missing = jobSkills.filter((skill) => !strengths.includes(skill));
 
       const overlapScore = jobSkills.length === 0 ? 55 : Math.round((strengths.length / jobSkills.length) * 100);
       return {

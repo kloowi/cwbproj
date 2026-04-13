@@ -21,12 +21,20 @@ const SKILL_KEYWORDS = [
   "testing",
   "jest",
   "tailwind",
-  "next.js"
+  "next.js",
+  "ai",
+  "cloud",
+  "software",
+  "web",
+  "mobile",
+  "system design"
 ];
+
+const { canonicalizeSkillList } = require("../skillCanonicalizer");
 
 function detectSkills(text) {
   const normalized = text.toLowerCase();
-  return SKILL_KEYWORDS.filter((keyword) => normalized.includes(keyword));
+  return canonicalizeSkillList(SKILL_KEYWORDS.filter((keyword) => normalized.includes(keyword)));
 }
 
 function summarizeLevel(text) {
@@ -65,8 +73,8 @@ function createFallbackProvider() {
       };
     },
     async matchSkills({ resume, job }) {
-      const resumeSkills = Array.isArray(resume?.skills) ? resume.skills : [];
-      const jobSkills = Array.isArray(job?.skills) ? job.skills : [];
+      const resumeSkills = canonicalizeSkillList(Array.isArray(resume?.skills) ? resume.skills : []);
+      const jobSkills = canonicalizeSkillList(Array.isArray(job?.skills) ? job.skills : []);
       const strengths = resumeSkills.filter((skill) => jobSkills.includes(skill));
       const missing = jobSkills.filter((skill) => !resumeSkills.includes(skill));
       const score = jobSkills.length === 0
