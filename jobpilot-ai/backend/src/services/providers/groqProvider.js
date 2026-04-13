@@ -24,6 +24,12 @@ function normalizeLevel(value, fallback = "junior") {
   return fallback;
 }
 
+function normalizeRoleTitle(value) {
+  const title = String(value || "").trim();
+  if (!title) return "";
+  return title.slice(0, 120);
+}
+
 function buildResumeAgentPrompt(resume) {
   return [
     "You are Resume Agent.",
@@ -48,10 +54,12 @@ function buildJobAgentPrompt(job) {
     "Extract required capabilities from the job description.",
     "Return strict JSON only with this shape:",
     "{",
+    "  \"title\": string,",
     "  \"skills\": string[],",
     "  \"role_level\": string",
     "}",
     "Rules:",
+    "- title must be the most likely job title from the posting (for example: Senior Backend Engineer).",
     "- skills must be lowercase concise tokens and use canonical forms when obvious (e.g., software, ai, cloud, aws, react, node).",
     "- role_level must be one of: junior, mid, senior, lead.",
     "- no markdown, no extra keys.",
@@ -165,6 +173,7 @@ function createGroqProvider() {
     async extractJob(jobText) {
       const raw = await callAgent(buildJobAgentPrompt(jobText));
       return {
+        title: normalizeRoleTitle(raw.title),
         skills: canonicalizeSkillList(normalizeArray(raw.skills)),
         role_level: normalizeLevel(raw.role_level)
       };

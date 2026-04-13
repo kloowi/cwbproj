@@ -522,6 +522,18 @@ ul {
   gap: 14px;
 }
 
+.history-item-clickable {
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.history-item-clickable:hover,
+.history-item-clickable:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-card);
+}
+
 .history-item-main {
   display: flex;
   align-items: center;
@@ -537,9 +549,14 @@ ul {
   display: grid;
   place-items: center;
   color: #8e4a30;
-  font-weight: 700;
   background: linear-gradient(145deg, #fff0e4, #ffe2cf);
   border: 1px solid #f2ccb2;
+}
+
+.history-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 .history-title-row {

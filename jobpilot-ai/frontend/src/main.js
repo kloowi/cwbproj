@@ -136,6 +136,39 @@ function toSentenceCase(text) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+function inferJobTitle(item) {
+  const explicit = String(item?.jobTitle || "").trim();
+  if (explicit) return explicit;
+
+  const snippet = String(item?.jobSnippet || "").replace(/\s+/g, " ").trim();
+  if (!snippet) return "Role Analysis";
+
+  const candidate = snippet.split(/[\n\.|\|:-]/)[0].trim();
+  if (!candidate) return "Role Analysis";
+
+  return toTitleCase(candidate.split(/\s+/).slice(0, 7).join(" "));
+}
+
+function mapStoredAnalysisToResult(item) {
+  return {
+    job: {
+      title: String(item?.jobTitle || "").trim()
+    },
+    match: {
+      score: Number(item?.matchScore || 0),
+      missing: Array.isArray(item?.missingSkills) ? item.missingSkills : [],
+      strengths: Array.isArray(item?.strengths) ? item.strengths : [],
+      reasoning: String(item?.matchReasoning || "")
+    },
+    plan: {
+      roadmap: Array.isArray(item?.roadmap) ? item.roadmap : []
+    },
+    meta: {
+      provider: item?.provider || "unknown"
+    }
+  };
+}
+
 function getSessionId() {
   const existing = localStorage.getItem(SESSION_KEY);
   if (existing) return existing;
@@ -198,16 +231,20 @@ function renderDashboard(items) {
     const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown";
     const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
     const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
-    const gapCount = missing.length;
+    const title = inferJobTitle(item);
     const skillsPreview = missing.slice(0, 2).join(" • ") || "No major gaps detected";
 
     return `
-      <article class="history-item card-lite">
+      <article class="history-item history-item-clickable card-lite" data-analysis-id="${item.id || ""}" tabindex="0" role="button" aria-label="Open saved report for ${title}">
         <div class="history-item-main">
-          <div class="history-icon">${String(gapCount).padStart(2, "0")}</div>
+          <div class="history-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+              <path d="M8 6V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1h2a2 2 0 0 1 2 2v4.5a1 1 0 0 1-.62.92L13 16.08a3 3 0 0 1-2 0L4.62 13.42A1 1 0 0 1 4 12.5V8a2 2 0 0 1 2-2h2Zm2 0h4V5h-4v1Zm10 8.2-5.9 2.45a5 5 0 0 1-3.2 0L5 14.2V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.8Z" />
+            </svg>
+          </div>
           <div>
             <div class="history-title-row">
-              <h4>Analysis ${item.id ? String(item.id).slice(0, 6) : "Run"}</h4>
+              <h4>${title}</h4>
               <span class="history-chip">${status}</span>
             </div>
             <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
@@ -316,6 +353,35 @@ function renderResults(data) {
   `;
 }
 
+async function openSavedAnalysis(id) {
+  if (!id) return;
+
+  try {
+    if (!apiBaseUrl) {
+      throw new Error("API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.");
+    }
+
+    errorEl.textContent = "";
+    setActiveView("analysis");
+    renderLoadingState();
+
+    const sessionId = getSessionId();
+    const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(id)}?sessionId=${encodeURIComponent(sessionId)}`);
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const detail = payload.detail || payload.message || payload.error;
+      throw new Error(detail ? `Unable to load saved report: ${detail}` : "Unable to load saved report.");
+    }
+
+    const payload = await response.json();
+    const data = mapStoredAnalysisToResult(payload.item || {});
+    renderResults(data);
+  } catch (error) {
+    errorEl.textContent = formatRequestError(error);
+    renderEmptyResultsState();
+  }
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorEl.textContent = "";
@@ -386,6 +452,25 @@ heroDashboardBtn.addEventListener("click", () => {
 viewAnalysisBtn.addEventListener("click", () => {
   setActiveView("analysis");
   form.resume.focus();
+});
+
+dashboardHistoryEl.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-analysis-id]");
+  if (!card) return;
+
+  const id = card.getAttribute("data-analysis-id") || "";
+  openSavedAnalysis(id);
+});
+
+dashboardHistoryEl.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const card = event.target.closest("[data-analysis-id]");
+  if (!card) return;
+
+  event.preventDefault();
+  const id = card.getAttribute("data-analysis-id") || "";
+  openSavedAnalysis(id);
 });
 
 renderEmptyResultsState();

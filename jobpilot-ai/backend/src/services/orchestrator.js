@@ -5,6 +5,12 @@ function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function normalizeRoleTitle(value) {
+  const title = String(value || "").trim();
+  if (!title) return "";
+  return title.slice(0, 120);
+}
+
 function normalizeAnalysisResult(result, providerName) {
   const normalized = result && typeof result === "object" ? { ...result } : {};
   const match = normalized.match && typeof normalized.match === "object" ? { ...normalized.match } : {};
@@ -18,6 +24,7 @@ function normalizeAnalysisResult(result, providerName) {
   normalized.job = normalized.job && typeof normalized.job === "object"
     ? normalized.job
     : { skills: [], role_level: "junior" };
+  normalized.job.title = normalizeRoleTitle(normalized.job.title);
   normalized.match = {
     score: Number.isFinite(Number(match.score)) ? Number(match.score) : 0,
     missing,

@@ -106,7 +106,9 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
     source: "analyze",
     resumeSnippet: resume.slice(0, 250),
     jobSnippet: job.slice(0, 250),
+    jobTitle: String(result?.job?.title || "").trim().slice(0, 120),
     matchScore: Number(result?.match?.score || 0),
+    matchReasoning: String(result?.match?.reasoning || "").trim().slice(0, 500),
     missingSkills: Array.isArray(result?.match?.missing) ? result.match.missing : [],
     strengths: Array.isArray(result?.match?.strengths) ? result.match.strengths : [],
     roadmap: Array.isArray(result?.plan?.roadmap) ? result.plan.roadmap : [],
@@ -122,6 +124,83 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
   const dbContainer = getContainer();
   await dbContainer.items.create(doc);
   return { id, sessionId };
+}
+
+async function getAnalysisById(id, sessionId) {
+  const cleanId = String(id || "").trim();
+  if (!cleanId) return null;
+
+  const apiType = detectApiType(COSMOS_CONNECTION_STRING);
+
+  if (apiType === "mongo") {
+    const collection = await getMongoCollection();
+    const query = sessionId
+      ? { _id: cleanId, sessionId, source: "analyze" }
+      : { _id: cleanId, source: "analyze" };
+    const row = await collection.findOne(query);
+    if (!row) return null;
+
+    return {
+      id: row.id || row._id,
+      sessionId: row.sessionId,
+      createdAt: row.createdAt,
+      jobTitle: row.jobTitle || "",
+      matchScore: Number(row.matchScore || 0),
+      matchReasoning: row.matchReasoning || "",
+      missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
+      strengths: Array.isArray(row.strengths) ? row.strengths : [],
+      roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+      provider: row.provider || "unknown"
+    };
+  }
+
+  const dbContainer = getContainer();
+  let row = null;
+
+  if (sessionId) {
+    try {
+      const { resource } = await dbContainer.item(cleanId, sessionId).read();
+      row = resource;
+    } catch (_error) {
+      row = null;
+    }
+  }
+
+  if (!row) {
+    const querySpec = {
+      query: sessionId
+        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
+        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id",
+      parameters: sessionId
+        ? [
+            { name: "@source", value: "analyze" },
+            { name: "@id", value: cleanId },
+            { name: "@sessionId", value: sessionId }
+          ]
+        : [
+            { name: "@source", value: "analyze" },
+            { name: "@id", value: cleanId }
+          ]
+    };
+
+    const { resources } = await dbContainer.items.query(querySpec).fetchAll();
+    row = resources[0] || null;
+  }
+
+  if (!row || row.source && row.source !== "analyze") return null;
+
+  return {
+    id: row.id,
+    sessionId: row.sessionId,
+    createdAt: row.createdAt,
+    jobTitle: row.jobTitle || "",
+    matchScore: Number(row.matchScore || 0),
+    matchReasoning: row.matchReasoning || "",
+    missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
+    strengths: Array.isArray(row.strengths) ? row.strengths : [],
+    roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+    provider: row.provider || "unknown"
+  };
 }
 
 async function getRecentAnalyses(sessionId, limit = 5) {
@@ -141,6 +220,8 @@ async function getRecentAnalyses(sessionId, limit = 5) {
       id: row.id || row._id,
       sessionId: row.sessionId,
       createdAt: row.createdAt,
+      jobTitle: row.jobTitle || "",
+      jobSnippet: row.jobSnippet || "",
       matchScore: Number(row.matchScore || 0),
       missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
       roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
@@ -151,8 +232,8 @@ async function getRecentAnalyses(sessionId, limit = 5) {
   const dbContainer = getContainer();
   const querySpec = {
     query: sessionId
-      ? "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.sessionId = @sessionId ORDER BY c.createdAt DESC"
-      : "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source ORDER BY c.createdAt DESC",
+      ? "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.sessionId = @sessionId ORDER BY c.createdAt DESC"
+      : "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source ORDER BY c.createdAt DESC",
     parameters: sessionId
       ? [
           { name: "@limit", value: safeLimit },
@@ -170,6 +251,8 @@ async function getRecentAnalyses(sessionId, limit = 5) {
     id: row.id,
     sessionId: row.sessionId,
     createdAt: row.createdAt,
+    jobTitle: row.jobTitle || "",
+    jobSnippet: row.jobSnippet || "",
     matchScore: Number(row.matchScore || 0),
     missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
     roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
@@ -181,5 +264,6 @@ module.exports = {
   getCosmosStatus,
   runSmokeTest,
   saveAnalysisRecord,
-  getRecentAnalyses
+  getRecentAnalyses,
+  getAnalysisById
 };
