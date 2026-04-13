@@ -14,8 +14,8 @@ app.innerHTML = `
         <p class="brand-subtitle">Career Match Navigator</p>
       </div>
       <nav class="nav-group" aria-label="Primary Navigation">
-        <button class="nav-item nav-active" type="button">New Analysis</button>
-        <button class="nav-item" type="button" disabled>Dashboard</button>
+        <button class="nav-item" type="button" id="nav-dashboard">Dashboard</button>
+        <button class="nav-item nav-active" type="button" id="nav-new-analysis">New Analysis</button>
         <button class="nav-item" type="button" disabled>Job Matches</button>
         <button class="nav-item" type="button" disabled>Skill Insights</button>
       </nav>
@@ -30,36 +30,45 @@ app.innerHTML = `
         <p>Upload your details and let AI bridge the gap to your target role.</p>
       </header>
 
-      <section class="panel" aria-label="Analysis Input">
-        <form id="analyze-form" class="input-grid">
-          <section class="input-card">
-            <label for="resume">Resume</label>
-            <textarea id="resume" name="resume" placeholder="Paste your resume or profile summary"></textarea>
-          </section>
+      <section class="dashboard-view view-hidden" id="dashboard-view" aria-label="Dashboard">
+        <section class="dashboard-panel">
+          <div class="section-label">Dashboard Overview</div>
+          <div class="dashboard-stats" id="dashboard-stats"></div>
+        </section>
 
-          <section class="input-card">
-            <label for="job">Job Description</label>
-            <textarea id="job" name="job" placeholder="Paste the job description you are targeting"></textarea>
+        <section class="dashboard-panel" aria-label="Application History">
+          <div class="history-head">
+            <h3>Application History</h3>
+            <p>Tracked from your recent analysis history.</p>
           </section>
-
-          <div class="form-actions">
-            <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
-          </div>
-        </form>
-        <div id="error" class="error"></div>
+          <div id="dashboard-history"></div>
+        </section>
       </section>
 
-      <section class="results-panel" aria-label="Analysis Results">
-        <div class="section-label">Analysis Results</div>
-        <div id="results"></div>
-      </section>
+      <section class="analysis-view" id="analysis-view">
+        <section class="panel" aria-label="Analysis Input">
+          <form id="analyze-form" class="input-grid">
+            <section class="input-card">
+              <label for="resume">Resume</label>
+              <textarea id="resume" name="resume" placeholder="Paste your resume or profile summary"></textarea>
+            </section>
 
-      <section class="history-panel" aria-label="Recent Analyses">
-        <div class="history-head">
-          <h3>Recent Analyses</h3>
-          <p>Analysis history is retained for up to 90 days.</p>
-        </div>
-        <div id="history"></div>
+            <section class="input-card">
+              <label for="job">Job Description</label>
+              <textarea id="job" name="job" placeholder="Paste the job description you are targeting"></textarea>
+            </section>
+
+            <div class="form-actions">
+              <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
+            </div>
+          </form>
+          <div id="error" class="error"></div>
+        </section>
+
+        <section class="results-panel" aria-label="Analysis Results">
+          <div class="section-label">Analysis Results</div>
+          <div id="results"></div>
+        </section>
       </section>
     </main>
   </div>
@@ -69,8 +78,21 @@ const form = document.querySelector("#analyze-form");
 const submitBtn = document.querySelector("#submit-btn");
 const errorEl = document.querySelector("#error");
 const resultsEl = document.querySelector("#results");
-const historyEl = document.querySelector("#history");
+const dashboardStatsEl = document.querySelector("#dashboard-stats");
+const dashboardHistoryEl = document.querySelector("#dashboard-history");
+const dashboardViewEl = document.querySelector("#dashboard-view");
+const analysisViewEl = document.querySelector("#analysis-view");
+const navDashboardBtn = document.querySelector("#nav-dashboard");
+const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const newAnalysisBtn = document.querySelector("#new-analysis-btn");
+
+function setActiveView(view) {
+  const showDashboard = view === "dashboard";
+  dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
+  analysisViewEl.classList.toggle("view-hidden", showDashboard);
+  navDashboardBtn.classList.toggle("nav-active", showDashboard);
+  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard);
+}
 
 function formatRequestError(error) {
   const message = String(error?.message || "").toLowerCase();
@@ -113,13 +135,47 @@ function getSessionId() {
   return created;
 }
 
-function renderHistory(items) {
+function renderDashboard(items) {
   if (!items.length) {
-    historyEl.innerHTML = "<p class=\"empty\">No saved analyses are available yet.</p>";
+    dashboardStatsEl.innerHTML = `
+      <article class="stat-card card-lite">
+        <p class="stat-label">Total Applications</p>
+        <p class="stat-value">0</p>
+      </article>
+      <article class="stat-card card-lite">
+        <p class="stat-label">Average Match Score</p>
+        <p class="stat-value">0%</p>
+      </article>
+      <article class="stat-card card-lite">
+        <p class="stat-label">Top Match Score</p>
+        <p class="stat-value">0%</p>
+      </article>
+    `;
+    dashboardHistoryEl.innerHTML = "<p class=\"empty\">No saved analyses are available yet.</p>";
     return;
   }
 
-  historyEl.innerHTML = `<div class="history-grid">${items.map((item) => {
+  const scoreValues = items.map((item) => Number(item.matchScore || 0)).filter((value) => Number.isFinite(value));
+  const totalApplications = items.length;
+  const avgScore = scoreValues.length ? Math.round(scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length) : 0;
+  const topScore = scoreValues.length ? Math.max(...scoreValues) : 0;
+
+  dashboardStatsEl.innerHTML = `
+    <article class="stat-card card-lite">
+      <p class="stat-label">Total Applications</p>
+      <p class="stat-value">${totalApplications}</p>
+    </article>
+    <article class="stat-card card-lite">
+      <p class="stat-label">Average Match Score</p>
+      <p class="stat-value">${avgScore}%</p>
+    </article>
+    <article class="stat-card card-lite">
+      <p class="stat-label">Top Match Score</p>
+      <p class="stat-value">${topScore}%</p>
+    </article>
+  `;
+
+  dashboardHistoryEl.innerHTML = `<div class="history-grid">${items.slice(0, 8).map((item) => {
     const missing = (item.missingSkills || []).map(toTitleCase).join(", ") || "None";
     const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown";
     return `
@@ -135,17 +191,19 @@ function renderHistory(items) {
 async function loadHistory() {
   try {
     if (!apiBaseUrl) {
-      historyEl.innerHTML = "<p class=\"empty\">History is unavailable until VITE_API_URL is configured.</p>";
+      dashboardStatsEl.innerHTML = "<p class=\"empty\">Dashboard is unavailable until VITE_API_URL is configured.</p>";
+      dashboardHistoryEl.innerHTML = "<p class=\"empty\">History is unavailable until VITE_API_URL is configured.</p>";
       return;
     }
 
     const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=5`);
+    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=50`);
     if (!response.ok) throw new Error("History fetch failed");
     const payload = await response.json();
-    renderHistory(Array.isArray(payload.items) ? payload.items : []);
+    renderDashboard(Array.isArray(payload.items) ? payload.items : []);
   } catch (_error) {
-    historyEl.innerHTML = "<p class=\"empty\">History is temporarily unavailable.</p>";
+    dashboardStatsEl.innerHTML = "<p class=\"empty\">Dashboard is temporarily unavailable.</p>";
+    dashboardHistoryEl.innerHTML = "<p class=\"empty\">History is temporarily unavailable.</p>";
   }
 }
 
@@ -268,11 +326,21 @@ form.addEventListener("submit", async (event) => {
 });
 
 newAnalysisBtn.addEventListener("click", () => {
+  setActiveView("analysis");
   form.reset();
   errorEl.textContent = "";
   renderEmptyResultsState();
   form.resume.focus();
 });
 
+navDashboardBtn.addEventListener("click", () => {
+  setActiveView("dashboard");
+});
+
+navNewAnalysisBtn.addEventListener("click", () => {
+  setActiveView("analysis");
+});
+
 renderEmptyResultsState();
+setActiveView("analysis");
 loadHistory();

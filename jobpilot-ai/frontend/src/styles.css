@@ -66,7 +66,7 @@ body {
   background: transparent;
   color: #556079;
   font-weight: 600;
-  cursor: default;
+  cursor: pointer;
 }
 
 .nav-active {
@@ -107,13 +107,39 @@ body {
 
 .panel,
 .results-panel,
-.history-panel {
+.dashboard-panel {
   margin-top: 22px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 18px;
   box-shadow: 0 16px 38px rgba(16, 22, 46, 0.07);
+}
+
+.view-hidden {
+  display: none;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  background: #fbfcff;
+}
+
+.stat-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  margin: 6px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
 }
 
 .input-grid {
@@ -405,7 +431,8 @@ ul {
 
   .input-grid,
   .results-grid,
-  .results-grid.secondary {
+  .results-grid.secondary,
+  .dashboard-stats {
     grid-template-columns: 1fr;
   }
 
