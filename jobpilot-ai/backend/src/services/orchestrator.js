@@ -35,13 +35,12 @@ function normalizeAnalysisResult(result, providerName) {
 }
 
 async function runAnalysis({ resume, job }) {
-  const provider = createProvider();
-
   try {
+    const provider = createProvider();
     const result = await runAgentPipeline(provider, { resume, job });
     return normalizeAnalysisResult(result, provider.name);
   } catch (error) {
-    console.warn(`Provider ${provider.name} failed, using fallback.`, error.message);
+    console.warn(`Primary provider failed, using fallback.`, error.message);
     const fallbackProvider = createFallbackProvider();
     const result = await fallbackProvider.analyze({ resume, job });
     return normalizeAnalysisResult(result, fallbackProvider.name);

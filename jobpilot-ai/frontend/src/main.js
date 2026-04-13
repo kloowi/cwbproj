@@ -252,7 +252,8 @@ form.addEventListener("submit", async (event) => {
 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || "The request could not be completed.");
+      const detail = payload.detail || payload.message || payload.error;
+      throw new Error(detail ? `Request failed (${response.status}): ${detail}` : `Request failed with status ${response.status}.`);
     }
 
     const data = await response.json();
