@@ -52,9 +52,21 @@ function buildRoadmap(missingSkills) {
 function createFallbackProvider() {
   return {
     name: "fallback-keyword",
-    async analyze({ resume, job }) {
-      const resumeSkills = detectSkills(resume);
-      const jobSkills = detectSkills(job);
+    async extractResume(resumeText) {
+      return {
+        skills: detectSkills(resumeText),
+        experience_level: summarizeLevel(resumeText)
+      };
+    },
+    async extractJob(jobText) {
+      return {
+        skills: detectSkills(jobText),
+        role_level: summarizeLevel(jobText)
+      };
+    },
+    async matchSkills({ resume, job }) {
+      const resumeSkills = Array.isArray(resume?.skills) ? resume.skills : [];
+      const jobSkills = Array.isArray(job?.skills) ? job.skills : [];
       const strengths = resumeSkills.filter((skill) => jobSkills.includes(skill));
       const missing = jobSkills.filter((skill) => !resumeSkills.includes(skill));
       const score = jobSkills.length === 0
@@ -62,23 +74,29 @@ function createFallbackProvider() {
         : Math.round((strengths.length / jobSkills.length) * 100);
 
       return {
-        resume: {
-          skills: resumeSkills,
-          experience_level: summarizeLevel(resume)
-        },
-        job: {
-          skills: jobSkills,
-          role_level: summarizeLevel(job)
-        },
-        match: {
-          score,
-          missing,
-          strengths,
-          reasoning: `Matched ${strengths.length} out of ${jobSkills.length || 1} detected job skills.`
-        },
-        plan: {
-          roadmap: buildRoadmap(missing)
-        },
+        score,
+        missing,
+        strengths,
+        reasoning: `Matched ${strengths.length} out of ${jobSkills.length || 1} detected job skills.`
+      };
+    },
+    async planRoadmap({ match }) {
+      const missingSkills = Array.isArray(match?.missing) ? match.missing : [];
+      return {
+        roadmap: buildRoadmap(missingSkills)
+      };
+    },
+    async analyze({ resume, job }) {
+      const resumeData = await this.extractResume(resume);
+      const jobData = await this.extractJob(job);
+      const matchData = await this.matchSkills({ resume: resumeData, job: jobData });
+      const planData = await this.planRoadmap({ match: matchData });
+
+      return {
+        resume: resumeData,
+        job: jobData,
+        match: matchData,
+        plan: planData,
         meta: {
           provider: "fallback-keyword"
         }

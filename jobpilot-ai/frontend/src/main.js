@@ -1,6 +1,7 @@
 import "./styles.css";
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5050").replace(/\/$/, "");
+const configuredApiBaseUrl = (import.meta.env.VITE_API_URL || "").trim();
+const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "localhost" ? "http://localhost:5050" : "")).replace(/\/$/, "");
 const SESSION_KEY = "jobpilot_session_id";
 
 const app = document.querySelector("#app");
@@ -71,6 +72,21 @@ const resultsEl = document.querySelector("#results");
 const historyEl = document.querySelector("#history");
 const newAnalysisBtn = document.querySelector("#new-analysis-btn");
 
+function formatRequestError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  const isNetworkFailure = message.includes("networkerror") || message.includes("failed to fetch") || message.includes("load failed");
+
+  if (!apiBaseUrl) {
+    return "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
+  }
+
+  if (isNetworkFailure) {
+    return `Unable to reach backend API at ${apiBaseUrl}. Verify backend health, CORS, and frontend VITE_API_URL setting.`;
+  }
+
+  return error?.message || "An unexpected error occurred.";
+}
+
 function toTitleCase(text) {
   if (!text) return "";
   return text
@@ -118,6 +134,11 @@ function renderHistory(items) {
 
 async function loadHistory() {
   try {
+    if (!apiBaseUrl) {
+      historyEl.innerHTML = "<p class=\"empty\">History is unavailable until VITE_API_URL is configured.</p>";
+      return;
+    }
+
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=5`);
     if (!response.ok) throw new Error("History fetch failed");
@@ -207,6 +228,11 @@ form.addEventListener("submit", async (event) => {
   const resume = form.resume.value.trim();
   const job = form.job.value.trim();
 
+  if (!apiBaseUrl) {
+    errorEl.textContent = "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
+    return;
+  }
+
   if (!resume || !job) {
     errorEl.textContent = "Please complete both the Resume and Job Description fields.";
     return;
@@ -233,7 +259,7 @@ form.addEventListener("submit", async (event) => {
     renderResults(data);
     await loadHistory();
   } catch (error) {
-    errorEl.textContent = error.message || "An unexpected error occurred.";
+    errorEl.textContent = formatRequestError(error);
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Start AI Analysis";
