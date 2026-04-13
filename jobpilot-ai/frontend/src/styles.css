@@ -1,0 +1,89 @@
+:root {
+  color-scheme: light;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top right, #f5f7ff, #eef6f2 40%, #ffffff 80%);
+  color: #0f172a;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 16px 48px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+p {
+  margin-top: 8px;
+  color: #334155;
+}
+
+.card {
+  margin-top: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+textarea {
+  width: 100%;
+  min-height: 160px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+  resize: vertical;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #0f766e;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.meta {
+  margin-top: 10px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.score {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.error {
+  margin-top: 10px;
+  color: #b91c1c;
+}
