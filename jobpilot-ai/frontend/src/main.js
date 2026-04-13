@@ -254,9 +254,12 @@ function parseScoreInput(value) {
 }
 
 function getHistoryFilters() {
+  const minScore = parseScoreInput(filterMinScoreEl.value);
+  const maxScore = parseScoreInput(filterMaxScoreEl.value);
+
   return {
-    minScore: parseScoreInput(filterMinScoreEl.value),
-    maxScore: parseScoreInput(filterMaxScoreEl.value),
+    minScore,
+    maxScore: minScore !== null && maxScore !== null && maxScore < minScore ? minScore : maxScore,
     dateRange: String(filterDateRangeEl.value || "all")
   };
 }
@@ -411,7 +414,10 @@ function renderDashboard(items) {
           <div>
             <div class="history-title-row">
               <h4>${title}</h4>
-              <span class="history-chip">${status}</span>
+              <div class="history-actions">
+                <span class="history-chip">${status}</span>
+                <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">Delete</button>
+              </div>
             </div>
             <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
@@ -424,7 +430,6 @@ function renderDashboard(items) {
             <span style="--score:${score}"></span>
           </div>
           <strong>${score}%</strong>
-          <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">Delete</button>
         </div>
       </article>
     `;
@@ -714,8 +719,8 @@ filterDateRangeEl.addEventListener("change", () => {
 });
 
 resetHistoryFiltersBtn.addEventListener("click", () => {
-  filterMinScoreEl.value = "";
-  filterMaxScoreEl.value = "";
+  filterMinScoreEl.value = "0";
+  filterMaxScoreEl.value = "100";
   filterDateRangeEl.value = "all";
   loadHistory();
 });
