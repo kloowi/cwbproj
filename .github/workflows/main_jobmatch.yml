@@ -1,50 +1,23 @@
-name: Build and deploy Node.js app to Azure Web App - jobmatch
+name: Deploy Backend to Azure Web App - jobmatch
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "jobpilot-ai/backend/**"
+      - ".github/workflows/main_jobmatch.yml"
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
-        with:
-          node-version: "22.x"
-
-      - name: npm install, build, and test (backend)
-        working-directory: jobpilot-ai/backend
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: jobpilot-ai/backend
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -53,10 +26,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EA9739A5A9A64D3E8824064236FFA335 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F39D6F1C8295482B8641C0C012158159 }}
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+      - name: Deploy backend folder to App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "jobmatch"
-          slot-name: "Production"
-          package: .
+          app-name: jobmatch
+          slot-name: Production
+          package: ./jobpilot-ai/backend
