@@ -49,11 +49,11 @@ app.innerHTML = `
           <div class="history-filters" aria-label="History Filters">
             <label class="filter-field">
               <span>Min Score</span>
-              <input type="number" id="filter-min-score" min="0" max="100" placeholder="0" />
+              <input type="number" id="filter-min-score" min="0" max="100" value="0" placeholder="0" />
             </label>
             <label class="filter-field">
               <span>Max Score</span>
-              <input type="number" id="filter-max-score" min="0" max="100" placeholder="100" />
+              <input type="number" id="filter-max-score" min="0" max="100" value="100" placeholder="100" />
             </label>
             <label class="filter-field">
               <span>Date</span>
