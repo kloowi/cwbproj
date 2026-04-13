@@ -54,7 +54,8 @@ body {
   padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 14px;
   backdrop-filter: blur(8px);
 }
 
@@ -92,7 +93,7 @@ body {
 }
 
 .nav-group {
-  margin-top: 28px;
+  margin-top: 8px;
   display: grid;
   gap: 9px;
 }
@@ -130,7 +131,7 @@ body {
 }
 
 .sidebar-footer {
-  padding-top: 20px;
+  padding-top: 8px;
 }
 
 .new-analysis-btn,
@@ -509,6 +510,45 @@ ul {
   gap: 10px;
 }
 
+.history-filters {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, auto));
+  gap: 10px;
+  align-items: end;
+}
+
+.filter-field {
+  display: grid;
+  gap: 5px;
+}
+
+.filter-field span {
+  font-size: 0.74rem;
+  color: #8a5f50;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.filter-field input,
+.filter-field select {
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  padding: 0 10px;
+}
+
+.filter-field input:focus,
+.filter-field select:focus {
+  outline: none;
+  border-color: #e58246;
+  box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.12);
+}
+
 .history-grid {
   margin-top: 14px;
   display: grid;
@@ -605,6 +645,23 @@ ul {
   justify-items: end;
   min-width: 180px;
   gap: 5px;
+}
+
+.delete-analysis-btn {
+  margin-top: 6px;
+  border: 1px solid #e9b7a8;
+  border-radius: 999px;
+  background: #fff4ef;
+  color: #a13f2a;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.delete-analysis-btn:hover {
+  background: #ffe9e1;
 }
 
 .history-score-label {
@@ -806,6 +863,10 @@ ul {
   .results-grid,
   .results-grid.secondary,
   .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .history-filters {
     grid-template-columns: 1fr;
   }
 

@@ -49,7 +49,26 @@ app.innerHTML = `
           <div class="history-head">
             <h3>Application History</h3>
             <button class="text-link-btn" type="button" id="view-analysis-btn">Start New Analysis</button>
-          </section>
+          </div>
+          <div class="history-filters" aria-label="History Filters">
+            <label class="filter-field">
+              <span>Min Score</span>
+              <input type="number" id="filter-min-score" min="0" max="100" placeholder="0" />
+            </label>
+            <label class="filter-field">
+              <span>Max Score</span>
+              <input type="number" id="filter-max-score" min="0" max="100" placeholder="100" />
+            </label>
+            <label class="filter-field">
+              <span>Date</span>
+              <select id="filter-date-range">
+                <option value="all">All time</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+              </select>
+            </label>
+            <button type="button" class="text-link-btn" id="reset-history-filters">Reset</button>
+          </div>
           <div id="dashboard-history"></div>
         </section>
       </section>
@@ -107,9 +126,16 @@ const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const newAnalysisBtn = document.querySelector("#new-analysis-btn");
 const heroDashboardBtn = document.querySelector("#hero-dashboard-btn");
 const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
+const filterMinScoreEl = document.querySelector("#filter-min-score");
+const filterMaxScoreEl = document.querySelector("#filter-max-score");
+const filterDateRangeEl = document.querySelector("#filter-date-range");
+const resetHistoryFiltersBtn = document.querySelector("#reset-history-filters");
 const dashboardReportOverlayEl = document.querySelector("#dashboard-report-overlay");
 const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
+
+let openSavedAnalysisId = "";
+let filterDebounceTimer = null;
 
 function setActiveView(view) {
   const showDashboard = view === "dashboard";
@@ -210,12 +236,58 @@ function hideSavedAnalysisOverlay() {
   dashboardReportOverlayEl.classList.add("is-hidden");
   dashboardReportOverlayEl.setAttribute("aria-hidden", "true");
   savedReportContentEl.innerHTML = "";
+  openSavedAnalysisId = "";
 }
 
 function showSavedAnalysisOverlay(contentHtml) {
   savedReportContentEl.innerHTML = contentHtml;
   dashboardReportOverlayEl.classList.remove("is-hidden");
   dashboardReportOverlayEl.setAttribute("aria-hidden", "false");
+}
+
+function parseScoreInput(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.min(100, parsed));
+}
+
+function getHistoryFilters() {
+  return {
+    minScore: parseScoreInput(filterMinScoreEl.value),
+    maxScore: parseScoreInput(filterMaxScoreEl.value),
+    dateRange: String(filterDateRangeEl.value || "all")
+  };
+}
+
+function hasActiveHistoryFilters() {
+  const filters = getHistoryFilters();
+  return filters.minScore !== null || filters.maxScore !== null || filters.dateRange !== "all";
+}
+
+function buildHistoryQuery(sessionId) {
+  const filters = getHistoryFilters();
+  const query = new URLSearchParams({
+    sessionId,
+    limit: "20"
+  });
+
+  if (filters.minScore !== null) query.set("minScore", String(filters.minScore));
+  if (filters.maxScore !== null) query.set("maxScore", String(filters.maxScore));
+  if (filters.dateRange !== "all") query.set("dateRange", filters.dateRange);
+
+  return query.toString();
+}
+
+function scheduleHistoryReload() {
+  if (filterDebounceTimer) {
+    clearTimeout(filterDebounceTimer);
+  }
+
+  filterDebounceTimer = setTimeout(() => {
+    loadHistory();
+  }, 220);
 }
 
 function renderSavedAnalysisOverlay(data) {
@@ -290,7 +362,9 @@ function renderDashboard(items) {
         <p class="stat-value">0%</p>
       </article>
     `;
-    dashboardHistoryEl.innerHTML = "<p class=\"empty\">No saved analyses are available yet.</p>";
+    dashboardHistoryEl.innerHTML = hasActiveHistoryFilters()
+      ? "<p class=\"empty\">No analyses match the current filters.</p>"
+      : "<p class=\"empty\">No saved analyses are available yet.</p>";
     return;
   }
 
@@ -350,6 +424,7 @@ function renderDashboard(items) {
             <span style="--score:${score}"></span>
           </div>
           <strong>${score}%</strong>
+          <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">Delete</button>
         </div>
       </article>
     `;
@@ -365,7 +440,7 @@ async function loadHistory() {
     }
 
     const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=20`);
+    const response = await fetch(`${apiBaseUrl}/history?${buildHistoryQuery(sessionId)}`);
     if (!response.ok) throw new Error("History fetch failed");
     const payload = await response.json();
     renderDashboard(Array.isArray(payload.items) ? payload.items : []);
@@ -455,6 +530,7 @@ async function openSavedAnalysis(id) {
     }
 
     errorEl.textContent = "";
+    openSavedAnalysisId = id;
     setActiveView("dashboard");
     showSavedAnalysisOverlay(`
       <div class="loading-card card-lite">
@@ -480,6 +556,38 @@ async function openSavedAnalysis(id) {
   } catch (error) {
     errorEl.textContent = formatRequestError(error);
     hideSavedAnalysisOverlay();
+  }
+}
+
+async function deleteAnalysis(id) {
+  if (!id) return;
+
+  const confirmed = window.confirm("Delete this saved analysis?");
+  if (!confirmed) return;
+
+  try {
+    if (!apiBaseUrl) {
+      throw new Error("API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.");
+    }
+
+    const sessionId = getSessionId();
+    const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(id)}?sessionId=${encodeURIComponent(sessionId)}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const detail = payload.detail || payload.message || payload.error;
+      throw new Error(detail ? `Delete failed: ${detail}` : "Delete failed.");
+    }
+
+    if (openSavedAnalysisId && openSavedAnalysisId === id) {
+      hideSavedAnalysisOverlay();
+    }
+
+    await loadHistory();
+  } catch (error) {
+    errorEl.textContent = formatRequestError(error);
   }
 }
 
@@ -577,6 +685,15 @@ document.addEventListener("keydown", (event) => {
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {
+  const deleteBtn = event.target.closest("[data-action='delete-analysis']");
+  if (deleteBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    const id = deleteBtn.getAttribute("data-analysis-id") || "";
+    deleteAnalysis(id);
+    return;
+  }
+
   const card = event.target.closest("[data-analysis-id]");
   if (!card) return;
 
@@ -584,8 +701,31 @@ dashboardHistoryEl.addEventListener("click", (event) => {
   openSavedAnalysis(id);
 });
 
+filterMinScoreEl.addEventListener("input", () => {
+  scheduleHistoryReload();
+});
+
+filterMaxScoreEl.addEventListener("input", () => {
+  scheduleHistoryReload();
+});
+
+filterDateRangeEl.addEventListener("change", () => {
+  loadHistory();
+});
+
+resetHistoryFiltersBtn.addEventListener("click", () => {
+  filterMinScoreEl.value = "";
+  filterMaxScoreEl.value = "";
+  filterDateRangeEl.value = "all";
+  loadHistory();
+});
+
 dashboardHistoryEl.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
+
+  if (event.target.closest("[data-action='delete-analysis']")) {
+    return;
+  }
 
   const card = event.target.closest("[data-analysis-id]");
   if (!card) return;

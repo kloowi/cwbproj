@@ -126,6 +126,28 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
   return { id, sessionId };
 }
 
+function normalizeHistoryFilters(filters) {
+  const input = filters && typeof filters === "object" ? filters : {};
+  const minScoreRaw = Number(input.minScore);
+  const maxScoreRaw = Number(input.maxScore);
+  const minScore = Number.isFinite(minScoreRaw) ? Math.max(0, Math.min(100, minScoreRaw)) : null;
+  const maxScore = Number.isFinite(maxScoreRaw) ? Math.max(0, Math.min(100, maxScoreRaw)) : null;
+  const dateRange = String(input.dateRange || "all").toLowerCase();
+
+  let sinceIso = null;
+  if (dateRange === "7d") {
+    sinceIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  } else if (dateRange === "30d") {
+    sinceIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  return {
+    minScore,
+    maxScore,
+    sinceIso
+  };
+}
+
 async function getAnalysisById(id, sessionId) {
   const cleanId = String(id || "").trim();
   if (!cleanId) return null;
@@ -207,13 +229,25 @@ async function getAnalysisById(id, sessionId) {
   };
 }
 
-async function getRecentAnalyses(sessionId, limit = 5) {
+async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
   const safeLimit = Math.max(1, Math.min(Number(limit) || 5, 20));
+  const normalizedFilters = normalizeHistoryFilters(filters);
 
   if (apiType === "mongo") {
     const collection = await getMongoCollection();
     const query = sessionId ? { sessionId, source: "analyze" } : { source: "analyze" };
+
+    if (normalizedFilters.minScore !== null || normalizedFilters.maxScore !== null) {
+      query.matchScore = {};
+      if (normalizedFilters.minScore !== null) query.matchScore.$gte = normalizedFilters.minScore;
+      if (normalizedFilters.maxScore !== null) query.matchScore.$lte = normalizedFilters.maxScore;
+    }
+
+    if (normalizedFilters.sinceIso) {
+      query.createdAt = { $gte: normalizedFilters.sinceIso };
+    }
+
     const rows = await collection
       .find(query)
       .sort({ createdAt: -1 })
@@ -234,20 +268,35 @@ async function getRecentAnalyses(sessionId, limit = 5) {
   }
 
   const dbContainer = getContainer();
+  const whereClauses = ["c.source = @source"];
+  const parameters = [
+    { name: "@limit", value: safeLimit },
+    { name: "@source", value: "analyze" }
+  ];
+
+  if (sessionId) {
+    whereClauses.push("c.sessionId = @sessionId");
+    parameters.push({ name: "@sessionId", value: sessionId });
+  }
+
+  if (normalizedFilters.minScore !== null) {
+    whereClauses.push("c.matchScore >= @minScore");
+    parameters.push({ name: "@minScore", value: normalizedFilters.minScore });
+  }
+
+  if (normalizedFilters.maxScore !== null) {
+    whereClauses.push("c.matchScore <= @maxScore");
+    parameters.push({ name: "@maxScore", value: normalizedFilters.maxScore });
+  }
+
+  if (normalizedFilters.sinceIso) {
+    whereClauses.push("c.createdAt >= @sinceIso");
+    parameters.push({ name: "@sinceIso", value: normalizedFilters.sinceIso });
+  }
+
   const querySpec = {
-    query: sessionId
-      ? "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.sessionId = @sessionId ORDER BY c.createdAt DESC"
-      : "SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE c.source = @source ORDER BY c.createdAt DESC",
-    parameters: sessionId
-      ? [
-          { name: "@limit", value: safeLimit },
-          { name: "@source", value: "analyze" },
-          { name: "@sessionId", value: sessionId }
-        ]
-      : [
-          { name: "@limit", value: safeLimit },
-          { name: "@source", value: "analyze" }
-        ]
+    query: `SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE ${whereClauses.join(" AND ")} ORDER BY c.createdAt DESC`,
+    parameters
   };
 
   const { resources } = await dbContainer.items.query(querySpec).fetchAll();
@@ -264,10 +313,36 @@ async function getRecentAnalyses(sessionId, limit = 5) {
   }));
 }
 
+async function deleteAnalysisById(id, sessionId) {
+  const cleanId = String(id || "").trim();
+  const cleanSessionId = String(sessionId || "").trim();
+  if (!cleanId || !cleanSessionId) return false;
+
+  const apiType = detectApiType(COSMOS_CONNECTION_STRING);
+
+  if (apiType === "mongo") {
+    const collection = await getMongoCollection();
+    const result = await collection.deleteOne({ _id: cleanId, sessionId: cleanSessionId, source: "analyze" });
+    return result.deletedCount > 0;
+  }
+
+  const dbContainer = getContainer();
+
+  try {
+    const { resource } = await dbContainer.item(cleanId, cleanSessionId).read();
+    if (!resource || resource.source !== "analyze") return false;
+    await dbContainer.item(cleanId, cleanSessionId).delete();
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
 module.exports = {
   getCosmosStatus,
   runSmokeTest,
   saveAnalysisRecord,
   getRecentAnalyses,
-  getAnalysisById
+  getAnalysisById,
+  deleteAnalysisById
 };
