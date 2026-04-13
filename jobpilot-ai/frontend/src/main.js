@@ -1,6 +1,7 @@
 import "./styles.css";
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5050").replace(/\/$/, "");
+const SESSION_KEY = "jobpilot_session_id";
 
 const app = document.querySelector("#app");
 
@@ -22,6 +23,11 @@ app.innerHTML = `
       <div id="error" class="error"></div>
       <div id="results"></div>
     </section>
+
+    <section class="card">
+      <h2>Recent Analyses</h2>
+      <div id="history"></div>
+    </section>
   </main>
 `;
 
@@ -29,6 +35,49 @@ const form = document.querySelector("#analyze-form");
 const submitBtn = document.querySelector("#submit-btn");
 const errorEl = document.querySelector("#error");
 const resultsEl = document.querySelector("#results");
+const historyEl = document.querySelector("#history");
+
+function getSessionId() {
+  const existing = localStorage.getItem(SESSION_KEY);
+  if (existing) return existing;
+
+  const created = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `session-${Date.now()}`;
+  localStorage.setItem(SESSION_KEY, created);
+  return created;
+}
+
+function renderHistory(items) {
+  if (!items.length) {
+    historyEl.innerHTML = "<p>No saved analyses yet.</p>";
+    return;
+  }
+
+  historyEl.innerHTML = items.map((item) => {
+    const missing = (item.missingSkills || []).join(", ") || "none";
+    const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "unknown";
+    return `
+      <article class="card">
+        <div><strong>Score:</strong> ${item.matchScore ?? 0}%</div>
+        <div><strong>Missing:</strong> ${missing}</div>
+        <div class="meta">${date} • ${item.provider || "unknown"}</div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadHistory() {
+  try {
+    const sessionId = getSessionId();
+    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=5`);
+    if (!response.ok) throw new Error("History fetch failed");
+    const payload = await response.json();
+    renderHistory(Array.isArray(payload.items) ? payload.items : []);
+  } catch (_error) {
+    historyEl.innerHTML = "<p>Could not load history yet.</p>";
+  }
+}
 
 function renderResults(data) {
   const missingList = (data.match?.missing || []).map((item) => `<li>${item}</li>`).join("");
@@ -79,10 +128,11 @@ form.addEventListener("submit", async (event) => {
   submitBtn.textContent = "Analyzing...";
 
   try {
+    const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume, job })
+      body: JSON.stringify({ resume, job, sessionId })
     });
 
     if (!response.ok) {
@@ -92,6 +142,7 @@ form.addEventListener("submit", async (event) => {
 
     const data = await response.json();
     renderResults(data);
+    await loadHistory();
   } catch (error) {
     errorEl.textContent = error.message || "Unexpected error";
   } finally {
@@ -99,3 +150,5 @@ form.addEventListener("submit", async (event) => {
     submitBtn.textContent = "Analyze";
   }
 });
+
+loadHistory();
