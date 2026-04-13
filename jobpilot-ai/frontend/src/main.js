@@ -24,9 +24,6 @@ app.innerHTML = `
         <button class="nav-item" type="button" disabled>Job Matches</button>
         <button class="nav-item" type="button" disabled>Skill Insights</button>
       </nav>
-      <div class="sidebar-footer">
-        <button class="new-analysis-btn" type="button" id="new-analysis-btn">+ New Analysis</button>
-      </div>
     </aside>
 
     <main class="workspace">
@@ -36,7 +33,6 @@ app.innerHTML = `
           <h2>Design your next move with clarity.</h2>
           <p>Turn your resume and target role into concrete, score-backed next steps.</p>
         </div>
-        <button class="ghost-btn" type="button" id="hero-dashboard-btn">Open Dashboard</button>
       </header>
 
       <section class="dashboard-view view-hidden" id="dashboard-view" aria-label="Dashboard">
@@ -123,8 +119,6 @@ const dashboardViewEl = document.querySelector("#dashboard-view");
 const analysisViewEl = document.querySelector("#analysis-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
-const newAnalysisBtn = document.querySelector("#new-analysis-btn");
-const heroDashboardBtn = document.querySelector("#hero-dashboard-btn");
 const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
@@ -470,7 +464,7 @@ function renderLoadingState() {
 function renderEmptyResultsState() {
   resultsEl.innerHTML = `
     <section class="card-lite empty-state">
-      <strong>Submit Your First Analysis</strong>
+      <strong>Find Out Your Analysis</strong>
       <p>Results will appear here after you provide both a resume and a target job description.</p>
     </section>
   `;
@@ -643,15 +637,6 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-newAnalysisBtn.addEventListener("click", () => {
-  hideSavedAnalysisOverlay();
-  setActiveView("analysis");
-  form.reset();
-  errorEl.textContent = "";
-  renderEmptyResultsState();
-  form.resume.focus();
-});
-
 navDashboardBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
   setActiveView("dashboard");
@@ -660,11 +645,6 @@ navDashboardBtn.addEventListener("click", () => {
 navNewAnalysisBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
   setActiveView("analysis");
-});
-
-heroDashboardBtn.addEventListener("click", () => {
-  hideSavedAnalysisOverlay();
-  setActiveView("dashboard");
 });
 
 viewAnalysisBtn.addEventListener("click", () => {
