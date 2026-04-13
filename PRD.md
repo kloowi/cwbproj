@@ -1,6 +1,3 @@
-Here’s a clean, hackathon-ready **PRD (Product Requirements Document)** for your **Agentic Job Hunt Copilot** based on everything you’ve been building (resume + job matching + multi-agent system).
-
----
 
 # 📄 PRD — AI Job Hunt Copilot (Agentic Career Assistant)
 
@@ -8,7 +5,7 @@ Here’s a clean, hackathon-ready **PRD (Product Requirements Document)** for yo
 
 ### 🧠 Product Name (working):
 
-**JobPilot AI** (you can rename later)
+**JobPilot AI**
 
 ### 🎯 Vision:
 
