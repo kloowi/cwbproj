@@ -590,6 +590,16 @@ ul {
   margin-top: 4px;
 }
 
+.history-context {
+  margin: 4px 0 0;
+  color: #8a7269;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 460px;
+}
+
 .history-score-wrap {
   display: grid;
   justify-items: end;
@@ -661,6 +671,82 @@ ul {
   font-weight: 700;
 }
 
+.dashboard-report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(49, 28, 18, 0.34);
+  backdrop-filter: blur(2px);
+}
+
+.dashboard-report-dialog {
+  width: min(980px, 100%);
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, #fffcfa, #fff7f1);
+}
+
+.dashboard-report-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 250, 246, 0.95);
+  border-bottom: 1px solid var(--line);
+}
+
+.dashboard-report-head h3 {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: 1.3rem;
+}
+
+#saved-report-content {
+  padding: 14px;
+}
+
+.saved-report-kicker {
+  margin: 2px 0 10px;
+  color: #9b412a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.saved-snippet-label {
+  margin: 0 0 5px;
+  color: #91563f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.saved-snippet {
+  margin: 0 0 10px;
+  color: #5f4d47;
+  background: #fff4e8;
+  border: 1px solid #f0d6be;
+  border-radius: 12px;
+  padding: 9px 10px;
+  line-height: 1.45;
+  font-size: 0.88rem;
+}
+
+.is-hidden {
+  display: none;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -695,7 +781,8 @@ ul {
   }
 
   .history-sub,
-  .history-gaps {
+  .history-gaps,
+  .history-context {
     max-width: 100%;
   }
 }
@@ -733,6 +820,10 @@ ul {
   .history-score-wrap {
     justify-items: start;
     min-width: 0;
+  }
+
+  .dashboard-report-overlay {
+    padding: 10px;
   }
 }
 

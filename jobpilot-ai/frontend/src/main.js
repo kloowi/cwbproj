@@ -80,6 +80,16 @@ app.innerHTML = `
           <div id="results"></div>
         </section>
       </section>
+
+      <section class="dashboard-report-overlay is-hidden" id="dashboard-report-overlay" aria-hidden="true">
+        <div class="dashboard-report-dialog card-lite" role="dialog" aria-modal="true" aria-labelledby="saved-report-title">
+          <div class="dashboard-report-head">
+            <h3 id="saved-report-title">Saved Analysis Report</h3>
+            <button type="button" class="ghost-btn" id="close-saved-report-btn">Close</button>
+          </div>
+          <div id="saved-report-content"></div>
+        </div>
+      </section>
     </main>
   </div>
 `;
@@ -97,6 +107,9 @@ const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const newAnalysisBtn = document.querySelector("#new-analysis-btn");
 const heroDashboardBtn = document.querySelector("#hero-dashboard-btn");
 const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
+const dashboardReportOverlayEl = document.querySelector("#dashboard-report-overlay");
+const savedReportContentEl = document.querySelector("#saved-report-content");
+const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
 
 function setActiveView(view) {
   const showDashboard = view === "dashboard";
@@ -136,6 +149,15 @@ function toSentenceCase(text) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function inferJobTitle(item) {
   const explicit = String(item?.jobTitle || "").trim();
   if (explicit) return explicit;
@@ -153,6 +175,10 @@ function mapStoredAnalysisToResult(item) {
   return {
     job: {
       title: String(item?.jobTitle || "").trim()
+    },
+    input: {
+      resumeSnippet: String(item?.resumeSnippet || "").trim(),
+      jobSnippet: String(item?.jobSnippet || "").trim()
     },
     match: {
       score: Number(item?.matchScore || 0),
@@ -178,6 +204,71 @@ function getSessionId() {
     : `session-${Date.now()}`;
   localStorage.setItem(SESSION_KEY, created);
   return created;
+}
+
+function hideSavedAnalysisOverlay() {
+  dashboardReportOverlayEl.classList.add("is-hidden");
+  dashboardReportOverlayEl.setAttribute("aria-hidden", "true");
+  savedReportContentEl.innerHTML = "";
+}
+
+function showSavedAnalysisOverlay(contentHtml) {
+  savedReportContentEl.innerHTML = contentHtml;
+  dashboardReportOverlayEl.classList.remove("is-hidden");
+  dashboardReportOverlayEl.setAttribute("aria-hidden", "false");
+}
+
+function renderSavedAnalysisOverlay(data) {
+  const title = escapeHtml(data.job?.title || "Role Analysis");
+  const missingList = (data.match?.missing || []).map((item) => `<li>${escapeHtml(toTitleCase(item))}</li>`).join("");
+  const strengthsList = (data.match?.strengths || []).map((item) => `<li>${escapeHtml(toTitleCase(item))}</li>`).join("");
+  const roadmapList = (data.plan?.roadmap || []).map((item) => `<li>${escapeHtml(toSentenceCase(item))}</li>`).join("");
+  const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
+  const provider = escapeHtml(toTitleCase(data.meta?.provider || "unknown"));
+  const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
+  const resumeSnippet = escapeHtml(data.input?.resumeSnippet || "Resume preview is unavailable for this record.");
+  const jobSnippet = escapeHtml(data.input?.jobSnippet || "Job description preview is unavailable for this record.");
+
+  showSavedAnalysisOverlay(`
+    <div class="saved-report-kicker">${title}</div>
+    <div class="results-grid" aria-live="polite">
+      <section class="score-card card-lite">
+        <div class="score-ring" style="--score:${score}">
+          <span>${score}%</span>
+        </div>
+        <div class="score-caption">Match Score</div>
+        <div class="status-pill">Saved Snapshot</div>
+        <p class="score-text">${reasoning || "A concise reasoning summary is not available for this run."}</p>
+        <div class="meta">Provider: ${provider}</div>
+      </section>
+
+      <section class="insight-card card-lite">
+        <div class="insight-head">
+          <h3>Priority Skill Gaps</h3>
+          <span class="tag attention">Needs Attention</span>
+        </div>
+        <ul class="pill-list">${missingList || "<li>None</li>"}</ul>
+        <div class="quick-note">
+          <strong>Recommended Next Steps</strong>
+          <ul>${roadmapList || "<li>No roadmap was generated.</li>"}</ul>
+        </div>
+      </section>
+    </div>
+
+    <div class="results-grid secondary">
+      <section class="card-lite">
+        <h3>Strengths</h3>
+        <ul>${strengthsList || "<li>None detected</li>"}</ul>
+      </section>
+      <section class="card-lite">
+        <h3>Saved Input Preview</h3>
+        <p class="saved-snippet-label">Resume</p>
+        <p class="saved-snippet">${resumeSnippet}</p>
+        <p class="saved-snippet-label">Job Description</p>
+        <p class="saved-snippet">${jobSnippet}</p>
+      </section>
+    </div>
+  `);
 }
 
 function renderDashboard(items) {
@@ -233,6 +324,7 @@ function renderDashboard(items) {
     const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
     const title = inferJobTitle(item);
     const skillsPreview = missing.slice(0, 2).join(" • ") || "No major gaps detected";
+    const contextPreview = String(item.jobSnippet || "").replace(/\s+/g, " ").trim();
 
     return `
       <article class="history-item history-item-clickable card-lite" data-analysis-id="${item.id || ""}" tabindex="0" role="button" aria-label="Open saved report for ${title}">
@@ -249,6 +341,7 @@ function renderDashboard(items) {
             </div>
             <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
+            <p class="history-context">${contextPreview ? `Job preview: ${escapeHtml(contextPreview.slice(0, 90))}` : "Job preview unavailable"}</p>
           </div>
         </div>
         <div class="history-score-wrap">
@@ -362,8 +455,16 @@ async function openSavedAnalysis(id) {
     }
 
     errorEl.textContent = "";
-    setActiveView("analysis");
-    renderLoadingState();
+    setActiveView("dashboard");
+    showSavedAnalysisOverlay(`
+      <div class="loading-card card-lite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <strong>Loading saved report...</strong>
+          <p class="subtle">Retrieving analysis details from your history.</p>
+        </div>
+      </div>
+    `);
 
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(id)}?sessionId=${encodeURIComponent(sessionId)}`);
@@ -375,10 +476,10 @@ async function openSavedAnalysis(id) {
 
     const payload = await response.json();
     const data = mapStoredAnalysisToResult(payload.item || {});
-    renderResults(data);
+    renderSavedAnalysisOverlay(data);
   } catch (error) {
     errorEl.textContent = formatRequestError(error);
-    renderEmptyResultsState();
+    hideSavedAnalysisOverlay();
   }
 }
 
@@ -430,6 +531,7 @@ form.addEventListener("submit", async (event) => {
 });
 
 newAnalysisBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setActiveView("analysis");
   form.reset();
   errorEl.textContent = "";
@@ -438,20 +540,40 @@ newAnalysisBtn.addEventListener("click", () => {
 });
 
 navDashboardBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setActiveView("dashboard");
 });
 
 navNewAnalysisBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setActiveView("analysis");
 });
 
 heroDashboardBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setActiveView("dashboard");
 });
 
 viewAnalysisBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setActiveView("analysis");
   form.resume.focus();
+});
+
+closeSavedReportBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
+});
+
+dashboardReportOverlayEl.addEventListener("click", (event) => {
+  if (event.target === dashboardReportOverlayEl) {
+    hideSavedAnalysisOverlay();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !dashboardReportOverlayEl.classList.contains("is-hidden")) {
+    hideSavedAnalysisOverlay();
+  }
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {

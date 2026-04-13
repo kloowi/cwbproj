@@ -145,6 +145,8 @@ async function getAnalysisById(id, sessionId) {
       sessionId: row.sessionId,
       createdAt: row.createdAt,
       jobTitle: row.jobTitle || "",
+      resumeSnippet: row.resumeSnippet || "",
+      jobSnippet: row.jobSnippet || "",
       matchScore: Number(row.matchScore || 0),
       matchReasoning: row.matchReasoning || "",
       missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
@@ -169,8 +171,8 @@ async function getAnalysisById(id, sessionId) {
   if (!row) {
     const querySpec = {
       query: sessionId
-        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
-        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id",
+        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
+        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id",
       parameters: sessionId
         ? [
             { name: "@source", value: "analyze" },
@@ -194,6 +196,8 @@ async function getAnalysisById(id, sessionId) {
     sessionId: row.sessionId,
     createdAt: row.createdAt,
     jobTitle: row.jobTitle || "",
+    resumeSnippet: row.resumeSnippet || "",
+    jobSnippet: row.jobSnippet || "",
     matchScore: Number(row.matchScore || 0),
     matchReasoning: row.matchReasoning || "",
     missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
