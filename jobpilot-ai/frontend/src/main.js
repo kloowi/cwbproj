@@ -10,8 +10,13 @@ app.innerHTML = `
   <div class="app-shell">
     <aside class="sidebar">
       <div>
-        <h1 class="brand-title">JobPilot AI</h1>
-        <p class="brand-subtitle">Career Match Navigator</p>
+        <div class="brand-head">
+          <div class="brand-chip">JP</div>
+          <div>
+            <h1 class="brand-title">JobPilot</h1>
+            <p class="brand-subtitle">Career Match Navigator</p>
+          </div>
+        </div>
       </div>
       <nav class="nav-group" aria-label="Primary Navigation">
         <button class="nav-item" type="button" id="nav-dashboard">Dashboard</button>
@@ -26,8 +31,12 @@ app.innerHTML = `
 
     <main class="workspace">
       <header class="hero">
-        <h2>Let's Land Your Next Job</h2>
-        <p>Upload your details and let AI bridge the gap to your target role.</p>
+        <div>
+          <p class="hero-kicker">Career Command Center</p>
+          <h2>Design your next move with clarity.</h2>
+          <p>Turn your resume and target role into concrete, score-backed next steps.</p>
+        </div>
+        <button class="ghost-btn" type="button" id="hero-dashboard-btn">Open Dashboard</button>
       </header>
 
       <section class="dashboard-view view-hidden" id="dashboard-view" aria-label="Dashboard">
@@ -39,7 +48,7 @@ app.innerHTML = `
         <section class="dashboard-panel" aria-label="Application History">
           <div class="history-head">
             <h3>Application History</h3>
-            <p>Tracked from your recent analysis history.</p>
+            <button class="text-link-btn" type="button" id="view-analysis-btn">Start New Analysis</button>
           </section>
           <div id="dashboard-history"></div>
         </section>
@@ -47,6 +56,7 @@ app.innerHTML = `
 
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
+          <div class="section-label">New Analysis</div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
               <label for="resume">Resume</label>
@@ -85,6 +95,8 @@ const analysisViewEl = document.querySelector("#analysis-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const newAnalysisBtn = document.querySelector("#new-analysis-btn");
+const heroDashboardBtn = document.querySelector("#hero-dashboard-btn");
+const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
 
 function setActiveView(view) {
   const showDashboard = view === "dashboard";
@@ -139,14 +151,17 @@ function renderDashboard(items) {
   if (!items.length) {
     dashboardStatsEl.innerHTML = `
       <article class="stat-card card-lite">
+        <p class="stat-top">Applications</p>
         <p class="stat-label">Total Applications</p>
         <p class="stat-value">0</p>
       </article>
       <article class="stat-card card-lite">
+        <p class="stat-top">Average</p>
         <p class="stat-label">Average Match Score</p>
         <p class="stat-value">0%</p>
       </article>
       <article class="stat-card card-lite">
+        <p class="stat-top">Best</p>
         <p class="stat-label">Top Match Score</p>
         <p class="stat-value">0%</p>
       </article>
@@ -162,27 +177,50 @@ function renderDashboard(items) {
 
   dashboardStatsEl.innerHTML = `
     <article class="stat-card card-lite">
+      <p class="stat-top">Applications</p>
       <p class="stat-label">Total Applications</p>
       <p class="stat-value">${totalApplications}</p>
     </article>
     <article class="stat-card card-lite">
+      <p class="stat-top">Average</p>
       <p class="stat-label">Average Match Score</p>
       <p class="stat-value">${avgScore}%</p>
     </article>
     <article class="stat-card card-lite">
+      <p class="stat-top">Best</p>
       <p class="stat-label">Top Match Score</p>
       <p class="stat-value">${topScore}%</p>
     </article>
   `;
 
   dashboardHistoryEl.innerHTML = `<div class="history-grid">${items.slice(0, 8).map((item) => {
-    const missing = (item.missingSkills || []).map(toTitleCase).join(", ") || "None";
+    const missing = (item.missingSkills || []).map(toTitleCase);
     const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown";
+    const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
+    const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
+    const gapCount = missing.length;
+    const skillsPreview = missing.slice(0, 2).join(" • ") || "No major gaps detected";
+
     return `
       <article class="history-item card-lite">
-        <div class="history-row"><strong>Match Score</strong><span>${item.matchScore ?? 0}%</span></div>
-        <div class="history-row"><strong>Missing Skills</strong><span>${missing}</span></div>
-        <div class="meta">${date} • ${toTitleCase(item.provider || "unknown")}</div>
+        <div class="history-item-main">
+          <div class="history-icon">${String(gapCount).padStart(2, "0")}</div>
+          <div>
+            <div class="history-title-row">
+              <h4>Analysis ${item.id ? String(item.id).slice(0, 6) : "Run"}</h4>
+              <span class="history-chip">${status}</span>
+            </div>
+            <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
+            <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
+          </div>
+        </div>
+        <div class="history-score-wrap">
+          <span class="history-score-label">Match Score</span>
+          <div class="history-meter" role="presentation">
+            <span style="--score:${score}"></span>
+          </div>
+          <strong>${score}%</strong>
+        </div>
       </article>
     `;
   }).join("")}</div>`;
@@ -197,7 +235,7 @@ async function loadHistory() {
     }
 
     const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=50`);
+    const response = await fetch(`${apiBaseUrl}/history?sessionId=${encodeURIComponent(sessionId)}&limit=20`);
     if (!response.ok) throw new Error("History fetch failed");
     const payload = await response.json();
     renderDashboard(Array.isArray(payload.items) ? payload.items : []);
@@ -339,6 +377,15 @@ navDashboardBtn.addEventListener("click", () => {
 
 navNewAnalysisBtn.addEventListener("click", () => {
   setActiveView("analysis");
+});
+
+heroDashboardBtn.addEventListener("click", () => {
+  setActiveView("dashboard");
+});
+
+viewAnalysisBtn.addEventListener("click", () => {
+  setActiveView("analysis");
+  form.resume.focus();
 });
 
 renderEmptyResultsState();
