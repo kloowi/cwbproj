@@ -4,6 +4,31 @@ const configuredApiBaseUrl = (import.meta.env.VITE_API_URL || "").trim();
 const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "localhost" ? "http://localhost:5050" : "")).replace(/\/$/, "");
 const SESSION_KEY = "jobpilot_session_id";
 const ACTIVE_VIEW_KEY = "jobpilot_active_view";
+const PIPELINE_STAGE_DURATION_MS = 1100;
+const PIPELINE_REVEAL_DELAY_MS = 280;
+
+const PIPELINE_STAGES = [
+  {
+    id: "resume_extract",
+    label: "Resume Agent",
+    detail: "Extracting skills and experience"
+  },
+  {
+    id: "job_extract",
+    label: "Job Agent",
+    detail: "Parsing role requirements"
+  },
+  {
+    id: "skill_match",
+    label: "Match Agent",
+    detail: "Comparing profile against role"
+  },
+  {
+    id: "roadmap_plan",
+    label: "Plan Agent",
+    detail: "Building targeted roadmap"
+  }
+];
 
 const app = document.querySelector("#app");
 
@@ -148,6 +173,9 @@ const consentCheckboxEl = document.querySelector("#consent-checkbox");
 
 let openSavedAnalysisId = "";
 let filterDebounceTimer = null;
+let pipelineState = null;
+let pipelineRunToken = 0;
+let pipelineTimers = [];
 
 function setActiveView(view) {
   const normalizedView = view === "dashboard" ? "dashboard" : "analysis";
@@ -489,6 +517,38 @@ async function loadHistory() {
 
 function renderLoadingState(title = "Analyzing your profile...", subtitle = "Please wait while we evaluate match quality and recommendations.") {
 
+  const pipelineHtml = pipelineState ? `
+    <div class="pipeline-shell" aria-live="polite" aria-label="Agent pipeline progress">
+      <div class="pipeline-head">
+        <strong>Agent Pipeline</strong>
+        <span>${escapeHtml(pipelineState.progressLabel || "Starting...")}</span>
+      </div>
+      <div class="pipeline-track">
+        ${pipelineState.stages.map((stage, index) => {
+          const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
+          const timing = stage.timing || (stage.status === "active" ? "Running" : stage.status === "done" ? "Completed" : stage.status === "error" ? "Failed" : "Waiting");
+          const connectorClass = index === PIPELINE_STAGES.length - 1
+            ? ""
+            : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
+              ? "is-active"
+              : "";
+
+          return `
+            <div class="pipeline-stage ${stage.status === "active" ? "is-active" : ""} ${stage.status === "done" ? "is-done" : ""} ${stage.status === "error" ? "is-error" : ""}">
+              <div class="pipeline-icon" aria-hidden="true">${icon}</div>
+              <div class="pipeline-copy">
+                <p class="pipeline-stage-title">${escapeHtml(stage.label)}</p>
+                <p class="pipeline-stage-detail">${escapeHtml(stage.detail)}</p>
+              </div>
+              <span class="pipeline-stage-state">${escapeHtml(timing)}</span>
+            </div>
+            ${index === PIPELINE_STAGES.length - 1 ? "" : `<div class="pipeline-connector ${connectorClass}" aria-hidden="true"></div>`}
+          `;
+        }).join("")}
+      </div>
+    </div>
+  ` : "";
+
   resultsEl.innerHTML = `
     <div class="loading-card card-lite">
       <div class="spinner" aria-hidden="true"></div>
@@ -497,7 +557,123 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
         <p class="subtle">${subtitle}</p>
       </div>
     </div>
+    ${pipelineHtml}
   `;
+}
+
+function clearPipelineTimers() {
+  pipelineTimers.forEach((timerId) => clearTimeout(timerId));
+  pipelineTimers = [];
+}
+
+function createInitialPipelineState() {
+  return {
+    progressLabel: "Extracting resume",
+    stages: PIPELINE_STAGES.map((stage, index) => ({
+      ...stage,
+      status: index === 0 ? "active" : "pending",
+      timing: index === 0 ? "Running" : "Waiting"
+    }))
+  };
+}
+
+function renderPipelineLoading(title, subtitle) {
+  renderLoadingState(title, subtitle);
+}
+
+function updatePipelineStage(stageId, status, timingLabel) {
+  if (!pipelineState) return;
+
+  pipelineState = {
+    ...pipelineState,
+    stages: pipelineState.stages.map((stage) => {
+      if (stage.id !== stageId) return stage;
+      return {
+        ...stage,
+        status,
+        timing: timingLabel || (status === "active" ? "Running" : status === "done" ? "Completed" : status === "error" ? "Failed" : "Waiting")
+      };
+    })
+  };
+}
+
+function activatePipelineStage(stageId) {
+  if (!pipelineState) return;
+
+  pipelineState = {
+    ...pipelineState,
+    stages: pipelineState.stages.map((stage) => {
+      if (stage.id !== stageId) return stage;
+      return { ...stage, status: "active", timing: "Running" };
+    })
+  };
+}
+
+function getActivePipelineStage() {
+  if (!pipelineState) return null;
+  return pipelineState.stages.find((stage) => stage.status === "active") || null;
+}
+
+function beginPipelineFlow() {
+  pipelineRunToken += 1;
+  clearPipelineTimers();
+  pipelineState = createInitialPipelineState();
+  renderPipelineLoading("Extracting resume text...", "We are processing your uploaded PDF or DOCX file.");
+  return pipelineRunToken;
+}
+
+function startAnalyzePipelineSimulation(token) {
+  if (token !== pipelineRunToken || !pipelineState) return;
+
+  updatePipelineStage("resume_extract", "done", "Completed");
+  activatePipelineStage("job_extract");
+  pipelineState.progressLabel = "Running analysis pipeline";
+  renderPipelineLoading("Analyzing your profile...", "Each agent is working through your profile now.");
+
+  PIPELINE_STAGES.forEach((stage, index) => {
+    if (index < 1 || index >= PIPELINE_STAGES.length - 1) return;
+
+    const timerId = setTimeout(() => {
+      if (token !== pipelineRunToken || !pipelineState) return;
+      updatePipelineStage(stage.id, "done", "Completed");
+      activatePipelineStage(PIPELINE_STAGES[index + 1].id);
+      renderPipelineLoading("Analyzing your profile...", "Each agent is working through your profile now.");
+    }, PIPELINE_REVEAL_DELAY_MS + PIPELINE_STAGE_DURATION_MS * index);
+
+    pipelineTimers.push(timerId);
+  });
+}
+
+async function completePipelineFlow(token) {
+  if (token !== pipelineRunToken || !pipelineState) return;
+
+  clearPipelineTimers();
+  pipelineState.stages = pipelineState.stages.map((stage) => ({ ...stage, status: "done", timing: "Completed" }));
+  pipelineState.progressLabel = "Pipeline completed";
+  renderPipelineLoading("Finalizing results...", "Preparing your analysis report.");
+
+  await new Promise((resolve) => {
+    const timerId = setTimeout(resolve, 220);
+    pipelineTimers.push(timerId);
+  });
+
+  clearPipelineTimers();
+}
+
+function failPipelineFlow(token, message) {
+  if (token !== pipelineRunToken || !pipelineState) return;
+
+  clearPipelineTimers();
+  const activeStage = getActivePipelineStage();
+  const failedId = activeStage ? activeStage.id : PIPELINE_STAGES[PIPELINE_STAGES.length - 1].id;
+  updatePipelineStage(failedId, "error", "Failed");
+  pipelineState.progressLabel = message || "Pipeline failed";
+  renderPipelineLoading("Analysis stopped", message || "One pipeline stage failed.");
+}
+
+function clearPipelineState() {
+  clearPipelineTimers();
+  pipelineState = null;
 }
 
 function updateSubmitAvailability() {
@@ -661,7 +837,7 @@ form.addEventListener("submit", async (event) => {
 
   submitBtn.disabled = true;
   submitBtn.textContent = "Extracting Resume...";
-  renderLoadingState("Extracting resume text...", "We are processing your uploaded PDF or DOCX file.");
+  const runToken = beginPipelineFlow();
 
   try {
     const extractFormData = new FormData();
@@ -685,7 +861,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     submitBtn.textContent = "Analyzing...";
-    renderLoadingState();
+    startAnalyzePipelineSimulation(runToken);
 
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/analyze`, {
@@ -701,9 +877,12 @@ form.addEventListener("submit", async (event) => {
     }
 
     const data = await response.json();
+    await completePipelineFlow(runToken);
+    clearPipelineState();
     renderResults(data);
     await loadHistory();
   } catch (error) {
+    failPipelineFlow(runToken, "Unable to complete all stages. Please retry.");
     errorEl.textContent = formatRequestError(error);
   } finally {
     updateSubmitAvailability();
