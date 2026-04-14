@@ -80,10 +80,12 @@ app.innerHTML = `
               <p class="upload-note">Upload a PDF or DOCX resume file.</p>
               <p class="file-status" id="resume-file-status">No file selected.</p>
               <div class="privacy-notice" aria-label="Privacy Notice">
-                <p><strong>Privacy Notice</strong></p>
-                <p>Stored data: resume preview (first 250 chars), job preview (first 250 chars), match score, skill gaps, roadmap, and provider.</p>
-                <p>Retention: analysis history is kept for 30 days.</p>
-                <p>Delete: Dashboard -> Application History -> use the delete icon on a card.</p>
+                <p class="privacy-title">Privacy Notice</p>
+                <ul class="privacy-list">
+                  <li><span class="privacy-label">Stored data:</span> A short resume preview (first 250 characters), a short job preview (first 250 characters), match score, skill gaps, roadmap, and provider.</li>
+                  <li><span class="privacy-label">Retention:</span> Analysis history is kept for 30 days.</li>
+                  <li><span class="privacy-label">Delete:</span> Go to Dashboard &gt; Application History, then use the delete icon on a card.</li>
+                </ul>
               </div>
             </section>
 

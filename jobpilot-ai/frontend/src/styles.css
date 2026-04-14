@@ -387,22 +387,39 @@ input[type="file"]:focus {
 }
 
 .privacy-notice {
-  margin-top: 10px;
+  margin-top: 12px;
   border: 1px solid #f0d6be;
   background: #fff5ec;
   border-radius: 12px;
-  padding: 10px;
+  padding: 12px;
 }
 
-.privacy-notice p {
+.privacy-title {
+  margin: 0;
+  color: #5f453b;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.privacy-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+
+.privacy-list li {
   margin: 0;
   color: #6f5449;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
-.privacy-notice p + p {
-  margin-top: 6px;
+.privacy-label {
+  color: #63493f;
+  font-weight: 700;
 }
 
 .form-actions {
