@@ -101,7 +101,11 @@ app.innerHTML = `
         <section class="panel" aria-label="Analysis Input">
           <div class="section-label">New Analysis</div>
           <div class="analysis-intro">
-           
+            <p>Upload, paste, analyze.</p>
+            <div class="intro-chip-row" aria-label="Analysis features">
+              <span class="intro-chip">Secure</span>
+              <span class="intro-chip">Role Match</span>
+              <span class="intro-chip">Clear Output</span>
             </div>
           </div>
           <form id="analyze-form" class="input-grid">
