@@ -372,55 +372,230 @@ function scheduleHistoryReload() {
   }, 220);
 }
 
-function renderSavedAnalysisOverlay(data) {
-  const title = escapeHtml(data.job?.title || "Role Analysis");
-  const missingList = (data.match?.missing || []).map((item) => `<li>${escapeHtml(toTitleCase(item))}</li>`).join("");
-  const strengthsList = (data.match?.strengths || []).map((item) => `<li>${escapeHtml(toTitleCase(item))}</li>`).join("");
-  const roadmapList = (data.plan?.roadmap || []).map((item) => `<li>${escapeHtml(toSentenceCase(item))}</li>`).join("");
-  const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
-  const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
-  const resumeSnippet = escapeHtml(data.input?.resumeSnippet || "Resume preview is unavailable for this record.");
-  const jobSnippet = escapeHtml(data.input?.jobSnippet || "Job description preview is unavailable for this record.");
+function getScoreProfile(score) {
+  if (score >= 80) {
+    return {
+      headline: "High Alignment",
+      toneClass: "is-good",
+      pillLabel: "Strong Fit",
+      summary: "Your resume aligns with most role requirements. Focus on polishing evidence and impact language."
+    };
+  }
 
-  showSavedAnalysisOverlay(`
-    <div class="saved-report-kicker">${title}</div>
-    <div class="results-grid" aria-live="polite">
-      <section class="score-card card-lite">
-        <div class="score-ring" style="--score:${score}">
+  if (score >= 60) {
+    return {
+      headline: "Promising Match",
+      toneClass: "is-mid",
+      pillLabel: "Competitive",
+      summary: "You meet a solid share of requirements. Closing a few skill gaps can meaningfully improve your odds."
+    };
+  }
+
+  return {
+    headline: "Gap to Close",
+    toneClass: "is-low",
+    pillLabel: "Needs Work",
+    summary: "There is a meaningful mismatch today. Prioritize the top gaps first, then re-run the analysis."
+  };
+}
+
+function formatSkillList(items) {
+  return (items || [])
+    .map((item) => toTitleCase(String(item || "")))
+    .filter(Boolean);
+}
+
+function buildActionableItems(missingSkills, roadmapItems) {
+  const fromRoadmap = roadmapItems
+    .map((item) => toSentenceCase(String(item || "")))
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (fromRoadmap.length) return fromRoadmap;
+
+  const fromGaps = missingSkills.slice(0, 3).map((skill) => `Add concrete evidence of ${skill} with one measurable bullet.`);
+  if (fromGaps.length) return fromGaps;
+
+  return ["Add one quantified accomplishment to improve recruiter confidence."];
+}
+
+function buildRoadmapSteps(roadmapItems, missingSkills) {
+  const normalizedRoadmap = roadmapItems
+    .map((item) => toSentenceCase(String(item || "")))
+    .filter(Boolean);
+
+  const fallbackRoadmap = missingSkills.slice(0, 3).map((skill) => `Build project proof for ${skill}.`);
+  const backlog = (normalizedRoadmap.length ? normalizedRoadmap : fallbackRoadmap).slice(0, 4);
+
+  const baseStep = {
+    title: "Resume uploaded and parsed",
+    detail: "Baseline profile extracted and ready for targeted optimization.",
+    priority: "Low",
+    done: true
+  };
+
+  const steps = [baseStep];
+  backlog.forEach((item, index) => {
+    let priority = "Low";
+    if (index === 0) priority = "High";
+    else if (index < 3) priority = "Medium";
+
+    steps.push({
+      title: item,
+      detail: "Directly connected to this role's requirements.",
+      priority,
+      done: false
+    });
+  });
+
+  return steps;
+}
+
+function renderAnalysisReport(data, options = {}) {
+  const title = escapeHtml(options.title || data.job?.title || "Role Analysis");
+  const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
+  const profile = getScoreProfile(score);
+  const missingSkills = formatSkillList(data.match?.missing);
+  const strengths = formatSkillList(data.match?.strengths);
+  const roadmapItems = (data.plan?.roadmap || []).map((item) => String(item || ""));
+  const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
+  const actionItems = buildActionableItems(missingSkills, roadmapItems);
+  const roadmapSteps = buildRoadmapSteps(roadmapItems, missingSkills);
+  const matchedCount = strengths.length;
+  const missingCount = missingSkills.length;
+  const completedCount = roadmapSteps.filter((item) => item.done).length;
+  const previewResume = escapeHtml(options.resumeSnippet || "Resume preview is unavailable for this record.");
+  const previewJob = escapeHtml(options.jobSnippet || "Job description preview is unavailable for this record.");
+
+  const improvementsMarkup = actionItems
+    .map(
+      (item, index) => `<li class="action-item">
+        <span class="action-icon" aria-hidden="true">${index === 0 ? "+" : index === 1 ? "#" : ">"}</span>
+        <div>
+          <p class="action-title">${escapeHtml(toSentenceCase(item))}</p>
+          <p class="action-sub">Tighten this area to improve role fit and ATS confidence.</p>
+        </div>
+      </li>`
+    )
+    .join("");
+
+  const gapsMarkup = missingSkills.length
+    ? missingSkills.map((item) => `<li><span class="skill-dot" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
+    : "<li><span class=\"skill-dot\" aria-hidden=\"true\"></span>No critical gaps detected</li>";
+
+  const strengthsMarkup = strengths.length
+    ? strengths.map((item) => `<li><span class="skill-dot is-positive" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
+    : "<li><span class=\"skill-dot is-positive\" aria-hidden=\"true\"></span>Strength signals unavailable</li>";
+
+  const roadmapMarkup = roadmapSteps
+    .map((step) => {
+      const priorityClass = step.priority === "High" ? "is-high" : step.priority === "Medium" ? "is-medium" : "is-low";
+      return `<li class="roadmap-item ${step.done ? "is-done" : ""}">
+        <span class="roadmap-check" aria-hidden="true">${step.done ? "v" : ""}</span>
+        <div>
+          <p class="roadmap-title">${escapeHtml(step.title)}</p>
+          <p class="roadmap-detail">${escapeHtml(step.detail)}</p>
+        </div>
+        <span class="priority-pill ${priorityClass}">${step.priority}</span>
+      </li>`;
+    })
+    .join("");
+
+  const secondaryCardMarkup = options.includeInputPreview
+    ? `<section class="card-lite report-card">
+      <h3>Saved Input Preview</h3>
+      <p class="saved-snippet-label">Resume</p>
+      <p class="saved-snippet">${previewResume}</p>
+      <p class="saved-snippet-label">Job Description</p>
+      <p class="saved-snippet">${previewJob}</p>
+    </section>`
+    : `<section class="card-lite report-card">
+      <h3>Score Breakdown</h3>
+      <ul class="strength-list">
+        <li><span class="skill-dot is-positive" aria-hidden="true"></span>Matched strengths: ${matchedCount}</li>
+        <li><span class="skill-dot" aria-hidden="true"></span>Priority gaps: ${missingCount}</li>
+        <li><span class="skill-dot" aria-hidden="true"></span>Planned actions: ${roadmapSteps.length - completedCount}</li>
+      </ul>
+      <p class="meta">This score is a directional estimate based on extracted skills and requirement overlap.</p>
+    </section>`;
+
+  return `
+    ${options.kicker ? `<div class="saved-report-kicker">${escapeHtml(options.kicker)}</div>` : ""}
+    <div class="report-title-row">
+      <h3>${title}</h3>
+      <p>Cross-referenced against this role's key requirements to produce clear next actions.</p>
+    </div>
+
+    <div class="report-grid" aria-live="polite">
+      <section class="score-card card-lite report-card">
+        <div class="score-header-chip ${profile.toneClass}">${profile.pillLabel}</div>
+        <div class="score-ring" role="img" aria-label="Match score ${score} percent" style="--score:${score}">
           <span>${score}%</span>
         </div>
-        <div class="score-caption">Match Score</div>
-        <div class="status-pill">Saved Snapshot</div>
-        <p class="score-text">${reasoning || "A concise reasoning summary is not available for this run."}</p>
+        <div class="score-caption">${profile.headline}</div>
+        <p class="score-text">${reasoning || escapeHtml(profile.summary)}</p>
+
+        <div class="explain-strip" aria-label="Score explanation">
+          <div>
+            <p class="explain-value">${matchedCount}</p>
+            <p class="explain-label">Matched</p>
+          </div>
+          <div>
+            <p class="explain-value">${missingCount}</p>
+            <p class="explain-label">Gaps</p>
+          </div>
+          <div>
+            <p class="explain-value">${roadmapSteps.length - completedCount}</p>
+            <p class="explain-label">Actions</p>
+          </div>
+        </div>
       </section>
 
-      <section class="insight-card card-lite">
+      <section class="card-lite report-card improvements-card">
         <div class="insight-head">
-          <h3>Priority Skill Gaps</h3>
+          <h3><span class="section-mark" aria-hidden="true">+</span>Actionable Resume Improvements</h3>
+        </div>
+        <ul class="action-list">${improvementsMarkup}</ul>
+      </section>
+
+      <section class="card-lite report-card gaps-card">
+        <div class="insight-head">
+          <h3><span class="section-mark" aria-hidden="true">></span>Priority Skill Gaps</h3>
           <span class="tag attention">Needs Attention</span>
         </div>
-        <ul class="pill-list">${missingList || "<li>None</li>"}</ul>
-        <div class="quick-note">
-          <strong>Recommended Next Steps</strong>
-          <ul>${roadmapList || "<li>No roadmap was generated.</li>"}</ul>
+        <ul class="pill-list gap-cloud">${gapsMarkup}</ul>
+        <p class="meta">Closing these gaps should improve keyword relevance and interview readiness.</p>
+      </section>
+
+      <section class="card-lite report-card roadmap-card">
+        <div class="insight-head">
+          <h3><span class="section-mark" aria-hidden="true">v</span>Your Application Roadmap</h3>
+          <span class="roadmap-progress">${completedCount} of ${roadmapSteps.length} completed</span>
         </div>
+        <ol class="roadmap-list">${roadmapMarkup}</ol>
       </section>
     </div>
 
-    <div class="results-grid secondary">
-      <section class="card-lite">
-        <h3>Strengths</h3>
-        <ul>${strengthsList || "<li>None detected</li>"}</ul>
+    <div class="results-grid secondary report-secondary">
+      <section class="card-lite report-card">
+        <h3>Strength Highlights</h3>
+        <ul class="strength-list">${strengthsMarkup}</ul>
       </section>
-      <section class="card-lite">
-        <h3>Saved Input Preview</h3>
-        <p class="saved-snippet-label">Resume</p>
-        <p class="saved-snippet">${resumeSnippet}</p>
-        <p class="saved-snippet-label">Job Description</p>
-        <p class="saved-snippet">${jobSnippet}</p>
-      </section>
+      ${secondaryCardMarkup}
     </div>
-  `);
+  `;
+}
+
+function renderSavedAnalysisOverlay(data) {
+  showSavedAnalysisOverlay(
+    renderAnalysisReport(data, {
+      title: data.job?.title || "Role Analysis",
+      kicker: "Saved Snapshot",
+      includeInputPreview: true,
+      resumeSnippet: data.input?.resumeSnippet,
+      jobSnippet: data.input?.jobSnippet
+    })
+  );
 }
 
 function renderDashboard(items) {
@@ -701,51 +876,10 @@ function renderEmptyResultsState() {
 }
 
 function renderResults(data) {
-  const missingList = (data.match?.missing || []).map((item) => `<li>${toTitleCase(item)}</li>`).join("");
-  const strengthsList = (data.match?.strengths || []).map((item) => `<li>${toTitleCase(item)}</li>`).join("");
-  const roadmapList = (data.plan?.roadmap || []).map((item) => `<li>${toSentenceCase(item)}</li>`).join("");
-  const reasoning = toSentenceCase(data.match?.reasoning || "");
-  const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
-
-  resultsEl.innerHTML = `
-    <div class="results-grid" aria-live="polite">
-      <section class="score-card card-lite">
-        <div class="score-ring" style="--score:${score}">
-          <span>${score}%</span>
-        </div>
-        <div class="score-caption">Match Score</div>
-        <div class="status-pill">Conservative Estimate</div>
-        <p class="score-text">${reasoning || "A concise reasoning summary is not available for this run."}</p>
-      </section>
-
-      <section class="insight-card card-lite">
-        <div class="insight-head">
-          <h3>Priority Skill Gaps</h3>
-          <span class="tag attention">Needs Attention</span>
-        </div>
-        <ul class="pill-list">${missingList || "<li>None</li>"}</ul>
-        <div class="quick-note">
-          <strong>Recommended Next Steps</strong>
-          <ul>${roadmapList || "<li>No roadmap was generated.</li>"}</ul>
-        </div>
-      </section>
-    </div>
-
-    <div class="results-grid secondary">
-      <section class="card-lite">
-        <h3>Strengths</h3>
-        <ul>${strengthsList || "<li>None detected</li>"}</ul>
-      </section>
-      <section class="card-lite">
-        <h3>Score Breakdown</h3>
-        <ul>
-          <li>Matched Strengths: ${(data.match?.strengths || []).length}</li>
-          <li>Missing Skills: ${(data.match?.missing || []).length}</li>
-          <li>Recommended Actions: ${(data.plan?.roadmap || []).length}</li>
-        </ul>
-      </section>
-    </div>
-  `;
+  resultsEl.innerHTML = renderAnalysisReport(data, {
+    title: data.job?.title || "Role Analysis",
+    includeInputPreview: false
+  });
 }
 
 async function openSavedAnalysis(id) {
