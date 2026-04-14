@@ -1,62 +1,81 @@
 const express = require("express");
-const multer = require("multer");
 const { runAnalysis } = require("../services/orchestrator");
 const { saveAnalysisRecord } = require("../services/cosmosStore");
-const { extractResumeText } = require("../services/resumeExtractor");
 
 const router = express.Router();
 const MAX_INPUT_CHARS = 10000;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_SIZE_BYTES }
-});
 
-router.post("/extract", upload.single("resume"), async (req, res, next) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({
-        error: "Resume file is required."
-      });
-    }
+let upload;
+let extractResumeText;
+let extractFeatureError;
 
-    const extracted = await extractResumeText({
-      buffer: file.buffer,
-      mimeType: file.mimetype,
-      fileName: file.originalname
-    });
+try {
+  const multer = require("multer");
+  ({ extractResumeText } = require("../services/resumeExtractor"));
+  upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: MAX_FILE_SIZE_BYTES }
+  });
+} catch (error) {
+  extractFeatureError = error;
+  console.warn("Resume extraction feature disabled:", error.message);
+}
 
-    if (!extracted.text) {
-      return res.status(400).json({
-        error: "Unable to extract text from file. Please upload a text-based PDF or DOCX resume."
-      });
-    }
-
-    if (extracted.text.length > MAX_INPUT_CHARS) {
-      return res.status(400).json({
-        error: `Extracted resume text must be at most ${MAX_INPUT_CHARS} characters.`
-      });
-    }
-
-    return res.json({
-      text: extracted.text,
-      meta: {
-        format: extracted.format,
-        fileName: file.originalname,
-        chars: extracted.text.length
+if (upload && extractResumeText) {
+  router.post("/extract", upload.single("resume"), async (req, res, next) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({
+          error: "Resume file is required."
+        });
       }
-    });
-  } catch (error) {
-    if (error?.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({
-        error: `Resume file must be at most ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`
-      });
-    }
 
-    return next(error);
-  }
-});
+      const extracted = await extractResumeText({
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+        fileName: file.originalname
+      });
+
+      if (!extracted.text) {
+        return res.status(400).json({
+          error: "Unable to extract text from file. Please upload a text-based PDF or DOCX resume."
+        });
+      }
+
+      if (extracted.text.length > MAX_INPUT_CHARS) {
+        return res.status(400).json({
+          error: `Extracted resume text must be at most ${MAX_INPUT_CHARS} characters.`
+        });
+      }
+
+      return res.json({
+        text: extracted.text,
+        meta: {
+          format: extracted.format,
+          fileName: file.originalname,
+          chars: extracted.text.length
+        }
+      });
+    } catch (error) {
+      if (error?.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          error: `Resume file must be at most ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`
+        });
+      }
+
+      return next(error);
+    }
+  });
+} else {
+  router.post("/extract", (_req, res) => {
+    return res.status(503).json({
+      error: "Resume upload is temporarily unavailable. Please use pasted resume text for now.",
+      detail: extractFeatureError?.message || "Extraction dependencies are unavailable."
+    });
+  });
+}
 
 router.post("/", async (req, res, next) => {
   try {
