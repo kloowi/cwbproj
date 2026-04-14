@@ -129,6 +129,12 @@ Vercel:
 - No mixed text responses
 - Always include reasoning fields
 
+## 🔒 Privacy Notice
+- Resume and job description data are processed for AI analysis.
+- Stored analysis history includes preview snippets (first 250 chars of resume and job text), score, gaps, roadmap, provider, and timestamp.
+- Analysis history retention target is 30 days.
+- Users can delete individual records from Dashboard > Application History using the delete icon on each card.
+
 ## ⚠️ Common Issues
 CORS error:
 app.use(cors({ origin: "*" }));

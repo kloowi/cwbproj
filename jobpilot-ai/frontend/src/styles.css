@@ -386,11 +386,50 @@ input[type="file"]:focus {
   color: #8b5f50;
 }
 
+.privacy-notice {
+  margin-top: 10px;
+  border: 1px solid #f0d6be;
+  background: #fff5ec;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.privacy-notice p {
+  margin: 0;
+  color: #6f5449;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.privacy-notice p + p {
+  margin-top: 6px;
+}
+
 .form-actions {
   grid-column: 1 / -1;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   justify-content: center;
   padding-top: 4px;
+}
+
+.consent-row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 760px;
+  margin: 0;
+  color: #6d5148;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.consent-row input[type="checkbox"] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
 }
 
 .primary-btn {

@@ -79,6 +79,12 @@ app.innerHTML = `
               <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
               <p class="upload-note">Upload a PDF or DOCX resume file.</p>
               <p class="file-status" id="resume-file-status">No file selected.</p>
+              <div class="privacy-notice" aria-label="Privacy Notice">
+                <p><strong>Privacy Notice</strong></p>
+                <p>Stored data: resume preview (first 250 chars), job preview (first 250 chars), match score, skill gaps, roadmap, and provider.</p>
+                <p>Retention: analysis history is kept for 30 days.</p>
+                <p>Delete: Dashboard -> Application History -> use the delete icon on a card.</p>
+              </div>
             </section>
 
             <section class="input-card">
@@ -87,6 +93,10 @@ app.innerHTML = `
             </section>
 
             <div class="form-actions">
+              <label class="consent-row" for="consent-checkbox">
+                <input id="consent-checkbox" name="consent" type="checkbox" />
+                <span>I consent to processing my resume and job description for AI analysis and history display.</span>
+              </label>
               <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
             </div>
           </form>
@@ -132,6 +142,7 @@ const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
 const resumeFileEl = document.querySelector("#resume-file");
 const resumeFileStatusEl = document.querySelector("#resume-file-status");
+const consentCheckboxEl = document.querySelector("#consent-checkbox");
 
 let openSavedAnalysisId = "";
 let filterDebounceTimer = null;
@@ -487,6 +498,13 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
   `;
 }
 
+function updateSubmitAvailability() {
+  const hasResumeFile = Boolean(resumeFileEl.files?.[0]);
+  const hasJob = Boolean(form.job.value.trim());
+  const hasConsent = Boolean(consentCheckboxEl.checked);
+  submitBtn.disabled = !(hasResumeFile && hasJob && hasConsent);
+}
+
 function renderEmptyResultsState() {
   resultsEl.innerHTML = `
     <section class="card-lite empty-state">
@@ -634,6 +652,11 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!consentCheckboxEl.checked) {
+    errorEl.textContent = "Please accept the privacy consent before starting analysis.";
+    return;
+  }
+
   submitBtn.disabled = true;
   submitBtn.textContent = "Extracting Resume...";
   renderLoadingState("Extracting resume text...", "We are processing your uploaded PDF or DOCX file.");
@@ -681,7 +704,7 @@ form.addEventListener("submit", async (event) => {
   } catch (error) {
     errorEl.textContent = formatRequestError(error);
   } finally {
-    submitBtn.disabled = false;
+    updateSubmitAvailability();
     submitBtn.textContent = "Start AI Analysis";
   }
 });
@@ -706,11 +729,21 @@ resumeFileEl.addEventListener("change", () => {
   const file = resumeFileEl.files?.[0];
   if (!file) {
     resumeFileStatusEl.textContent = "No file selected.";
+    updateSubmitAvailability();
     return;
   }
 
   const kb = Math.max(1, Math.round(file.size / 1024));
   resumeFileStatusEl.textContent = `${file.name} (${kb} KB)`;
+  updateSubmitAvailability();
+});
+
+consentCheckboxEl.addEventListener("change", () => {
+  updateSubmitAvailability();
+});
+
+form.job.addEventListener("input", () => {
+  updateSubmitAvailability();
 });
 
 closeSavedReportBtn.addEventListener("click", () => {
@@ -783,3 +816,4 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
 renderEmptyResultsState();
 setActiveView(getInitialView());
 loadHistory();
+updateSubmitAvailability();
