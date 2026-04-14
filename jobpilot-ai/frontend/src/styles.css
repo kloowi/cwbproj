@@ -303,41 +303,6 @@ body {
   text-decoration: underline;
 }
 
-.analysis-intro {
-  margin: 0 0 12px;
-  border: 1px solid #f0dfd3;
-  border-radius: 14px;
-  background: linear-gradient(160deg, #fffcfa, #fff9f4);
-  padding: 10px 12px;
-}
-
-.analysis-intro p {
-  margin: 0;
-  color: #715a52;
-  font-size: 0.84rem;
-}
-
-.intro-chip-row {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.intro-chip {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  border: 1px solid #efdfd3;
-  background: #fff;
-  color: #7d5d50;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-}
-
 .input-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));

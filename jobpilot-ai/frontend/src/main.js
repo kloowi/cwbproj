@@ -100,14 +100,6 @@ app.innerHTML = `
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
           <div class="section-label">New Analysis</div>
-          <div class="analysis-intro">
-            <p>Upload, paste, analyze.</p>
-            <div class="intro-chip-row" aria-label="Analysis features">
-              <span class="intro-chip">Secure</span>
-              <span class="intro-chip">Role Match</span>
-              <span class="intro-chip">Clear Output</span>
-            </div>
-          </div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
               <div class="input-card-head">
@@ -122,7 +114,7 @@ app.innerHTML = `
                 <span class="input-card-tag">Secure</span>
               </div>
               <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
-              <label class="field-label" for="resume-file">Upload Resume</label>
+              <label class="field-label" for="resume-file"></label>
               <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
               <p class="upload-note">Text extraction only.</p>
               <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
@@ -154,7 +146,7 @@ app.innerHTML = `
                 <span class="input-card-tag">Target Role</span>
               </div>
               <p class="input-card-copy">Paste the role requirements.</p>
-              <label class="field-label" for="job">Job Description</label>
+              <label class="field-label" for="job"></label>
               <textarea id="job" name="job" placeholder="Paste role requirements"></textarea>
               <div class="job-meta-row">
                 <p class="job-tip"><span class="summary-icon" aria-hidden="true">i</span> Include skills and responsibilities.</p>
