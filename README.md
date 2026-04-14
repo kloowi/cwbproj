@@ -15,7 +15,7 @@ Agents:
 - Planner Agent → generates roadmap and learning plan
 
 ## ⚙️ Requirements
-- Node.js 18+
+- Node.js 20
 - Python 3.9+ (if FastAPI used)
 - npm/yarn
 - Git
