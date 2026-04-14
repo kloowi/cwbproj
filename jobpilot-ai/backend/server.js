@@ -18,6 +18,7 @@ app.get("/health", (_req, res) => {
 		ok: true,
 		service: "jobpilot-backend",
 		time: new Date().toISOString(),
+		releaseCommit: process.env.RELEASE_COMMIT || "unknown",
 		cosmos: getCosmosStatus()
 	});
 });

@@ -37,6 +37,21 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EA9739A5A9A64D3E8824064236FFA335 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F39D6F1C8295482B8641C0C012158159 }}
 
+      - name: Configure App Service runtime settings
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            RG=$(az webapp list --query "[?name=='jobmatch'].resourceGroup | [0]" -o tsv)
+            if [ -z "$RG" ]; then
+              echo "Unable to resolve resource group for app 'jobmatch'."
+              exit 1
+            fi
+
+            az webapp config appsettings set \
+              --name jobmatch \
+              --resource-group "$RG" \
+              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true RELEASE_COMMIT=${{ github.sha }}
+
       - name: Deploy backend folder to App Service
         uses: azure/webapps-deploy@v3
         with:
