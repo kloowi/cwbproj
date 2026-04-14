@@ -101,44 +101,63 @@ app.innerHTML = `
         <section class="panel" aria-label="Analysis Input">
           <div class="section-label">New Analysis</div>
           <div class="analysis-intro">
-            <p>Provide your resume and target role to generate a clear, explainable action plan.</p>
+            <p>Upload, paste, analyze.</p>
             <div class="intro-chip-row" aria-label="Analysis features">
-              <span class="intro-chip">Secure Upload</span>
-              <span class="intro-chip">Role-Aware Matching</span>
-              <span class="intro-chip">Explainable Output</span>
+              <span class="intro-chip">Secure</span>
+              <span class="intro-chip">Role Match</span>
+              <span class="intro-chip">Clear Output</span>
             </div>
           </div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
               <div class="input-card-head">
-                <h3>Resume Upload</h3>
-                <span class="input-card-tag">Secure Intake</span>
+                <h3>
+                  <span class="card-title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false" role="presentation">
+                      <path d="M12 3.5v11M7.5 8l4.5-4.5L16.5 8M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  Upload Resume
+                </h3>
+                <span class="input-card-tag">Secure</span>
               </div>
-              <p class="input-card-copy">Upload a PDF or DOCX resume. We extract only text required for analysis.</p>
-              <label class="field-label" for="resume-file">Resume file</label>
+              <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
+              <label class="field-label" for="resume-file">Upload Resume</label>
               <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-              <p class="upload-note">Maximum file size: 5 MB</p>
+              <p class="upload-note">Text extraction only.</p>
               <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
-              <div class="privacy-notice" aria-label="Privacy Notice">
-                <p class="privacy-title">Privacy Notice</p>
-                <ul class="privacy-list">
-                  <li><span class="privacy-label">Stored data:</span> A short resume preview (first 250 characters), a short job preview (first 250 characters), match score, skill gaps, and roadmap.</li>
-                  <li><span class="privacy-label">Retention:</span> Analysis history is kept for 30 days.</li>
-                  <li><span class="privacy-label">Delete:</span> Go to Dashboard &gt; Application History, then use the delete icon on a card.</li>
-                </ul>
-              </div>
+              <details class="privacy-disclosure" aria-label="Privacy Notice">
+                <summary class="privacy-summary">
+                  <span class="summary-icon" aria-hidden="true">i</span>
+                  Privacy details
+                </summary>
+                <div class="privacy-notice">
+                  <ul class="privacy-list">
+                    <li><span class="privacy-label">Stored:</span> Resume preview (first 250 chars), job preview (first 250 chars), match score, skill gaps, and roadmap.</li>
+                    <li><span class="privacy-label">Retention:</span> History is kept for 30 days.</li>
+                    <li><span class="privacy-label">Delete:</span> Dashboard &gt; Application History, then delete from a card.</li>
+                  </ul>
+                </div>
+              </details>
             </section>
 
             <section class="input-card">
               <div class="input-card-head">
-                <h3>Job Description</h3>
+                <h3>
+                  <span class="card-title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false" role="presentation">
+                      <path d="M7 4.5h10A2.5 2.5 0 0 1 19.5 7v10A2.5 2.5 0 0 1 17 19.5H7A2.5 2.5 0 0 1 4.5 17V7A2.5 2.5 0 0 1 7 4.5ZM8.5 9h7M8.5 12h7M8.5 15h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  Job Description
+                </h3>
                 <span class="input-card-tag">Target Role</span>
               </div>
-              <p class="input-card-copy">Paste the role description so we can compare required skills against your profile.</p>
-              <label class="field-label" for="job">Job description</label>
-              <textarea id="job" name="job" placeholder="Paste the job description you are targeting"></textarea>
+              <p class="input-card-copy">Paste the role requirements.</p>
+              <label class="field-label" for="job">Job Description</label>
+              <textarea id="job" name="job" placeholder="Paste role requirements"></textarea>
               <div class="job-meta-row">
-                <p class="job-tip">Tip: include responsibilities, required skills, and preferred qualifications.</p>
+                <p class="job-tip"><span class="summary-icon" aria-hidden="true">i</span> Include skills and responsibilities.</p>
                 <p class="job-char-count" id="job-char-count">0 characters</p>
               </div>
             </section>
@@ -146,10 +165,10 @@ app.innerHTML = `
             <div class="form-actions consent-card">
               <label class="consent-row" for="consent-checkbox">
                 <input id="consent-checkbox" name="consent" type="checkbox" />
-                <span class="consent-copy">I consent to processing my resume and job description for AI analysis and history display.</span>
+                <span class="consent-copy">I consent to analysis and 30-day history.</span>
               </label>
               <div class="submit-row">
-                <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
+                <button id="submit-btn" type="submit" class="primary-btn">Analyze</button>
               </div>
             </div>
           </form>
