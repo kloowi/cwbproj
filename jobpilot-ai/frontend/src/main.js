@@ -115,7 +115,6 @@ app.innerHTML = `
               <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
               <label class="field-label" for="resume-file"></label>
               <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-              <p class="upload-note">Text extraction only.</p>
               <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
               <details class="privacy-disclosure" aria-label="Privacy Notice">
                 <summary class="privacy-summary">
