@@ -107,7 +107,7 @@ app.innerHTML = `
               <div class="privacy-notice" aria-label="Privacy Notice">
                 <p class="privacy-title">Privacy Notice</p>
                 <ul class="privacy-list">
-                  <li><span class="privacy-label">Stored data:</span> A short resume preview (first 250 characters), a short job preview (first 250 characters), match score, skill gaps, roadmap, and provider.</li>
+                  <li><span class="privacy-label">Stored data:</span> A short resume preview (first 250 characters), a short job preview (first 250 characters), match score, skill gaps, and roadmap.</li>
                   <li><span class="privacy-label">Retention:</span> Analysis history is kept for 30 days.</li>
                   <li><span class="privacy-label">Delete:</span> Go to Dashboard &gt; Application History, then use the delete icon on a card.</li>
                 </ul>
@@ -357,7 +357,6 @@ function renderSavedAnalysisOverlay(data) {
   const strengthsList = (data.match?.strengths || []).map((item) => `<li>${escapeHtml(toTitleCase(item))}</li>`).join("");
   const roadmapList = (data.plan?.roadmap || []).map((item) => `<li>${escapeHtml(toSentenceCase(item))}</li>`).join("");
   const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
-  const provider = escapeHtml(toTitleCase(data.meta?.provider || "unknown"));
   const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
   const resumeSnippet = escapeHtml(data.input?.resumeSnippet || "Resume preview is unavailable for this record.");
   const jobSnippet = escapeHtml(data.input?.jobSnippet || "Job description preview is unavailable for this record.");
@@ -372,7 +371,6 @@ function renderSavedAnalysisOverlay(data) {
         <div class="score-caption">Match Score</div>
         <div class="status-pill">Saved Snapshot</div>
         <p class="score-text">${reasoning || "A concise reasoning summary is not available for this run."}</p>
-        <div class="meta">Provider: ${provider}</div>
       </section>
 
       <section class="insight-card card-lite">
@@ -474,7 +472,7 @@ function renderDashboard(items) {
               <h4>${title}</h4>
               <span class="history-chip">${status}</span>
             </div>
-            <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
+            <p class="history-sub">${date}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
             <p class="history-context">${contextPreview ? `Job preview: ${escapeHtml(contextPreview.slice(0, 90))}` : "Job preview unavailable"}</p>
           </div>
@@ -686,7 +684,6 @@ function renderResults(data) {
   const strengthsList = (data.match?.strengths || []).map((item) => `<li>${toTitleCase(item)}</li>`).join("");
   const roadmapList = (data.plan?.roadmap || []).map((item) => `<li>${toSentenceCase(item)}</li>`).join("");
   const reasoning = toSentenceCase(data.match?.reasoning || "");
-  const provider = toTitleCase(data.meta?.provider || "unknown");
   const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
 
   resultsEl.innerHTML = `
@@ -698,7 +695,6 @@ function renderResults(data) {
         <div class="score-caption">Match Score</div>
         <div class="status-pill">Conservative Estimate</div>
         <p class="score-text">${reasoning || "A concise reasoning summary is not available for this run."}</p>
-        <div class="meta">Provider: ${provider}</div>
       </section>
 
       <section class="insight-card card-lite">
