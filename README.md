@@ -19,7 +19,7 @@ Agents:
 - Python 3.9+ (if FastAPI used)
 - npm/yarn
 - Git
-- LLM API key (Groq or OpenAI)
+- LLM API key (Groq)
 
 ## 📁 Project Structure
 jobpilot-ai/
