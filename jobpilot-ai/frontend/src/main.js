@@ -221,6 +221,27 @@ function toSentenceCase(text) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+function formatHistoryDateTime(value) {
+  if (!value) return "Unknown";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  }).format(date);
+
+  const timePart = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).format(date).replace(" ", "");
+
+  return `${datePart} at ${timePart}`;
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -452,11 +473,11 @@ function renderDashboard(items) {
 
   dashboardHistoryEl.innerHTML = `<div class="history-grid">${items.slice(0, 8).map((item) => {
     const missing = (item.missingSkills || []).map(toTitleCase);
-    const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown";
+    const date = formatHistoryDateTime(item.createdAt);
     const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
     const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
     const title = inferJobTitle(item);
-    const skillsPreview = missing.slice(0, 2).join(" • ") || "No major gaps detected";
+    const skillsPreview = missing.slice(0, 2).join(", ") || "No major gaps detected";
     const contextPreview = String(item.jobSnippet || "").replace(/\s+/g, " ").trim();
 
     return `
