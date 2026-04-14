@@ -659,20 +659,30 @@ ul {
 }
 
 .delete-analysis-btn {
-  border: 1px solid #e9b7a8;
+  border: 1px solid rgba(161, 63, 42, 0.24);
   border-radius: 999px;
-  background: #fff0ea;
-  color: #a13f2a;
+  background: rgba(255, 255, 255, 0.58);
+  color: #8f422b;
   font: inherit;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
   line-height: 1;
-  padding: 6px 10px;
+  padding: 5px 9px;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
 }
 
 .delete-analysis-btn:hover {
-  background: #ffe9e1;
+  background: #fff3ed;
+  border-color: rgba(161, 63, 42, 0.45);
+  color: #7c3523;
+  transform: translateY(-1px);
+}
+
+.delete-analysis-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.18);
 }
 
 .history-score-label {
