@@ -820,37 +820,6 @@ ul {
   gap: 12px;
 }
 
-.pipeline-shell {
-  margin-top: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: linear-gradient(150deg, #fffdfa, #fff7f1);
-  padding: 14px;
-  box-shadow: var(--shadow-card);
-}
-
-.pipeline-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.pipeline-head strong {
-  font-family: "Fraunces", serif;
-  font-size: 1.05rem;
-  color: #5e3326;
-}
-
-.pipeline-head span {
-  color: #945740;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .pipeline-track {
   display: grid;
   gap: 8px;
@@ -858,7 +827,7 @@ ul {
 
 .pipeline-stage {
   display: grid;
-  grid-template-columns: 34px 1fr auto;
+  grid-template-columns: 34px 1fr;
   gap: 10px;
   align-items: center;
   border: 1px solid #efd8cb;
@@ -931,22 +900,6 @@ ul {
   margin: 2px 0 0;
   font-size: 0.8rem;
   color: #7d645c;
-}
-
-.pipeline-stage-state {
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #8f5d4b;
-}
-
-.pipeline-stage.is-done .pipeline-stage-state {
-  color: #2a6648;
-}
-
-.pipeline-stage.is-error .pipeline-stage-state {
-  color: #a43e2a;
 }
 
 .pipeline-connector {
@@ -1164,21 +1117,8 @@ ul {
     grid-template-columns: 1fr;
   }
 
-  .pipeline-head {
-    display: block;
-  }
-
-  .pipeline-head span {
-    display: inline-block;
-    margin-top: 3px;
-  }
-
   .pipeline-stage {
     grid-template-columns: 30px 1fr;
-  }
-
-  .pipeline-stage-state {
-    grid-column: 2;
   }
 
   .history-item {

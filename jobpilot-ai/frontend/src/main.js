@@ -516,17 +516,11 @@ async function loadHistory() {
 }
 
 function renderLoadingState(title = "Analyzing your profile...", subtitle = "Please wait while we evaluate match quality and recommendations.") {
-
-  const pipelineHtml = pipelineState ? `
-    <div class="pipeline-shell" aria-live="polite" aria-label="Agent pipeline progress">
-      <div class="pipeline-head">
-        <strong>Agent Pipeline</strong>
-        <span>${escapeHtml(pipelineState.progressLabel || "Starting...")}</span>
-      </div>
-      <div class="pipeline-track">
+  const pipelineHtml = pipelineState
+    ? `
+      <div class="pipeline-track" aria-live="polite" aria-label="Analysis stage progress">
         ${pipelineState.stages.map((stage, index) => {
           const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
-          const timing = stage.timing || (stage.status === "active" ? "Running" : stage.status === "done" ? "Completed" : stage.status === "error" ? "Failed" : "Waiting");
           const connectorClass = index === PIPELINE_STAGES.length - 1
             ? ""
             : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
@@ -534,31 +528,26 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
               : "";
 
           return `
-            <div class="pipeline-stage ${stage.status === "active" ? "is-active" : ""} ${stage.status === "done" ? "is-done" : ""} ${stage.status === "error" ? "is-error" : ""}">
+            <div class="pipeline-stage ${stage.status === "active" ? "is-active" : ""} ${stage.status === "done" ? "is-done" : ""} ${stage.status === "error" ? "is-error" : ""}" data-stage-id="${escapeHtml(stage.id)}">
               <div class="pipeline-icon" aria-hidden="true">${icon}</div>
               <div class="pipeline-copy">
                 <p class="pipeline-stage-title">${escapeHtml(stage.label)}</p>
                 <p class="pipeline-stage-detail">${escapeHtml(stage.detail)}</p>
               </div>
-              <span class="pipeline-stage-state">${escapeHtml(timing)}</span>
             </div>
             ${index === PIPELINE_STAGES.length - 1 ? "" : `<div class="pipeline-connector ${connectorClass}" aria-hidden="true"></div>`}
           `;
         }).join("")}
       </div>
-    </div>
-  ` : "";
+    `
+    : `
+      <section class="card-lite empty-state">
+        <strong>${escapeHtml(title)}</strong>
+        <p>${escapeHtml(subtitle)}</p>
+      </section>
+    `;
 
-  resultsEl.innerHTML = `
-    <div class="loading-card card-lite">
-      <div class="spinner" aria-hidden="true"></div>
-      <div>
-        <strong>${title}</strong>
-        <p class="subtle">${subtitle}</p>
-      </div>
-    </div>
-    ${pipelineHtml}
-  `;
+  resultsEl.innerHTML = pipelineHtml;
 }
 
 function clearPipelineTimers() {
