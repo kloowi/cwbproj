@@ -111,7 +111,6 @@ app.innerHTML = `
                   </span>
                   Upload Resume
                 </h3>
-                <span class="input-card-tag">Secure</span>
               </div>
               <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
               <label class="field-label" for="resume-file"></label>
@@ -143,7 +142,6 @@ app.innerHTML = `
                   </span>
                   Job Description
                 </h3>
-                <span class="input-card-tag">Target Role</span>
               </div>
               <p class="input-card-copy">Paste the role requirements.</p>
               <label class="field-label" for="job"></label>
