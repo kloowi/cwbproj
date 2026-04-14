@@ -346,6 +346,46 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(239, 90, 60, 0.14);
 }
 
+input[type="file"] {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  padding: 10px;
+  font: inherit;
+}
+
+input[type="file"]::file-selector-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  margin-right: 10px;
+  background: #fff1e8;
+  color: #9b412a;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+input[type="file"]:focus {
+  outline: none;
+  border-color: #e58246;
+  box-shadow: 0 0 0 4px rgba(239, 90, 60, 0.14);
+}
+
+.upload-note,
+.file-status {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.file-status {
+  font-weight: 600;
+  color: #8b5f50;
+}
+
 .form-actions {
   grid-column: 1 / -1;
   display: flex;
@@ -659,18 +699,24 @@ ul {
 }
 
 .delete-analysis-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
   border: 1px solid rgba(161, 63, 42, 0.24);
-  border-radius: 999px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.58);
   color: #8f422b;
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  padding: 5px 9px;
+  line-height: 0;
+  padding: 0;
   cursor: pointer;
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.delete-analysis-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
 }
 
 .delete-analysis-btn:hover {

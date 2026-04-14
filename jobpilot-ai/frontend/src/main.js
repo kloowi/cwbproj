@@ -3,6 +3,7 @@ import "./styles.css";
 const configuredApiBaseUrl = (import.meta.env.VITE_API_URL || "").trim();
 const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "localhost" ? "http://localhost:5050" : "")).replace(/\/$/, "");
 const SESSION_KEY = "jobpilot_session_id";
+const ACTIVE_VIEW_KEY = "jobpilot_active_view";
 
 const app = document.querySelector("#app");
 
@@ -74,8 +75,10 @@ app.innerHTML = `
           <div class="section-label">New Analysis</div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
-              <label for="resume">Resume</label>
-              <textarea id="resume" name="resume" placeholder="Paste your resume or profile summary"></textarea>
+              <label for="resume-file">Resume Upload</label>
+              <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+              <p class="upload-note">Upload a PDF or DOCX resume file.</p>
+              <p class="file-status" id="resume-file-status">No file selected.</p>
             </section>
 
             <section class="input-card">
@@ -127,16 +130,24 @@ const resetHistoryFiltersBtn = document.querySelector("#reset-history-filters");
 const dashboardReportOverlayEl = document.querySelector("#dashboard-report-overlay");
 const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
+const resumeFileEl = document.querySelector("#resume-file");
+const resumeFileStatusEl = document.querySelector("#resume-file-status");
 
 let openSavedAnalysisId = "";
 let filterDebounceTimer = null;
 
 function setActiveView(view) {
-  const showDashboard = view === "dashboard";
+  const normalizedView = view === "dashboard" ? "dashboard" : "analysis";
+  const showDashboard = normalizedView === "dashboard";
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
   analysisViewEl.classList.toggle("view-hidden", showDashboard);
   navDashboardBtn.classList.toggle("nav-active", showDashboard);
   navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard);
+
+  try {
+    localStorage.setItem(ACTIVE_VIEW_KEY, normalizedView);
+  } catch (_error) {
+  }
 }
 
 function formatRequestError(error) {
@@ -224,6 +235,18 @@ function getSessionId() {
     : `session-${Date.now()}`;
   localStorage.setItem(SESSION_KEY, created);
   return created;
+}
+
+function getInitialView() {
+  try {
+    const stored = localStorage.getItem(ACTIVE_VIEW_KEY);
+    if (stored === "dashboard" || stored === "analysis") {
+      return stored;
+    }
+  } catch (_error) {
+  }
+
+  return "analysis";
 }
 
 function hideSavedAnalysisOverlay() {
@@ -408,10 +431,7 @@ function renderDashboard(items) {
           <div>
             <div class="history-title-row">
               <h4>${title}</h4>
-              <div class="history-actions">
-                <span class="history-chip">${status}</span>
-                <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">Delete</button>
-              </div>
+              <span class="history-chip">${status}</span>
             </div>
             <p class="history-sub">${date} • ${toTitleCase(item.provider || "unknown")}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
@@ -419,6 +439,11 @@ function renderDashboard(items) {
           </div>
         </div>
         <div class="history-score-wrap">
+          <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">
+            <svg viewBox="0 0 24 24" role="presentation" focusable="false" aria-hidden="true">
+              <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z" />
+            </svg>
+          </button>
           <span class="history-score-label">Match Score</span>
           <div class="history-meter" role="presentation">
             <span style="--score:${score}"></span>
@@ -449,13 +474,14 @@ async function loadHistory() {
   }
 }
 
-function renderLoadingState() {
+function renderLoadingState(title = "Analyzing your profile...", subtitle = "Please wait while we evaluate match quality and recommendations.") {
+
   resultsEl.innerHTML = `
     <div class="loading-card card-lite">
       <div class="spinner" aria-hidden="true"></div>
       <div>
-        <strong>Analyzing your profile...</strong>
-        <p class="subtle">Please wait while we evaluate match quality and recommendations.</p>
+        <strong>${title}</strong>
+        <p class="subtle">${subtitle}</p>
       </div>
     </div>
   `;
@@ -595,7 +621,7 @@ form.addEventListener("submit", async (event) => {
   errorEl.textContent = "";
   resultsEl.innerHTML = "";
 
-  const resume = form.resume.value.trim();
+  const resumeFile = resumeFileEl.files?.[0];
   const job = form.job.value.trim();
 
   if (!apiBaseUrl) {
@@ -603,16 +629,39 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!resume || !job) {
-    errorEl.textContent = "Please complete both the Resume and Job Description fields.";
+  if (!resumeFile || !job) {
+    errorEl.textContent = "Please upload a resume file and complete the Job Description field.";
     return;
   }
 
   submitBtn.disabled = true;
-  submitBtn.textContent = "Analyzing...";
-  renderLoadingState();
+  submitBtn.textContent = "Extracting Resume...";
+  renderLoadingState("Extracting resume text...", "We are processing your uploaded PDF or DOCX file.");
 
   try {
+    const extractFormData = new FormData();
+    extractFormData.append("resume", resumeFile);
+
+    const extractResponse = await fetch(`${apiBaseUrl}/analyze/extract`, {
+      method: "POST",
+      body: extractFormData
+    });
+
+    if (!extractResponse.ok) {
+      const payload = await extractResponse.json().catch(() => ({}));
+      const detail = payload.detail || payload.message || payload.error;
+      throw new Error(detail ? `Resume extraction failed: ${detail}` : `Resume extraction failed (${extractResponse.status}).`);
+    }
+
+    const extracted = await extractResponse.json();
+    const resume = String(extracted?.text || "").trim();
+    if (!resume) {
+      throw new Error("Resume extraction produced empty text. Please upload a text-based PDF or DOCX file.");
+    }
+
+    submitBtn.textContent = "Analyzing...";
+    renderLoadingState();
+
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/analyze`, {
       method: "POST",
@@ -650,7 +699,18 @@ navNewAnalysisBtn.addEventListener("click", () => {
 viewAnalysisBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
   setActiveView("analysis");
-  form.resume.focus();
+  resumeFileEl.focus();
+});
+
+resumeFileEl.addEventListener("change", () => {
+  const file = resumeFileEl.files?.[0];
+  if (!file) {
+    resumeFileStatusEl.textContent = "No file selected.";
+    return;
+  }
+
+  const kb = Math.max(1, Math.round(file.size / 1024));
+  resumeFileStatusEl.textContent = `${file.name} (${kb} KB)`;
 });
 
 closeSavedReportBtn.addEventListener("click", () => {
@@ -721,5 +781,5 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
 });
 
 renderEmptyResultsState();
-setActiveView("analysis");
+setActiveView(getInitialView());
 loadHistory();
