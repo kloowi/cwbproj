@@ -100,6 +100,9 @@ app.innerHTML = `
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
           <div class="section-label">New Analysis</div>
+          <div class="analysis-intro">
+           
+            </div>
           </div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
