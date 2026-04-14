@@ -6,6 +6,8 @@ const SESSION_KEY = "jobpilot_session_id";
 const ACTIVE_VIEW_KEY = "jobpilot_active_view";
 const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
+const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_RESUME_EXTENSIONS = [".pdf", ".docx"];
 
 const PIPELINE_STAGES = [
   {
@@ -98,12 +100,25 @@ app.innerHTML = `
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
           <div class="section-label">New Analysis</div>
+          <div class="analysis-intro">
+            <p>Provide your resume and target role to generate a clear, explainable action plan.</p>
+            <div class="intro-chip-row" aria-label="Analysis features">
+              <span class="intro-chip">Secure Upload</span>
+              <span class="intro-chip">Role-Aware Matching</span>
+              <span class="intro-chip">Explainable Output</span>
+            </div>
+          </div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
-              <label for="resume-file">Resume Upload</label>
+              <div class="input-card-head">
+                <h3>Resume Upload</h3>
+                <span class="input-card-tag">Secure Intake</span>
+              </div>
+              <p class="input-card-copy">Upload a PDF or DOCX resume. We extract only text required for analysis.</p>
+              <label class="field-label" for="resume-file">Resume file</label>
               <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-              <p class="upload-note">Upload a PDF or DOCX resume file.</p>
-              <p class="file-status" id="resume-file-status">No file selected.</p>
+              <p class="upload-note">Maximum file size: 5 MB</p>
+              <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
               <div class="privacy-notice" aria-label="Privacy Notice">
                 <p class="privacy-title">Privacy Notice</p>
                 <ul class="privacy-list">
@@ -115,16 +130,27 @@ app.innerHTML = `
             </section>
 
             <section class="input-card">
-              <label for="job">Job Description</label>
+              <div class="input-card-head">
+                <h3>Job Description</h3>
+                <span class="input-card-tag">Target Role</span>
+              </div>
+              <p class="input-card-copy">Paste the role description so we can compare required skills against your profile.</p>
+              <label class="field-label" for="job">Job description</label>
               <textarea id="job" name="job" placeholder="Paste the job description you are targeting"></textarea>
+              <div class="job-meta-row">
+                <p class="job-tip">Tip: include responsibilities, required skills, and preferred qualifications.</p>
+                <p class="job-char-count" id="job-char-count">0 characters</p>
+              </div>
             </section>
 
-            <div class="form-actions">
+            <div class="form-actions consent-card">
               <label class="consent-row" for="consent-checkbox">
                 <input id="consent-checkbox" name="consent" type="checkbox" />
-                <span>I consent to processing my resume and job description for AI analysis and history display.</span>
+                <span class="consent-copy">I consent to processing my resume and job description for AI analysis and history display.</span>
               </label>
-              <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
+              <div class="submit-row">
+                <button id="submit-btn" type="submit" class="primary-btn">Start AI Analysis</button>
+              </div>
             </div>
           </form>
           <div id="error" class="error"></div>
@@ -169,6 +195,7 @@ const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
 const resumeFileEl = document.querySelector("#resume-file");
 const resumeFileStatusEl = document.querySelector("#resume-file-status");
+const jobCharCountEl = document.querySelector("#job-char-count");
 const consentCheckboxEl = document.querySelector("#consent-checkbox");
 
 let openSavedAnalysisId = "";
@@ -176,6 +203,23 @@ let filterDebounceTimer = null;
 let pipelineState = null;
 let pipelineRunToken = 0;
 let pipelineTimers = [];
+let resumeFileIsValid = false;
+
+function setResumeFileStatus(message, state) {
+  resumeFileStatusEl.textContent = message;
+  resumeFileStatusEl.classList.remove("is-idle", "is-ready", "is-error");
+  resumeFileStatusEl.classList.add(state);
+}
+
+function hasAllowedResumeExtension(fileName) {
+  const lower = String(fileName || "").toLowerCase();
+  return ALLOWED_RESUME_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function updateJobCharacterCount() {
+  const count = String(form.job.value || "").length;
+  jobCharCountEl.textContent = `${count.toLocaleString()} characters`;
+}
 
 function setActiveView(view) {
   const normalizedView = view === "dashboard" ? "dashboard" : "analysis";
@@ -863,7 +907,7 @@ function updateSubmitAvailability() {
   const hasResumeFile = Boolean(resumeFileEl.files?.[0]);
   const hasJob = Boolean(form.job.value.trim());
   const hasConsent = Boolean(consentCheckboxEl.checked);
-  submitBtn.disabled = !(hasResumeFile && hasJob && hasConsent);
+  submitBtn.disabled = !(hasResumeFile && hasJob && hasConsent && resumeFileIsValid);
 }
 
 function renderEmptyResultsState() {
@@ -970,6 +1014,11 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!resumeFileIsValid) {
+    errorEl.textContent = "Please upload a valid PDF or DOCX file up to 5 MB.";
+    return;
+  }
+
   if (!consentCheckboxEl.checked) {
     errorEl.textContent = "Please accept the privacy consent before starting analysis.";
     return;
@@ -1049,13 +1098,32 @@ viewAnalysisBtn.addEventListener("click", () => {
 resumeFileEl.addEventListener("change", () => {
   const file = resumeFileEl.files?.[0];
   if (!file) {
-    resumeFileStatusEl.textContent = "No file selected.";
+    resumeFileIsValid = false;
+    setResumeFileStatus("No file selected", "is-idle");
+    updateSubmitAvailability();
+    return;
+  }
+
+  const isAllowedType = hasAllowedResumeExtension(file.name)
+    || file.type === "application/pdf"
+    || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (!isAllowedType) {
+    resumeFileIsValid = false;
+    setResumeFileStatus("Unsupported format. Use PDF or DOCX.", "is-error");
+    updateSubmitAvailability();
+    return;
+  }
+
+  if (file.size > MAX_RESUME_SIZE_BYTES) {
+    resumeFileIsValid = false;
+    setResumeFileStatus("File is too large. Maximum size is 5 MB.", "is-error");
     updateSubmitAvailability();
     return;
   }
 
   const kb = Math.max(1, Math.round(file.size / 1024));
-  resumeFileStatusEl.textContent = `${file.name} (${kb} KB)`;
+  resumeFileIsValid = true;
+  setResumeFileStatus(`${file.name} (${kb} KB)`, "is-ready");
   updateSubmitAvailability();
 });
 
@@ -1064,6 +1132,7 @@ consentCheckboxEl.addEventListener("change", () => {
 });
 
 form.job.addEventListener("input", () => {
+  updateJobCharacterCount();
   updateSubmitAvailability();
 });
 
@@ -1137,4 +1206,6 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
 renderEmptyResultsState();
 setActiveView(getInitialView());
 loadHistory();
+setResumeFileStatus("No file selected", "is-idle");
+updateJobCharacterCount();
 updateSubmitAvailability();
