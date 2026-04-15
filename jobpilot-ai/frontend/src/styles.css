@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Sora:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap");
 
 :root {
   color-scheme: light;
@@ -85,7 +85,7 @@ body {
 .brand-title {
   margin: 0;
   color: #3a2a24;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.5rem;
   line-height: 1.05;
 }
@@ -191,7 +191,7 @@ body {
 
 .hero h2 {
   margin: 9px 0 0;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: clamp(1.8rem, 2.5vw, 2.55rem);
   line-height: 1.12;
   letter-spacing: -0.015em;
@@ -285,7 +285,7 @@ body {
 
 .stat-value {
   margin: 6px 0 0;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 2rem;
   font-weight: 700;
 }
@@ -334,7 +334,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.35rem;
   line-height: 1.14;
   color: #3e2f2b;
@@ -695,7 +695,7 @@ input[type="file"]:hover {
 
 .report-title-row h3 {
   margin: 0;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: clamp(1.4rem, 2vw, 2rem);
   line-height: 1.14;
 }
@@ -794,7 +794,7 @@ input[type="file"]:hover {
 .score-ring span {
   position: relative;
   z-index: 1;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 2rem;
   font-weight: 700;
   color: #5d3327;
@@ -802,7 +802,7 @@ input[type="file"]:hover {
 
 .score-caption {
   margin-top: 2px;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   line-height: 1.18;
@@ -824,7 +824,7 @@ input[type="file"]:hover {
 }
 
 .explain-value {
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.15rem;
   color: #3b2f2b;
 }
@@ -933,7 +933,7 @@ input[type="file"]:hover {
 .card-lite h3,
 .history-title-row h4 {
   margin: 0;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.26rem;
 }
 
@@ -1316,7 +1316,7 @@ ul {
 }
 
 .history-score-wrap strong {
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   color: #60352a;
   font-size: 1.25rem;
 }
@@ -1488,7 +1488,7 @@ ul {
 
 .dashboard-report-head h3 {
   margin: 0;
-  font-family: "Fraunces", serif;
+  font-family: "Sora", sans-serif;
   font-size: 1.3rem;
 }
 
