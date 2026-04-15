@@ -202,7 +202,6 @@ body {
 .workspace {
   margin-left: 312px;
   width: calc(100vw - 312px);
-  max-width: 1080px;
   padding: 22px 26px 52px;
 }
 
