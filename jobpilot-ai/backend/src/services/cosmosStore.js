@@ -126,6 +126,35 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
   return { id, sessionId };
 }
 
+async function saveInterviewRecord({ sessionId, resume, job, difficulty, data }) {
+  const id = crypto.randomUUID();
+  const apiType = detectApiType(COSMOS_CONNECTION_STRING);
+
+  const doc = {
+    id,
+    sessionId,
+    createdAt: new Date().toISOString(),
+    source: "interview",
+    resumeSnippet: resume.slice(0, 250),
+    jobSnippet: job.slice(0, 250),
+    jobTitle: String(data?.job?.title || "").trim().slice(0, 120),
+    difficulty: String(difficulty || "Intermediate").trim(),
+    questionCount: Array.isArray(data?.questions) ? data.questions.length : 0,
+    tipsCount: Array.isArray(data?.tips) ? data.tips.length : 0,
+    provider: data?.meta?.provider || "unknown"
+  };
+
+  if (apiType === "mongo") {
+    const collection = await getMongoCollection();
+    await collection.insertOne({ ...doc, _id: id });
+    return { id, sessionId };
+  }
+
+  const dbContainer = getContainer();
+  await dbContainer.items.create(doc);
+  return { id, sessionId };
+}
+
 function normalizeHistoryFilters(filters) {
   const input = filters && typeof filters === "object" ? filters : {};
   const minScoreRaw = Number(input.minScore);
@@ -342,6 +371,7 @@ module.exports = {
   getCosmosStatus,
   runSmokeTest,
   saveAnalysisRecord,
+  saveInterviewRecord,
   getRecentAnalyses,
   getAnalysisById,
   deleteAnalysisById
