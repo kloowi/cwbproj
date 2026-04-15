@@ -49,7 +49,7 @@ app.innerHTML = `
       <nav class="nav-group" aria-label="Primary Navigation">
         <button class="nav-item" type="button" id="nav-dashboard">Dashboard</button>
         <button class="nav-item nav-active" type="button" id="nav-new-analysis">New Analysis</button>
-        <button class="nav-item" type="button" disabled>Interview Prep (from results)</button>
+        <button class="nav-item" type="button" disabled>Job Matches</button>
         <button class="nav-item" type="button" disabled>Skill Insights</button>
       </nav>
     </aside>
@@ -212,12 +212,11 @@ let pipelineState = null;
 let pipelineRunToken = 0;
 let pipelineTimers = [];
 let resumeFileIsValid = false;
-let latestAnalysisResult = null;
 
-function setResumeFileStatus(message, state, el = resumeFileStatusEl) {
-  el.textContent = message;
-  el.classList.remove("is-idle", "is-ready", "is-error");
-  el.classList.add(state);
+function setResumeFileStatus(message, state) {
+  resumeFileStatusEl.textContent = message;
+  resumeFileStatusEl.classList.remove("is-idle", "is-ready", "is-error");
+  resumeFileStatusEl.classList.add(state);
 }
 
 function hasAllowedResumeExtension(fileName) {
@@ -235,7 +234,6 @@ function setActiveView(view) {
   const showDashboard = normalizedView === "dashboard";
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
   analysisViewEl.classList.toggle("view-hidden", showDashboard);
-
   navDashboardBtn.classList.toggle("nav-active", showDashboard);
   navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard);
 
@@ -520,10 +518,6 @@ function renderAnalysisReport(data, options = {}) {
   const completedCount = roadmapSteps.filter((item) => item.done).length;
   const previewResume = escapeHtml(options.resumeSnippet || "Resume preview is unavailable for this record.");
   const previewJob = escapeHtml(options.jobSnippet || "Job description preview is unavailable for this record.");
-  const showInterviewAction = options.includeInterviewAction !== false;
-  const interviewActionMarkup = showInterviewAction
-    ? `<button type="button" class="ghost-btn" data-action="prepare-interview-current">Prepare Interview</button>`
-    : "";
 
   const improvementsMarkup = actionItems
     .map(
@@ -582,7 +576,6 @@ function renderAnalysisReport(data, options = {}) {
     <div class="report-title-row">
       <h3>${title}</h3>
       <p>Cross-referenced against this role's key requirements to produce clear next actions.</p>
-      ${interviewActionMarkup}
     </div>
 
     <div class="report-grid" aria-live="polite">
@@ -650,7 +643,6 @@ function renderSavedAnalysisOverlay(data) {
     renderAnalysisReport(data, {
       title: data.job?.title || "Role Analysis",
       kicker: "Saved Snapshot",
-      includeInterviewAction: false,
       includeInputPreview: true,
       resumeSnippet: data.input?.resumeSnippet,
       jobSnippet: data.input?.jobSnippet
@@ -734,7 +726,6 @@ function renderDashboard(items) {
           </div>
         </div>
         <div class="history-score-wrap">
-          <button type="button" class="text-link-btn" data-action="prepare-interview" data-analysis-id="${item.id || ""}" aria-label="Prepare interview for ${escapeHtml(title)}">Prepare Interview</button>
           <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false" aria-hidden="true">
               <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z" />
@@ -937,153 +928,10 @@ function renderEmptyResultsState() {
 }
 
 function renderResults(data) {
-  latestAnalysisResult = data;
   resultsEl.innerHTML = renderAnalysisReport(data, {
     title: data.job?.title || "Role Analysis",
     includeInputPreview: false
   });
-}
-
-function renderInterviewLoading(stageLabel) {
-  resultsEl.innerHTML = `
-    <section class="card-lite loading-card">
-      <div class="spinner" aria-hidden="true"></div>
-      <div>
-        <strong>${escapeHtml(stageLabel)}</strong>
-        <p class="subtle">Preparing targeted interview questions and coaching tips.</p>
-      </div>
-    </section>
-  `;
-}
-
-function renderInterviewReport(data) {
-  const title = escapeHtml(data.job?.title || "Interview Preparation Pack");
-  const difficulty = escapeHtml(String(data.difficulty || "Intermediate"));
-  const provider = escapeHtml(String(data.meta?.provider || "unknown"));
-  const questions = Array.isArray(data.questions) ? data.questions : [];
-  const tips = Array.isArray(data.tips) ? data.tips : [];
-
-  const questionsMarkup = questions.length
-    ? questions.map((item, idx) => {
-      const category = escapeHtml(String(item.category || "Technical"));
-      const question = escapeHtml(String(item.question || ""));
-      const answer = escapeHtml(String(item.answer || ""));
-      const itemTips = Array.isArray(item.tips) ? item.tips.map((t) => `<li>${escapeHtml(String(t || ""))}</li>`).join("") : "";
-      return `
-        <details class="interview-question-card" ${idx === 0 ? "open" : ""}>
-          <summary>
-            <span class="interview-question-index">Q${idx + 1}</span>
-            <div>
-              <p class="interview-question-category">${category}</p>
-              <p class="interview-question-text">${question}</p>
-            </div>
-          </summary>
-          <div class="interview-answer-block">
-            <p class="interview-answer-label">Model Answer</p>
-            <p class="interview-answer-text">${answer}</p>
-            ${itemTips ? `<p class="interview-answer-label">Tips</p><ul class="interview-inline-tips">${itemTips}</ul>` : ""}
-          </div>
-        </details>
-      `;
-    }).join("")
-    : `<section class="card-lite empty-state"><strong>No questions generated</strong><p>Try a richer job description and run Interview Prep again.</p></section>`;
-
-  const tipsMarkup = tips.length
-    ? tips.map((tip) => `<li>${escapeHtml(String(tip || ""))}</li>`).join("")
-    : "<li>Review the role requirements and prepare project-based examples using STAR format.</li>";
-
-  resultsEl.innerHTML = `
-    <div class="report-title-row">
-      <h3>${title}</h3>
-      <p>Interview prep generated for <strong>${difficulty}</strong> difficulty.</p>
-    </div>
-
-    <div class="results-grid secondary interview-grid">
-      <section class="card-lite report-card interview-questions-wrap">
-        <div class="insight-head">
-          <h3><span class="section-mark" aria-hidden="true">Q</span>Interview Questions</h3>
-          <span class="tag">${questions.length} items</span>
-        </div>
-        <div class="interview-question-list">${questionsMarkup}</div>
-      </section>
-
-      <section class="card-lite report-card interview-tips-wrap">
-        <div class="insight-head">
-          <h3><span class="section-mark" aria-hidden="true">i</span>Coach Tips</h3>
-          <span class="tag">${difficulty}</span>
-        </div>
-        <ul class="pill-list interview-tips-list">${tipsMarkup}</ul>
-        <p class="meta">Generated by provider: ${provider}</p>
-      </section>
-    </div>
-  `;
-}
-
-function toInterviewContext(analysis, analysisId = "") {
-  return {
-    analysisId,
-    jobTitle: String(analysis?.job?.title || "").trim(),
-    jobSnippet: String(analysis?.input?.jobSnippet || analysis?.job?.title || "").trim(),
-    missingSkills: Array.isArray(analysis?.match?.missing) ? analysis.match.missing : [],
-    strengths: Array.isArray(analysis?.match?.strengths) ? analysis.match.strengths : [],
-    roadmap: Array.isArray(analysis?.plan?.roadmap) ? analysis.plan.roadmap : [],
-    matchReasoning: String(analysis?.match?.reasoning || "").trim()
-  };
-}
-
-async function requestInterviewPrepFromContext(context) {
-  if (!apiBaseUrl) {
-    errorEl.textContent = "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
-    return;
-  }
-
-  try {
-    errorEl.textContent = "";
-    hideSavedAnalysisOverlay();
-    setActiveView("analysis");
-    renderInterviewLoading("Preparing interview questions...");
-
-    const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/interview/from-analysis`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...context,
-        sessionId,
-        difficulty: "Intermediate"
-      })
-    });
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      const detail = payload.detail || payload.message || payload.error;
-      throw new Error(detail ? `Interview prep failed (${response.status}): ${detail}` : "Interview prep failed.");
-    }
-
-    const data = await response.json();
-    renderInterviewReport(data);
-  } catch (error) {
-    errorEl.textContent = formatRequestError(error);
-    renderResults(latestAnalysisResult || {
-      job: { title: "Role Analysis" },
-      match: { score: 0, missing: [], strengths: [], reasoning: "" },
-      plan: { roadmap: [] }
-    });
-  }
-}
-
-async function prepareInterviewFromHistory(analysisId) {
-  if (!analysisId) return;
-  try {
-    const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(analysisId)}?sessionId=${encodeURIComponent(sessionId)}`);
-    if (!response.ok) throw new Error("Unable to load saved analysis for interview prep.");
-    const payload = await response.json();
-    const mapped = mapStoredAnalysisToResult(payload.item || {});
-    await requestInterviewPrepFromContext(toInterviewContext(mapped, analysisId));
-  } catch (error) {
-    errorEl.textContent = formatRequestError(error);
-  }
 }
 
 async function openSavedAnalysis(id) {
@@ -1313,15 +1161,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {
-  const prepBtn = event.target.closest("[data-action='prepare-interview']");
-  if (prepBtn) {
-    event.preventDefault();
-    event.stopPropagation();
-    const id = prepBtn.getAttribute("data-analysis-id") || "";
-    prepareInterviewFromHistory(id);
-    return;
-  }
-
   const deleteBtn = event.target.closest("[data-action='delete-analysis']");
   if (deleteBtn) {
     event.preventDefault();
@@ -1336,18 +1175,6 @@ dashboardHistoryEl.addEventListener("click", (event) => {
 
   const id = card.getAttribute("data-analysis-id") || "";
   openSavedAnalysis(id);
-});
-
-resultsEl.addEventListener("click", (event) => {
-  const prepBtn = event.target.closest("[data-action='prepare-interview-current']");
-  if (!prepBtn) return;
-
-  if (!latestAnalysisResult) {
-    errorEl.textContent = "Run a new analysis first, then prepare interview questions from those results.";
-    return;
-  }
-
-  requestInterviewPrepFromContext(toInterviewContext(latestAnalysisResult, ""));
 });
 
 filterMinScoreEl.addEventListener("input", () => {
