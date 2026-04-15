@@ -10,15 +10,6 @@ function supportsStagedPipeline(provider) {
   );
 }
 
-function supportsInterviewPipeline(provider) {
-  return (
-    typeof provider?.extractResume === "function" &&
-    typeof provider?.extractJob === "function" &&
-    typeof provider?.generateQuestions === "function" &&
-    typeof provider?.generateTips === "function"
-  );
-}
-
 async function executeStaged(provider, input) {
   const resume = await provider.extractResume(input.resume);
   const job = await provider.extractJob(input.job);
@@ -42,32 +33,6 @@ async function executeStaged(provider, input) {
   };
 }
 
-async function executeInterviewPipeline(provider, input) {
-  const resumeData = await provider.extractResume(input.resume);
-  const jobData = await provider.extractJob(input.job);
-  const questionsData = await provider.generateQuestions({
-    resume: input.resume,
-    job: input.job,
-    difficulty: input.difficulty
-  });
-  const tipsData = await provider.generateTips({
-    job: input.job,
-    difficulty: input.difficulty
-  });
-
-  return {
-    resume: resumeData,
-    job: jobData,
-    questions: questionsData.questions || [],
-    tips: tipsData.tips || [],
-    difficulty: input.difficulty,
-    meta: {
-      provider: provider.name,
-      pipeline: "interview"
-    }
-  };
-}
-
 async function runAgentPipeline(provider, input) {
   if (supportsStagedPipeline(provider)) {
     return executeStaged(provider, input);
@@ -76,15 +41,6 @@ async function runAgentPipeline(provider, input) {
   return provider.analyze(input);
 }
 
-async function runInterviewPipeline(provider, input) {
-  if (supportsInterviewPipeline(provider)) {
-    return executeInterviewPipeline(provider, input);
-  }
-
-  return provider.generateQuestions(input);
-}
-
 module.exports = {
-  runAgentPipeline,
-  runInterviewPipeline
+  runAgentPipeline
 };
