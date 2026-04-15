@@ -49,7 +49,7 @@ app.innerHTML = `
       <nav class="nav-group" aria-label="Primary Navigation">
         <button class="nav-item" type="button" id="nav-dashboard">Dashboard</button>
         <button class="nav-item nav-active" type="button" id="nav-new-analysis">New Analysis</button>
-        <button class="nav-item" type="button" id="nav-interview-prep">Interview Prep</button>
+        <button class="nav-item" type="button" disabled>Interview Prep (from results)</button>
         <button class="nav-item" type="button" disabled>Skill Insights</button>
       </nav>
     </aside>
@@ -170,85 +170,6 @@ app.innerHTML = `
         </section>
       </section>
 
-      <section class="interview-prep-view view-hidden" id="interview-prep-view">
-        <section class="panel" aria-label="Interview Prep Input">
-          <div class="section-label">Interview Prep</div>
-          <form id="interview-form" class="input-grid">
-            <section class="input-card">
-              <div class="input-card-head">
-                <h3>
-                  <span class="card-title-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false" role="presentation">
-                      <path d="M12 3.5v11M7.5 8l4.5-4.5L16.5 8M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                  Upload Resume
-                </h3>
-              </div>
-              <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
-              <label class="field-label" for="interview-resume-file"></label>
-              <input id="interview-resume-file" name="interviewResumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-              <p class="file-status-pill is-idle" id="interview-resume-file-status" role="status" aria-live="polite">No file selected</p>
-            </section>
-
-            <section class="input-card">
-              <div class="input-card-head">
-                <h3>
-                  <span class="card-title-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false" role="presentation">
-                      <path d="M7 4.5h10A2.5 2.5 0 0 1 19.5 7v10A2.5 2.5 0 0 1 17 19.5H7A2.5 2.5 0 0 1 4.5 17V7A2.5 2.5 0 0 1 7 4.5ZM8.5 9h7M8.5 12h7M8.5 15h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                  Job Description
-                </h3>
-              </div>
-              <p class="input-card-copy">Paste the role requirements.</p>
-              <label class="field-label" for="interview-job"></label>
-              <textarea id="interview-job" name="interviewJob" placeholder="Paste role requirements"></textarea>
-              <div class="job-meta-row">
-                <p class="job-tip"><span class="summary-icon" aria-hidden="true">i</span> Include skills and responsibilities.</p>
-                <p class="job-char-count" id="interview-job-char-count">0 characters</p>
-              </div>
-            </section>
-
-            <section class="input-card">
-              <div class="input-card-head">
-                <h3>
-                  <span class="card-title-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false" role="presentation">
-                      <path d="M12 3h9v10.5H3V3h9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                  Difficulty Level
-                </h3>
-              </div>
-              <p class="input-card-copy">Choose the interview difficulty.</p>
-              <select id="interview-difficulty" name="difficulty" class="difficulty-select">
-                <option value="Basic">Basic (Fundamentals)</option>
-                <option value="Intermediate" selected>Intermediate (Standard)</option>
-                <option value="Advanced">Advanced (Expert)</option>
-              </select>
-            </section>
-
-            <div class="form-actions consent-card">
-              <label class="consent-row" for="interview-consent-checkbox">
-                <input id="interview-consent-checkbox" name="consent" type="checkbox" />
-                <span class="consent-copy">I consent to generate interview questions.</span>
-              </label>
-              <div class="submit-row">
-                <button id="interview-submit-btn" type="submit" class="primary-btn">Prepare Interview</button>
-              </div>
-            </div>
-          </form>
-          <div id="interview-error" class="error"></div>
-        </section>
-
-        <section class="results-panel" aria-label="Interview Prep Results">
-          <div class="section-label">Interview Prep Results</div>
-          <div id="interview-results"></div>
-        </section>
-      </section>
-
       <section class="dashboard-report-overlay is-hidden" id="dashboard-report-overlay" aria-hidden="true">
         <div class="dashboard-report-dialog card-lite" role="dialog" aria-modal="true" aria-labelledby="saved-report-title">
           <div class="dashboard-report-head">
@@ -284,18 +205,6 @@ const resumeFileEl = document.querySelector("#resume-file");
 const resumeFileStatusEl = document.querySelector("#resume-file-status");
 const jobCharCountEl = document.querySelector("#job-char-count");
 const consentCheckboxEl = document.querySelector("#consent-checkbox");
-const interviewForm = document.querySelector("#interview-form");
-const interviewSubmitBtn = document.querySelector("#interview-submit-btn");
-const interviewErrorEl = document.querySelector("#interview-error");
-const interviewResultsEl = document.querySelector("#interview-results");
-const interviewPrepViewEl = document.querySelector("#interview-prep-view");
-const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
-const interviewResumeFileEl = document.querySelector("#interview-resume-file");
-const interviewResumeFileStatusEl = document.querySelector("#interview-resume-file-status");
-const interviewJobEl = document.querySelector("#interview-job");
-const interviewJobCharCountEl = document.querySelector("#interview-job-char-count");
-const interviewDifficultyEl = document.querySelector("#interview-difficulty");
-const interviewConsentCheckboxEl = document.querySelector("#interview-consent-checkbox");
 
 let openSavedAnalysisId = "";
 let filterDebounceTimer = null;
@@ -303,6 +212,7 @@ let pipelineState = null;
 let pipelineRunToken = 0;
 let pipelineTimers = [];
 let resumeFileIsValid = false;
+let latestAnalysisResult = null;
 
 function setResumeFileStatus(message, state, el = resumeFileStatusEl) {
   el.textContent = message;
@@ -321,21 +231,13 @@ function updateJobCharacterCount() {
 }
 
 function setActiveView(view) {
-  let normalizedView = "analysis";
-  if (view === "dashboard") normalizedView = "dashboard";
-  else if (view === "interview-prep") normalizedView = "interview-prep";
-
+  const normalizedView = view === "dashboard" ? "dashboard" : "analysis";
   const showDashboard = normalizedView === "dashboard";
-  const showAnalysis = normalizedView === "analysis";
-  const showInterviewPrep = normalizedView === "interview-prep";
-
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
-  analysisViewEl.classList.toggle("view-hidden", !showAnalysis);
-  interviewPrepViewEl.classList.toggle("view-hidden", !showInterviewPrep);
+  analysisViewEl.classList.toggle("view-hidden", showDashboard);
 
   navDashboardBtn.classList.toggle("nav-active", showDashboard);
-  navNewAnalysisBtn.classList.toggle("nav-active", showAnalysis);
-  navInterviewPrepBtn.classList.toggle("nav-active", showInterviewPrep);
+  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard);
 
   try {
     localStorage.setItem(ACTIVE_VIEW_KEY, normalizedView);
@@ -454,7 +356,7 @@ function getSessionId() {
 function getInitialView() {
   try {
     const stored = localStorage.getItem(ACTIVE_VIEW_KEY);
-    if (stored === "dashboard" || stored === "analysis" || stored === "interview-prep") {
+    if (stored === "dashboard" || stored === "analysis") {
       return stored;
     }
   } catch (_error) {
@@ -618,6 +520,10 @@ function renderAnalysisReport(data, options = {}) {
   const completedCount = roadmapSteps.filter((item) => item.done).length;
   const previewResume = escapeHtml(options.resumeSnippet || "Resume preview is unavailable for this record.");
   const previewJob = escapeHtml(options.jobSnippet || "Job description preview is unavailable for this record.");
+  const showInterviewAction = options.includeInterviewAction !== false;
+  const interviewActionMarkup = showInterviewAction
+    ? `<button type="button" class="ghost-btn" data-action="prepare-interview-current">Prepare Interview</button>`
+    : "";
 
   const improvementsMarkup = actionItems
     .map(
@@ -676,6 +582,7 @@ function renderAnalysisReport(data, options = {}) {
     <div class="report-title-row">
       <h3>${title}</h3>
       <p>Cross-referenced against this role's key requirements to produce clear next actions.</p>
+      ${interviewActionMarkup}
     </div>
 
     <div class="report-grid" aria-live="polite">
@@ -743,6 +650,7 @@ function renderSavedAnalysisOverlay(data) {
     renderAnalysisReport(data, {
       title: data.job?.title || "Role Analysis",
       kicker: "Saved Snapshot",
+      includeInterviewAction: false,
       includeInputPreview: true,
       resumeSnippet: data.input?.resumeSnippet,
       jobSnippet: data.input?.jobSnippet
@@ -826,6 +734,7 @@ function renderDashboard(items) {
           </div>
         </div>
         <div class="history-score-wrap">
+          <button type="button" class="text-link-btn" data-action="prepare-interview" data-analysis-id="${item.id || ""}" aria-label="Prepare interview for ${escapeHtml(title)}">Prepare Interview</button>
           <button type="button" class="delete-analysis-btn" data-action="delete-analysis" data-analysis-id="${item.id || ""}" aria-label="Delete ${escapeHtml(title)}">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false" aria-hidden="true">
               <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z" />
@@ -1028,6 +937,7 @@ function renderEmptyResultsState() {
 }
 
 function renderResults(data) {
+  latestAnalysisResult = data;
   resultsEl.innerHTML = renderAnalysisReport(data, {
     title: data.job?.title || "Role Analysis",
     includeInputPreview: false
@@ -1035,7 +945,7 @@ function renderResults(data) {
 }
 
 function renderInterviewLoading(stageLabel) {
-  interviewResultsEl.innerHTML = `
+  resultsEl.innerHTML = `
     <section class="card-lite loading-card">
       <div class="spinner" aria-hidden="true"></div>
       <div>
@@ -1082,7 +992,7 @@ function renderInterviewReport(data) {
     ? tips.map((tip) => `<li>${escapeHtml(String(tip || ""))}</li>`).join("")
     : "<li>Review the role requirements and prepare project-based examples using STAR format.</li>";
 
-  interviewResultsEl.innerHTML = `
+  resultsEl.innerHTML = `
     <div class="report-title-row">
       <h3>${title}</h3>
       <p>Interview prep generated for <strong>${difficulty}</strong> difficulty.</p>
@@ -1109,78 +1019,70 @@ function renderInterviewReport(data) {
   `;
 }
 
-async function handleInterviewPrepSubmit(event) {
-  event.preventDefault();
-  interviewErrorEl.textContent = "";
-  interviewResultsEl.innerHTML = "";
+function toInterviewContext(analysis, analysisId = "") {
+  return {
+    analysisId,
+    jobTitle: String(analysis?.job?.title || "").trim(),
+    jobSnippet: String(analysis?.input?.jobSnippet || analysis?.job?.title || "").trim(),
+    missingSkills: Array.isArray(analysis?.match?.missing) ? analysis.match.missing : [],
+    strengths: Array.isArray(analysis?.match?.strengths) ? analysis.match.strengths : [],
+    roadmap: Array.isArray(analysis?.plan?.roadmap) ? analysis.plan.roadmap : [],
+    matchReasoning: String(analysis?.match?.reasoning || "").trim()
+  };
+}
 
-  const resumeFile = interviewResumeFileEl.files?.[0];
-  const job = String(interviewJobEl.value || "").trim();
-  const difficulty = String(interviewDifficultyEl.value || "Intermediate").trim();
-
+async function requestInterviewPrepFromContext(context) {
   if (!apiBaseUrl) {
-    interviewErrorEl.textContent = "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
+    errorEl.textContent = "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
     return;
   }
-
-  if (!resumeFile || !job) {
-    interviewErrorEl.textContent = "Please upload a resume file and complete the Job Description field.";
-    return;
-  }
-
-  if (!interviewConsentCheckboxEl.checked) {
-    interviewErrorEl.textContent = "Please accept consent before generating interview prep.";
-    return;
-  }
-
-  interviewSubmitBtn.disabled = true;
-  interviewSubmitBtn.textContent = "Extracting Resume...";
 
   try {
-    const extractFormData = new FormData();
-    extractFormData.append("resume", resumeFile);
-    renderInterviewLoading("Extracting resume...");
-
-    const extractResponse = await fetch(`${apiBaseUrl}/analyze/extract`, {
-      method: "POST",
-      body: extractFormData
-    });
-
-    if (!extractResponse.ok) {
-      const payload = await extractResponse.json().catch(() => ({}));
-      const detail = payload.detail || payload.message || payload.error;
-      throw new Error(detail ? `Resume extraction failed: ${detail}` : `Resume extraction failed (${extractResponse.status}).`);
-    }
-
-    const extracted = await extractResponse.json();
-    const resume = String(extracted?.text || "").trim();
-    if (!resume) {
-      throw new Error("Resume extraction produced empty text. Please upload a text-based PDF or DOCX file.");
-    }
-
-    interviewSubmitBtn.textContent = "Generating Questions...";
-    renderInterviewLoading("Generating interview questions...");
+    errorEl.textContent = "";
+    hideSavedAnalysisOverlay();
+    setActiveView("analysis");
+    renderInterviewLoading("Preparing interview questions...");
 
     const sessionId = getSessionId();
-    const response = await fetch(`${apiBaseUrl}/interview/prepare`, {
+    const response = await fetch(`${apiBaseUrl}/interview/from-analysis`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume, job, difficulty, sessionId })
+      body: JSON.stringify({
+        ...context,
+        sessionId,
+        difficulty: "Intermediate"
+      })
     });
 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       const detail = payload.detail || payload.message || payload.error;
-      throw new Error(detail ? `Request failed (${response.status}): ${detail}` : `Request failed with status ${response.status}.`);
+      throw new Error(detail ? `Interview prep failed (${response.status}): ${detail}` : "Interview prep failed.");
     }
 
     const data = await response.json();
     renderInterviewReport(data);
   } catch (error) {
-    interviewErrorEl.textContent = formatRequestError(error);
-  } finally {
-    interviewSubmitBtn.textContent = "Prepare Interview";
-    interviewSubmitBtn.disabled = !interviewConsentCheckboxEl.checked;
+    errorEl.textContent = formatRequestError(error);
+    renderResults(latestAnalysisResult || {
+      job: { title: "Role Analysis" },
+      match: { score: 0, missing: [], strengths: [], reasoning: "" },
+      plan: { roadmap: [] }
+    });
+  }
+}
+
+async function prepareInterviewFromHistory(analysisId) {
+  if (!analysisId) return;
+  try {
+    const sessionId = getSessionId();
+    const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(analysisId)}?sessionId=${encodeURIComponent(sessionId)}`);
+    if (!response.ok) throw new Error("Unable to load saved analysis for interview prep.");
+    const payload = await response.json();
+    const mapped = mapStoredAnalysisToResult(payload.item || {});
+    await requestInterviewPrepFromContext(toInterviewContext(mapped, analysisId));
+  } catch (error) {
+    errorEl.textContent = formatRequestError(error);
   }
 }
 
@@ -1353,44 +1255,6 @@ viewAnalysisBtn.addEventListener("click", () => {
   resumeFileEl.focus();
 });
 
-navInterviewPrepBtn.addEventListener("click", () => {
-  hideSavedAnalysisOverlay();
-  setActiveView("interview-prep");
-});
-
-interviewForm.addEventListener("submit", handleInterviewPrepSubmit);
-interviewResumeFileEl.addEventListener("change", () => {
-  const file = interviewResumeFileEl.files?.[0];
-  if (!file) {
-    setResumeFileStatus("No file selected", "is-idle", interviewResumeFileStatusEl);
-    return;
-  }
-
-  const isAllowedType = hasAllowedResumeExtension(file.name)
-    || file.type === "application/pdf"
-    || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-  if (!isAllowedType) {
-    setResumeFileStatus(`Invalid file type: ${file.type}`, "is-error", interviewResumeFileStatusEl);
-    return;
-  }
-
-  if (file.size > MAX_RESUME_SIZE_BYTES) {
-    setResumeFileStatus(`File too large: ${Math.round(file.size / 1024 / 1024)}MB exceeds 5MB limit`, "is-error", interviewResumeFileStatusEl);
-    return;
-  }
-
-  setResumeFileStatus(`✓ ${file.name}`, "is-ready", interviewResumeFileStatusEl);
-});
-
-interviewJobEl.addEventListener("input", () => {
-  const count = String(interviewJobEl.value || "").length;
-  interviewJobCharCountEl.textContent = `${count.toLocaleString()} characters`;
-});
-
-interviewConsentCheckboxEl.addEventListener("change", () => {
-  interviewSubmitBtn.disabled = !interviewConsentCheckboxEl.checked;
-});
-
 resumeFileEl.addEventListener("change", () => {
   const file = resumeFileEl.files?.[0];
   if (!file) {
@@ -1449,6 +1313,15 @@ document.addEventListener("keydown", (event) => {
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {
+  const prepBtn = event.target.closest("[data-action='prepare-interview']");
+  if (prepBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    const id = prepBtn.getAttribute("data-analysis-id") || "";
+    prepareInterviewFromHistory(id);
+    return;
+  }
+
   const deleteBtn = event.target.closest("[data-action='delete-analysis']");
   if (deleteBtn) {
     event.preventDefault();
@@ -1463,6 +1336,18 @@ dashboardHistoryEl.addEventListener("click", (event) => {
 
   const id = card.getAttribute("data-analysis-id") || "";
   openSavedAnalysis(id);
+});
+
+resultsEl.addEventListener("click", (event) => {
+  const prepBtn = event.target.closest("[data-action='prepare-interview-current']");
+  if (!prepBtn) return;
+
+  if (!latestAnalysisResult) {
+    errorEl.textContent = "Run a new analysis first, then prepare interview questions from those results.";
+    return;
+  }
+
+  requestInterviewPrepFromContext(toInterviewContext(latestAnalysisResult, ""));
 });
 
 filterMinScoreEl.addEventListener("input", () => {
@@ -1503,8 +1388,5 @@ renderEmptyResultsState();
 setActiveView(getInitialView());
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");
-setResumeFileStatus("No file selected", "is-idle", interviewResumeFileStatusEl);
 updateJobCharacterCount();
-interviewJobCharCountEl.textContent = `${String(interviewJobEl.value || "").length.toLocaleString()} characters`;
-interviewSubmitBtn.disabled = !interviewConsentCheckboxEl.checked;
 updateSubmitAvailability();
