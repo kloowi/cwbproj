@@ -28,6 +28,7 @@ app.use("/smoke", smokeRouter);
 app.use("/analyze", analyzeRouter);
 app.use("/history", historyRouter);
 app.use("/interview/prepare", interviewRouter);
+app.use("/interview", interviewRouter);
 
 app.use((err, _req, res, _next) => {
 	console.error("Unhandled error", err);
