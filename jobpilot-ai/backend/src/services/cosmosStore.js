@@ -126,13 +126,14 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
   return { id, sessionId };
 }
 
-async function saveInterviewRecord({ sessionId, resume, job, difficulty, data }) {
+async function saveInterviewRecord({ sessionId, analysisId, resume, job, difficulty, data }) {
   const id = crypto.randomUUID();
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
 
   const doc = {
     id,
     sessionId,
+    analysisId: analysisId ? String(analysisId).trim() : "",
     createdAt: new Date().toISOString(),
     source: "interview",
     resumeSnippet: resume.slice(0, 250),
