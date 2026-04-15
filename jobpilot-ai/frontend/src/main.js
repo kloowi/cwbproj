@@ -71,7 +71,7 @@ app.innerHTML = `
     <main class="workspace">
       <header class="hero">
         <div>
-          <p class="hero-kicker">Career Command Center</p>
+          <p class="hero-kicker">CareerHive AI</p>
           <h2>Design your next move with clarity.</h2>
           <p>Turn your resume and target role into concrete, score-backed next steps.</p>
         </div>
@@ -85,7 +85,7 @@ app.innerHTML = `
 
         <section class="dashboard-panel" aria-label="Application History">
           <div class="history-head">
-            <h3>Application History</h3>
+            <h3>Recent Analyses</h3>
             <button class="text-link-btn" type="button" id="view-analysis-btn">Start New Analysis</button>
           </div>
           <div class="history-filters" aria-label="History Filters">
@@ -668,19 +668,31 @@ function renderDashboard(items) {
   if (!items.length) {
     dashboardStatsEl.innerHTML = `
       <article class="stat-card card-lite">
-        <p class="stat-top">Applications</p>
-        <p class="stat-label">Total Applications</p>
-        <p class="stat-value">0</p>
+        <div>
+          <p class="stat-label">Applications Sent</p>
+          <p class="stat-value">0</p>
+        </div>
+        <div class="stat-icon-badge" aria-hidden="true">
+          <span class="material-symbols-outlined stat-icon-symbol">send</span>
+        </div>
       </article>
       <article class="stat-card card-lite">
-        <p class="stat-top">Average</p>
-        <p class="stat-label">Average Match Score</p>
-        <p class="stat-value">0%</p>
+        <div>
+          <p class="stat-label">Average Match Score</p>
+          <p class="stat-value">0%</p>
+        </div>
+        <div class="stat-icon-badge" aria-hidden="true">
+          <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
+        </div>
       </article>
       <article class="stat-card card-lite">
-        <p class="stat-top">Best</p>
-        <p class="stat-label">Top Match Score</p>
-        <p class="stat-value">0%</p>
+        <div>
+          <p class="stat-label">Best Match Score</p>
+          <p class="stat-value">0%</p>
+        </div>
+        <div class="stat-icon-badge" aria-hidden="true">
+          <span class="material-symbols-outlined stat-icon-symbol">verified</span>
+        </div>
       </article>
     `;
     dashboardHistoryEl.innerHTML = hasActiveHistoryFilters()
@@ -696,19 +708,31 @@ function renderDashboard(items) {
 
   dashboardStatsEl.innerHTML = `
     <article class="stat-card card-lite">
-      <p class="stat-top">Applications</p>
-      <p class="stat-label">Total Applications</p>
-      <p class="stat-value">${totalApplications}</p>
+      <div>
+        <p class="stat-label">Applications Sent</p>
+        <p class="stat-value">${totalApplications}</p>
+      </div>
+      <div class="stat-icon-badge" aria-hidden="true">
+        <span class="material-symbols-outlined stat-icon-symbol">send</span>
+      </div>
     </article>
     <article class="stat-card card-lite">
-      <p class="stat-top">Average</p>
-      <p class="stat-label">Average Match Score</p>
-      <p class="stat-value">${avgScore}%</p>
+      <div>
+        <p class="stat-label">Average Match Score</p>
+        <p class="stat-value">${avgScore}%</p>
+      </div>
+      <div class="stat-icon-badge" aria-hidden="true">
+        <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
+      </div>
     </article>
     <article class="stat-card card-lite">
-      <p class="stat-top">Best</p>
-      <p class="stat-label">Top Match Score</p>
-      <p class="stat-value">${topScore}%</p>
+      <div>
+        <p class="stat-label">Best Match Score</p>
+        <p class="stat-value">${topScore}%</p>
+      </div>
+      <div class="stat-icon-badge" aria-hidden="true">
+        <span class="material-symbols-outlined stat-icon-symbol">verified</span>
+      </div>
     </article>
   `;
 
@@ -717,6 +741,8 @@ function renderDashboard(items) {
     const date = formatHistoryDateTime(item.createdAt);
     const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
     const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
+    const statusClass = score >= 85 ? "is-strong" : score >= 65 ? "is-promising" : "is-needs-work";
+    const meterColor = score >= 85 ? "#22c55e" : score >= 65 ? "#f59e0b" : "#f97316";
     const title = inferJobTitle(item);
     const skillsPreview = missing.slice(0, 2).join(", ") || "No major gaps detected";
     const contextPreview = String(item.jobSnippet || "").replace(/\s+/g, " ").trim();
@@ -732,7 +758,7 @@ function renderDashboard(items) {
           <div>
             <div class="history-title-row">
               <h4>${title}</h4>
-              <span class="history-chip">${status}</span>
+              <span class="history-chip ${statusClass}">${status}</span>
             </div>
             <p class="history-sub">${date}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
@@ -747,7 +773,7 @@ function renderDashboard(items) {
           </button>
           <span class="history-score-label">Match Score</span>
           <div class="history-meter" role="presentation">
-            <span style="--score:${score}"></span>
+            <span style="--score:${score};--meter-color:${meterColor}"></span>
           </div>
           <strong>${score}%</strong>
         </div>
