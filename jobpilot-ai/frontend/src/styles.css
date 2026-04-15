@@ -221,12 +221,12 @@ body {
 
 .hero-kicker {
   margin: 0;
-  color: #ffc219;
+  color: #ffffff;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1px solid rgba(255, 194, 25, 0.4);
+  border: 1px solid rgba(255, 255, 255);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -245,7 +245,7 @@ body {
 
 .hero p {
   margin: 12px 0 0;
-  color: #aeb7c7;
+  color: #ffffff;
   font-size: 1.02rem;
   max-width: 640px;
 }
