@@ -37,20 +37,34 @@ const app = document.querySelector("#app");
 app.innerHTML = `
   <div class="app-shell">
     <aside class="sidebar">
-      <div>
+      <div class="brand-wrap">
         <div class="brand-head">
-          <div class="brand-chip">JP</div>
+          <div class="brand-chip" aria-hidden="true">
+            <span class="material-symbols-outlined">hive</span>
+          </div>
           <div>
-            <h1 class="brand-title">JobPilot</h1>
-            <p class="brand-subtitle">Career Match Navigator</p>
+            <h1 class="brand-title">CareerHive</h1>
+            <p class="brand-subtitle">AI Copilot</p>
           </div>
         </div>
       </div>
       <nav class="nav-group" aria-label="Primary Navigation">
-        <button class="nav-item" type="button" id="nav-dashboard">Dashboard</button>
-        <button class="nav-item nav-active" type="button" id="nav-new-analysis">New Analysis</button>
-        <button class="nav-item" type="button" disabled>Job Matches</button>
-        <button class="nav-item" type="button" disabled>Skill Insights</button>
+        <button class="nav-item" type="button" id="nav-dashboard">
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">dashboard</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item nav-active" type="button" id="nav-new-analysis">
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">analytics</span>
+          <span class="nav-label">Add Analysis</span>
+        </button>
+        <button class="nav-item" type="button" disabled>
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">work</span>
+          <span class="nav-label">Job Matches</span>
+        </button>
+        <button class="nav-item" type="button" disabled>
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">psychology</span>
+          <span class="nav-label">Interview Prep</span>
+        </button>
       </nav>
     </aside>
 
