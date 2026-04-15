@@ -107,54 +107,6 @@ function buildPlannerAgentPrompt(context) {
   ].join("\n");
 }
 
-function buildInterviewQuestionsAgentPrompt(resumeData, jobData, difficulty = "Intermediate") {
-  return [
-    "You are Interview Prep Agent.",
-    "Generate interview questions tailored to the candidate's profile and target role.",
-    "Return strict JSON only with this shape:",
-    "{",
-    "  \"questions\": [",
-    "    {",
-    "      \"category\": \"Technical|Behavioral|System Design\",",
-    "      \"question\": string,",
-    "      \"answer\": string,",
-    "      \"tips\": string[]",
-    "    }",
-    "  ]",
-    "}",
-    "Rules:",
-    "- Generate 4-6 questions matched to the job and candidate level.",
-    "- difficulty level is: " + difficulty,
-    "- Technical questions should test skills from the job posting.",
-    "- Answers should be realistic model responses (150-300 words each).",
-    "- Each question must have 2-3 concise tips for answering well.",
-    "- no markdown, no extra keys.",
-    "Resume Profile:",
-    JSON.stringify(resumeData),
-    "Target Role:",
-    JSON.stringify(jobData)
-  ].join("\n");
-}
-
-function buildInterviewTipsAgentPrompt(jobData, difficulty = "Intermediate") {
-  return [
-    "You are Interview Coach Agent.",
-    "Generate general interview preparation tips for the target role.",
-    "Return strict JSON only with this shape:",
-    "{",
-    "  \"tips\": string[]",
-    "}",
-    "Rules:",
-    "- 5-8 practical, actionable tips.",
-    "- difficulty level is: " + difficulty,
-    "- Cover technical preparation, communication, and mindset.",
-    "- Each tip should be concise (1-2 sentences).",
-    "- no markdown, no extra keys.",
-    "Target Role:",
-    JSON.stringify(jobData)
-  ].join("\n");
-}
-
 function buildPrompt(resume, job) {
   return [
     "You are Resume Agent, Job Agent, Matching Agent, and Planner Agent combined.",
@@ -277,55 +229,6 @@ function createGroqProvider() {
         parsed.meta = { provider: "groq", fallback: true };
         return parsed;
       }
-    },
-    async generateQuestions({ resume, job, difficulty = "Intermediate" }) {
-      const resumeData = await this.extractResume(resume);
-      const jobData = await this.extractJob(job);
-      const raw = await callAgent(buildInterviewQuestionsAgentPrompt(resumeData, jobData, difficulty));
-      return {
-        questions: Array.isArray(raw.questions) ? raw.questions.map((q) => ({
-          category: String(q.category || "Technical").trim(),
-          question: String(q.question || "").trim(),
-          answer: String(q.answer || "").trim(),
-          tips: Array.isArray(q.tips) ? q.tips.map((t) => String(t).trim()).filter(Boolean) : []
-        })).filter((q) => q.question && q.answer) : []
-      };
-    },
-    async generateTips({ job, difficulty = "Intermediate" }) {
-      const jobData = await this.extractJob(job);
-      const raw = await callAgent(buildInterviewTipsAgentPrompt(jobData, difficulty));
-      return {
-        tips: Array.isArray(raw.tips) ? raw.tips.map((t) => String(t).trim()).filter(Boolean) : []
-      };
-    },
-    async assessAnswers({ question, userAnswer, modelAnswer }) {
-      const assessPrompt = [
-        "You are Interview Feedback Agent.",
-        "Evaluate a candidate's answer against a model answer.",
-        "Return strict JSON only with this shape:",
-        "{",
-        "  \"score\": number (0-100),",
-        "  \"feedback\": string,",
-        "  \"highlights\": string[],",
-        "  \"improvements\": string[]",
-        "}",
-        "Rules:",
-        "- Score based on accuracy, completeness, and clarity.",
-        "- feedback should be encouraging and constructive.",
-        "- highlights: what the candidate did well.",
-        "- improvements: 2-3 areas to strengthen.",
-        "- no markdown, no extra keys.",
-        "Question: " + question,
-        "Model Answer: " + modelAnswer,
-        "Candidate Answer: " + userAnswer
-      ].join("\n");
-      const raw = await callAgent(assessPrompt);
-      return {
-        score: Math.min(100, Math.max(0, Number(raw.score) || 0)),
-        feedback: String(raw.feedback || "").trim(),
-        highlights: Array.isArray(raw.highlights) ? raw.highlights.map((h) => String(h).trim()).filter(Boolean) : [],
-        improvements: Array.isArray(raw.improvements) ? raw.improvements.map((i) => String(i).trim()).filter(Boolean) : []
-      };
     }
   };
 }
