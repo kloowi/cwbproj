@@ -213,8 +213,8 @@ body {
   gap: 16px;
   padding: 36px;
   background:
-    radial-gradient(circle at 15% 10%, rgba(255, 200, 96, 0.16), transparent 40%),
-    linear-gradient(112deg, #11131a 0%, #151924 50%, #212838 100%);
+    radial-gradient(circle at 15% 10%, rgba(255, 185, 106, 0.16), transparent 40%),
+    linear-gradient(112deg, #D95E00 0%, #C25600 52%, #B04D00 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 48px rgba(8, 10, 16, 0.22);
