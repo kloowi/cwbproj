@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CareerHive - JobCopilot AI Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#ffdeac",
+                    "tertiary-fixed-dim": "#d7c690",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#231b00",
+                    "on-primary": "#ffffff",
+                    "on-surface-variant": "#574235",
+                    "on-background": "#071e27",
+                    "on-secondary-container": "#6a4800",
+                    "primary-container": "#f57c00",
+                    "on-secondary": "#ffffff",
+                    "outline": "#8b7263",
+                    "inverse-on-surface": "#dff4ff",
+                    "inverse-primary": "#ffb786",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "on-surface": "#071e27",
+                    "on-secondary-fixed": "#281900",
+                    "primary": "#964900",
+                    "on-tertiary-container": "#3f340b",
+                    "on-primary-container": "#572800",
+                    "on-tertiary-fixed-variant": "#52461c",
+                    "surface": "#f3faff",
+                    "on-primary-fixed-variant": "#723600",
+                    "surface-container-low": "#e6f6ff",
+                    "on-primary-fixed": "#311300",
+                    "tertiary": "#6b5e31",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#dbf1fe",
+                    "outline-variant": "#dec1af",
+                    "surface-bright": "#f3faff",
+                    "primary-fixed": "#ffdcc6",
+                    "surface-tint": "#964900",
+                    "surface-dim": "#c7dde9",
+                    "secondary-container": "#feb300",
+                    "background": "#f3faff",
+                    "tertiary-container": "#ad9d6a",
+                    "surface-container-highest": "#cfe6f2",
+                    "primary-fixed-dim": "#ffb786",
+                    "inverse-surface": "#1e333c",
+                    "surface-container-high": "#d5ecf8",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary": "#7e5700",
+                    "secondary-fixed-dim": "#ffba38",
+                    "surface-variant": "#cfe6f2",
+                    "on-secondary-fixed-variant": "#604100",
+                    "tertiary-fixed": "#f4e2a9",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hexagon-mask {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-6 bg-white dark:bg-zinc-950 h-screen w-64 border-r rounded-r-[40px] border-zinc-100 dark:border-zinc-800 shadow-xl shadow-orange-500/5 z-50">
+<div class="mb-10 px-4">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 bg-gradient-to-br from-secondary-container to-primary-container rounded-xl flex items-center justify-center hexagon-mask">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">hive</span>
+</div>
+<div>
+<h1 class="text-xl font-black bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">CareerHive</h1>
+<p class="text-[10px] uppercase tracking-widest font-bold text-zinc-400">AI Copilot</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<!-- Dashboard (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-full font-bold transition-all duration-300 ease-in-out hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 hover:bg-zinc-50 transition-colors rounded-full transition-all duration-300 ease-in-out hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-sm font-medium">Add Analysis</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 hover:bg-zinc-50 transition-colors rounded-full transition-all duration-300 ease-in-out hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span class="text-sm font-medium">Job Matches</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 hover:bg-zinc-50 transition-colors rounded-full transition-all duration-300 ease-in-out hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="text-sm font-medium">Interview Prep</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-2">
+<div class="p-4 bg-secondary-fixed/30 rounded-2xl mb-4 border border-secondary-fixed/50">
+<p class="text-xs font-bold text-on-secondary-container mb-2">Upgrade to Pro</p>
+<p class="text-[10px] text-on-secondary-container/70 mb-3">Unlock unlimited AI analyses and premium matching.</p>
+<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg shadow-lg shadow-primary/20">Go Pro</button>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 transition-colors rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 transition-colors rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="text-sm font-medium">Help</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar Anchor -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-8 h-20 ml-64 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-100 dark:border-zinc-800">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full focus-within:ring-2 focus-within:ring-orange-200 rounded-full transition-all">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+<input class="w-full pl-12 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm focus:ring-0 placeholder:text-zinc-400" placeholder="Search analyses, jobs, or prep material..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-zinc-600 hover:text-orange-500 transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
+</button>
+<button class="p-2 text-zinc-600 hover:text-orange-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+<div class="h-8 w-[1px] bg-zinc-200 mx-2"></div>
+<button class="px-6 py-2 bg-primary-container text-on-primary-container font-bold text-sm rounded-full shadow-lg shadow-orange-500/20 hover:scale-[1.02] transition-transform">
+                New Analysis
+            </button>
+<div class="ml-2 w-10 h-10 rounded-full border-2 border-primary-fixed p-0.5 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover rounded-full" data-alt="professional headshot of a smiling young woman in a modern office setting, bright natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKHY6wxPZhbeeUsZZQ0c609756J_6IBQOQX8wtYpkr4_gJ7URyw8Qy3Clb0HHSOjSp9IFhh8pkGtFSKsWvAHqww725eFMqhFOd09BQcyVsitj1ZRSf7bvY5AFjRYHK58jg-cM2M8VrBSLO7tCp52TeknumfpaDhUvkyLNGqTrJPcNTENAqqZmwUDVTywfKnGnI26XuTm86hi4fS8Fgh8phnnp6ZzVCkOKTP3mbb-KwqIBm1QlXmc0CI1SLapMWq2PwlbXj9hxxQBw"/>
+</div>
+</div>
+</header>
+<main class="ml-64 p-8">
+<!-- Hero Section -->
+<section class="relative overflow-hidden rounded-lg bg-zinc-900 p-12 mb-8">
+<div class="absolute top-0 right-0 w-1/2 h-full opacity-30">
+<div class="absolute inset-0 bg-gradient-to-l from-zinc-900 via-transparent to-transparent z-10"></div>
+<img alt="Hero Background" class="w-full h-full object-cover" data-alt="modern collaborative workspace with warm amber lighting and hexagonal architectural details, professional atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC77wNKVUudBGvFEv114hfTSA9LBQYFEDIBr9YgO5EpHM_842x0q1B3iiKTs-C36J_R4cC63VbUi1m0fi9vQmSky2t9lvWfvv9wZBiUTIQANueKyfgcfWOQaeo2jqzLXZrseNgAdHvpZLlFIWxNGjpuZC4r63sf9rx1m5o0wpep4wHcbGVXa_tx9iGwSZk5jlWLe2oYBQqFkxzoJRZnkxwo_Es1LszIFYgXvOVs1LDx_N4eV1nh1-Eiy6te6imbaYDCRxHZzfjUD_k"/>
+</div>
+<div class="relative z-20 max-w-2xl">
+<span class="inline-block px-4 py-1 bg-secondary-container/20 text-secondary-container text-xs font-bold rounded-full mb-4 border border-secondary-container/30">JOBCOPILOT AI</span>
+<h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">Design your next move with clarity.</h2>
+<p class="text-lg text-zinc-400 mb-8 font-medium">Turn your resume and target role into concrete, score-backed next steps.</p>
+<div class="flex gap-4">
+<button class="px-8 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-full hover:bg-primary-container transition-colors">Start Analysis</button>
+<button class="px-8 py-3 bg-white/10 text-white backdrop-blur-sm border border-white/20 font-bold rounded-full hover:bg-white/20 transition-colors">View Demo</button>
+</div>
+</div>
+</section>
+<!-- Dashboard Overview Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white p-6 rounded-lg shadow-sm border border-zinc-100 flex items-center justify-between group hover:border-primary-fixed transition-colors">
+<div>
+<p class="text-zinc-500 text-sm font-medium mb-1">Applications Sent</p>
+<h3 class="text-3xl font-black text-on-background">42</h3>
+</div>
+<div class="w-12 h-12 bg-surface-container rounded-2xl flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">send</span>
+</div>
+</div>
+<div class="bg-white p-6 rounded-lg shadow-sm border border-zinc-100 flex items-center justify-between group hover:border-primary-fixed transition-colors">
+<div>
+<p class="text-zinc-500 text-sm font-medium mb-1">Average Match Score</p>
+<h3 class="text-3xl font-black text-on-background">69%</h3>
+</div>
+<div class="w-12 h-12 bg-surface-container rounded-2xl flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+</div>
+<div class="bg-white p-6 rounded-lg shadow-sm border border-zinc-100 flex items-center justify-between group hover:border-primary-fixed transition-colors">
+<div>
+<p class="text-zinc-500 text-sm font-medium mb-1">Best Match Score</p>
+<h3 class="text-3xl font-black text-on-background">100%</h3>
+</div>
+<div class="w-12 h-12 bg-surface-container rounded-2xl flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Application History Section -->
+<div class="lg:col-span-2 flex flex-col gap-4">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-xl font-bold text-on-background">Recent Analyses</h4>
+<button class="text-sm font-bold text-primary hover:underline">View All</button>
+</div>
+<!-- History Items -->
+<div class="bg-white rounded-lg border border-zinc-100 overflow-hidden">
+<!-- Item 1 -->
+<div class="p-6 border-b border-zinc-50 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-400">
+<span class="material-symbols-outlined">corporate_fare</span>
+</div>
+<div>
+<h5 class="font-bold text-on-background">Software Engineer</h5>
+<p class="text-xs text-zinc-500">Stripe • Applied 2 days ago</p>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full mb-2">Promising</span>
+<div class="w-24 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 rounded-full" style="width: 88%;"></div>
+</div>
+</div>
+<button class="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-6 border-b border-zinc-50 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-400">
+<span class="material-symbols-outlined">developer_mode_tv</span>
+</div>
+<div>
+<h5 class="font-bold text-on-background">Frontend Developer</h5>
+<p class="text-xs text-zinc-500">Vercel • Applied 5 days ago</p>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full mb-2">Needs Work</span>
+<div class="w-24 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 rounded-full" style="width: 54%;"></div>
+</div>
+</div>
+<button class="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-6 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-400">
+<span class="material-symbols-outlined">cloud_circle</span>
+</div>
+<div>
+<h5 class="font-bold text-on-background">Cloud Architect</h5>
+<p class="text-xs text-zinc-500">AWS • Applied 1 week ago</p>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full mb-2">Promising</span>
+<div class="w-24 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 rounded-full" style="width: 92%;"></div>
+</div>
+</div>
+<button class="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State / Quick Action Area -->
+<div class="flex flex-col gap-6">
+<div class="p-8 bg-gradient-to-br from-secondary-container to-primary-container rounded-lg shadow-xl shadow-orange-500/20 text-white relative overflow-hidden group">
+<div class="absolute top-0 right-0 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div class="relative z-10">
+<h4 class="text-2xl font-black mb-2">Start New Analysis</h4>
+<p class="text-on-primary-container/80 text-sm mb-6 font-medium">Ready for your next opportunity? Let the Copilot guide your application strategy.</p>
+<button class="w-full py-4 bg-white text-primary font-black rounded-full shadow-lg hover:shadow-xl transition-all">
+                            Analyze Resume Now
+                        </button>
+</div>
+</div>
+<!-- Tips / Nectar Card -->
+<div class="bg-white p-6 rounded-lg border border-orange-100 shadow-sm relative overflow-hidden">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full blur-2xl"></div>
+<div class="flex gap-4 mb-4">
+<div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-500">lightbulb</span>
+</div>
+<h5 class="font-bold text-on-background">Copilot Pro Tip</h5>
+</div>
+<p class="text-sm text-zinc-600 leading-relaxed mb-4 italic">"Adding specific impact metrics to your resume for the Stripe role could boost your match score by up to 15%."</p>
+<button class="text-xs font-bold text-orange-600 flex items-center gap-1 hover:gap-2 transition-all">
+                        SEE FULL SUGGESTIONS <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
