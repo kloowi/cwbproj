@@ -533,8 +533,8 @@ function renderAnalysisReport(data, options = {}) {
     : "<li><span class=\"skill-dot\" aria-hidden=\"true\"></span>No critical gaps detected</li>";
 
   const strengthsMarkup = strengths.length
-    ? strengths.map((item) => `<li><span class="skill-dot is-positive" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
-    : "<li><span class=\"skill-dot is-positive\" aria-hidden=\"true\"></span>Strength signals unavailable</li>";
+    ? strengths.map((item) => `<li><span class="skill-dot" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
+    : "<li><span class=\"skill-dot\" aria-hidden=\"true\"></span>Strength signals unavailable</li>";
 
   const roadmapMarkup = roadmapSteps
     .map((step) => {
@@ -558,15 +558,7 @@ function renderAnalysisReport(data, options = {}) {
       <p class="saved-snippet-label">Job Description</p>
       <p class="saved-snippet">${previewJob}</p>
     </section>`
-    : `<section class="card-lite report-card">
-      <h3>Score Breakdown</h3>
-      <ul class="strength-list">
-        <li><span class="skill-dot is-positive" aria-hidden="true"></span>Matched strengths: ${matchedCount}</li>
-        <li><span class="skill-dot" aria-hidden="true"></span>Priority gaps: ${missingCount}</li>
-        <li><span class="skill-dot" aria-hidden="true"></span>Planned actions: ${roadmapSteps.length - completedCount}</li>
-      </ul>
-      <p class="meta">This score is a directional estimate based on extracted skills and requirement overlap.</p>
-    </section>`;
+    : "";
 
   return `
     ${options.kicker ? `<div class="saved-report-kicker">${escapeHtml(options.kicker)}</div>` : ""}
@@ -610,10 +602,13 @@ function renderAnalysisReport(data, options = {}) {
       <section class="card-lite report-card gaps-card">
         <div class="insight-head">
           <h3><span class="section-mark" aria-hidden="true">></span>Priority Skill Gaps</h3>
-          <span class="tag attention">Needs Attention</span>
         </div>
         <ul class="pill-list gap-cloud">${gapsMarkup}</ul>
         <p class="meta">Closing these gaps should improve keyword relevance and interview readiness.</p>
+        <div class="insight-subsection">
+          <h4><span class="section-mark is-positive" aria-hidden="true">+</span>Strength Highlights</h4>
+          <ul class="pill-list gap-cloud strength-cloud">${strengthsMarkup}</ul>
+        </div>
       </section>
 
       <section class="card-lite report-card roadmap-card">
@@ -625,13 +620,7 @@ function renderAnalysisReport(data, options = {}) {
       </section>
     </div>
 
-    <div class="results-grid secondary report-secondary">
-      <section class="card-lite report-card">
-        <h3>Strength Highlights</h3>
-        <ul class="strength-list">${strengthsMarkup}</ul>
-      </section>
-      ${secondaryCardMarkup}
-    </div>
+    ${secondaryCardMarkup ? `<div class="results-grid secondary report-secondary is-single">${secondaryCardMarkup}</div>` : ""}
   `;
 }
 

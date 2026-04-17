@@ -1019,6 +1019,51 @@ input[type="file"]:hover {
   font-weight: 600;
 }
 
+.gaps-card .gap-cloud li {
+  border-color: #f1cbc4;
+  background: #fff7f5;
+}
+
+.gaps-card .gap-cloud .skill-dot {
+  background: #d44f3a;
+}
+
+.insight-subsection {
+  margin-top: 14px;
+}
+
+.insight-subsection h4 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
+  font-size: var(--report-heading-size);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.strength-cloud {
+  margin-top: 12px;
+}
+
+.strength-cloud li {
+  border-color: #c9e6d4;
+  background: #f3fbf6;
+}
+
+.strength-cloud .skill-dot {
+  background: #2f9b62;
+}
+
+.gaps-card .strength-cloud .skill-dot {
+  background: #2f9b62;
+}
+
+.section-mark.is-positive {
+  background: #e9f7ee;
+  color: #2f9b62;
+}
+
 .skill-dot {
   width: 8px;
   height: 8px;
@@ -1116,6 +1161,10 @@ input[type="file"]:hover {
 
 .report-secondary {
   margin-top: 16px;
+}
+
+.results-grid.secondary.is-single {
+  grid-template-columns: 1fr;
 }
 
 .strength-list {
