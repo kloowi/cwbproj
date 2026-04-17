@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>New Analysis - CareerHive</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "on-surface": "#071e27",
+                        "surface-container-low": "#e6f6ff",
+                        "surface-container-highest": "#cfe6f2",
+                        "outline": "#8b7263",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#6a4800",
+                        "surface": "#f3faff",
+                        "background": "#f3faff",
+                        "secondary-fixed": "#ffdeac",
+                        "on-primary-container": "#572800",
+                        "tertiary-fixed": "#f4e2a9",
+                        "tertiary": "#6b5e31",
+                        "surface-container": "#dbf1fe",
+                        "on-tertiary-container": "#3f340b",
+                        "surface-container-high": "#d5ecf8",
+                        "primary-container": "#f57c00",
+                        "inverse-on-surface": "#dff4ff",
+                        "primary-fixed": "#ffdcc6",
+                        "on-secondary-fixed-variant": "#604100",
+                        "on-tertiary-fixed-variant": "#52461c",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#964900",
+                        "on-background": "#071e27",
+                        "outline-variant": "#dec1af",
+                        "primary": "#964900",
+                        "tertiary-container": "#ad9d6a",
+                        "on-surface-variant": "#574235",
+                        "primary-fixed-dim": "#ffb786",
+                        "surface-variant": "#cfe6f2",
+                        "secondary-container": "#feb300",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#311300",
+                        "inverse-primary": "#ffb786",
+                        "secondary-fixed-dim": "#ffba38",
+                        "secondary": "#7e5700",
+                        "inverse-surface": "#1e333c",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#723600",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#c7dde9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f3faff",
+                        "on-tertiary-fixed": "#231b00",
+                        "tertiary-fixed-dim": "#d7c690",
+                        "on-secondary-fixed": "#281900"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hexagon-bg {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23f57c00' stroke-width='0.5' stroke-opacity='0.05'%3E%3Cpath d='M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 bottom-0 flex flex-col p-4 gap-2 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 w-64 z-50">
+<div class="flex items-center gap-3 px-2 py-4 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hive</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-slate-900 dark:text-white leading-tight">CareerHive</h1>
+<p class="text-xs text-slate-500 font-medium">Your Career Hub</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl font-semibold text-sm transition-all duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span> Add Analysis
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">work</span> Job Matches
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">preliminary</span> Interview Prep
+            </a>
+</nav>
+<div class="mt-auto border-t border-slate-200 dark:border-slate-800 pt-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span> Help Center
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span> Logout
+            </a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 ml-64 min-h-screen hexagon-bg">
+<!-- TopNavBar Component -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-8 h-16 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
+<div class="flex items-center">
+<span class="text-2xl font-black tracking-tight text-amber-600">CareerHive</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-slate-600 font-medium text-sm hover:text-amber-500 transition-colors" href="#">Dashboard</a>
+<a class="text-amber-600 font-bold text-sm border-b-2 border-amber-500" href="#">Analysis</a>
+<a class="text-slate-600 font-medium text-sm hover:text-amber-500 transition-colors" href="#">Jobs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4 border-l border-slate-200 pl-6">
+<button class="material-symbols-outlined text-slate-500 hover:text-amber-600 transition-colors">notifications</button>
+<button class="material-symbols-outlined text-slate-500 hover:text-amber-600 transition-colors">settings</button>
+<button class="bg-primary-container text-on-primary px-5 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95">Post a Job</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-100">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="professional portrait of a confident young woman with a friendly smile in a modern office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKLqjGJ7bR5t7TBSBmaFQSYdpQMKxvZXwVEEsWc_SsR3voS-UWeBd0a5xLvqKnfuSvNyt2KBilNoaxzKuGASiE-rJkdStbhTLlL1-h3k7zXsAVCzQ9dzHB_HmZUTpaLa9souuEePaDhGSvQsSVXrq_23o5hpgRLPnwHwj_dlKcnyMdO_1jppIb1G2m-9jOwjXaBj6_CCJTbcAog-PhlIPnTqwEhlv0D2jvAC4pKzkzKDvRuykhlJKrV8ReG5CNG17VejO-d_sEHG4"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="max-w-6xl mx-auto px-8 py-12">
+<!-- Hero Section -->
+<div class="mb-12 text-center">
+<h2 class="text-4xl font-extrabold text-on-surface tracking-tight mb-3">Start a New Analysis</h2>
+<p class="text-slate-500 max-w-xl mx-auto text-lg">Compare your professional profile with specific job requirements to optimize your chances and discover critical skill gaps.</p>
+</div>
+<!-- Analysis Input Area: Bento Style -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+<!-- Upload Resume Card -->
+<div class="bg-white rounded-xl p-8 shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[400px] transition-all hover:shadow-md">
+<div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-amber-600 text-4xl" style="font-variation-settings: 'wght' 300;">cloud_upload</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Upload Resume</h3>
+<p class="text-slate-400 text-sm mb-8">PDF, DOCX, or RTF (Max 5MB)</p>
+<div class="w-full border-2 border-dashed border-slate-200 rounded-lg p-10 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-amber-50/30 hover:border-amber-200 transition-colors cursor-pointer group">
+<p class="text-slate-600 font-medium mb-4 group-hover:text-amber-700">Drag and drop your file here</p>
+<div class="flex items-center gap-2">
+<span class="h-[1px] w-8 bg-slate-200"></span>
+<span class="text-xs text-slate-400 font-bold uppercase tracking-widest">or</span>
+<span class="h-[1px] w-8 bg-slate-200"></span>
+</div>
+<button class="mt-4 px-6 py-2 bg-white border border-slate-200 rounded-full text-sm font-bold text-slate-700 hover:border-amber-500 hover:text-amber-600 transition-all">Browse Files</button>
+</div>
+</div>
+<!-- Job Description Card -->
+<div class="bg-white rounded-xl p-8 shadow-sm border border-slate-100 flex flex-col min-h-[400px] transition-all hover:shadow-md">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-600 text-2xl">description</span>
+</div>
+<div>
+<h3 class="text-xl font-bold">Job Description</h3>
+<p class="text-slate-400 text-xs">Paste the requirements below</p>
+</div>
+</div>
+<div class="flex-1 flex flex-col">
+<textarea class="flex-1 w-full p-6 bg-slate-50/50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all placeholder:text-slate-300 resize-none" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
+</div>
+<div class="mt-4 flex justify-between items-center px-1">
+<span class="text-xs text-slate-400">Word count: 0</span>
+<button class="text-amber-600 text-xs font-bold hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">link</span>
+                            Import from URL
+                        </button>
+</div>
+</div>
+</div>
+<!-- Primary CTA Section -->
+<div class="flex flex-col items-center">
+<button class="group relative px-12 py-5 bg-primary-container text-on-primary rounded-full text-lg font-bold shadow-xl shadow-amber-500/20 hover:shadow-2xl hover:shadow-amber-500/30 hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    Analyze with CareerHive AI
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<p class="mt-6 text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-amber-500">verified_user</span>
+                    Powered by HiveMind GPT-4o for precise matching
+                </p>
+</div>
+<!-- Recent Analyses / Tip Section -->
+<div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-amber-50/50 p-6 rounded-xl border border-amber-100 flex gap-4">
+<span class="material-symbols-outlined text-amber-600">lightbulb</span>
+<div>
+<h4 class="font-bold text-sm text-amber-900 mb-1">Pro Tip</h4>
+<p class="text-xs text-amber-800/70 leading-relaxed">Include the full 'Preferred Qualifications' section for the most accurate skill gap analysis.</p>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">history</span>
+</div>
+<div>
+<h4 class="font-bold text-sm text-on-surface">Recent History</h4>
+<p class="text-xs text-slate-400">3 analyses today</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+</div>
+<div>
+<h4 class="font-bold text-sm text-on-surface">Hive AI Credits</h4>
+<p class="text-xs text-slate-400">85 / 100 remaining</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-300">info</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

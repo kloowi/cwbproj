@@ -69,15 +69,15 @@ app.innerHTML = `
     </aside>
 
     <main class="workspace">
-      <header class="hero">
-        <div>
-          <p class="hero-kicker">CareerHive AI</p>
-          <h2>Design your next move with clarity.</h2>
-          <p>Turn your resume and target role into concrete, score-backed next steps.</p>
-        </div>
-      </header>
-
       <section class="dashboard-view view-hidden" id="dashboard-view" aria-label="Dashboard">
+        <header class="hero">
+          <div>
+            <p class="hero-kicker">CareerHive AI</p>
+            <h2>Design your next move with clarity.</h2>
+            <p>Turn your resume and target role into concrete, score-backed next steps.</p>
+          </div>
+        </header>
+
         <section class="dashboard-panel">
           <div class="section-label">Dashboard Overview</div>
           <div class="dashboard-stats" id="dashboard-stats"></div>
