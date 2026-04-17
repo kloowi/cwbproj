@@ -278,6 +278,18 @@ body {
   animation: lift-in 320ms ease both;
 }
 
+.analysis-view .panel {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.analysis-view .results-panel {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
 .view-hidden {
   display: none;
 }
@@ -307,7 +319,7 @@ body {
 }
 
 .analysis-intro p {
-  margin: 10px 0 0;
+  margin: 0px 0 0;
   font-size: 1.04rem;
   line-height: 1.52;
   color: #536477;
@@ -382,7 +394,7 @@ body {
 }
 
 .input-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+  background: #ffffff;
   border: 1px solid #dde7f1;
   border-radius: 24px;
   padding: 22px;
@@ -467,7 +479,7 @@ textarea.input-zone {
 }
 
 textarea.input-zone::placeholder {
-  color: #ad9087;
+  color: #a5a5a5;
 }
 
 textarea.input-zone:focus {
@@ -624,7 +636,7 @@ input[type="file"]:hover {
   margin-top: 6px;
   border: 1px solid #d8e4ef;
   border-radius: 20px;
-  background: linear-gradient(180deg, #fbfdff, #f4f9ff);
+  background: #ffffff;
   padding: 14px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -639,9 +651,9 @@ input[type="file"]:hover {
   gap: 8px;
   max-width: 760px;
   margin: 0;
-  color: #496078;
+  color: #a0a0a0;
   font-size: 0.84rem;
-  font-weight: 600;
+  font-weight: 200;
 }
 
 .consent-row input[type="checkbox"] {
@@ -699,11 +711,10 @@ input[type="file"]:hover {
 }
 
 .results-panel {
-  background:
-    radial-gradient(circle at 10% 0%, rgba(241, 152, 54, 0.12), transparent 34%),
-    radial-gradient(circle at 95% 0%, rgba(104, 146, 187, 0.14), transparent 32%),
-    linear-gradient(180deg, #f8fbff 0%, #f2f8ff 100%);
-  border: 1px solid #d6e4f1;
+  --report-heading-size: clamp(1.55rem, 2.1vw, 1.9rem);
+  --report-body-size: 0.92rem;
+  background: transparent;
+  border: 0;
 }
 
 .results-panel #results {
@@ -716,15 +727,17 @@ input[type="file"]:hover {
 
 .report-title-row h3 {
   margin: 0;
-  font-family: "Sora", sans-serif;
-  font-size: clamp(1.4rem, 2vw, 2rem);
-  line-height: 1.14;
+  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
+  font-size: var(--report-heading-size);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .report-title-row p {
   margin: 8px 0 0;
   color: #6f5a53;
   max-width: 720px;
+  font-size: var(--report-body-size);
 }
 
 .report-grid {
@@ -737,8 +750,8 @@ input[type="file"]:hover {
   position: relative;
   overflow: hidden;
   animation: lift-in 260ms ease both;
-  border-color: #d8e5f0;
-  box-shadow: 0 12px 26px rgba(35, 56, 76, 0.1);
+  border-color: #ecdacb;
+  box-shadow: 0 12px 26px rgba(102, 56, 33, 0.1);
 }
 
 .report-card::after {
@@ -746,7 +759,7 @@ input[type="file"]:hover {
   position: absolute;
   inset: auto 0 0;
   height: 4px;
-  background: linear-gradient(90deg, rgba(240, 142, 48, 0.44), rgba(100, 141, 184, 0.35));
+  background: linear-gradient(90deg, rgba(239, 90, 60, 0.28), rgba(247, 166, 58, 0.35));
 }
 
 .results-grid {
@@ -763,8 +776,8 @@ input[type="file"]:hover {
 .score-card {
   text-align: center;
   background:
-    radial-gradient(circle at 88% 12%, rgba(102, 133, 173, 0.18), transparent 30%),
-    linear-gradient(180deg, #ffffff, #f4f9ff);
+    radial-gradient(circle at 88% 12%, rgba(247, 166, 58, 0.2), transparent 30%),
+    linear-gradient(180deg, #ffffff, #fff8ef);
 }
 
 .score-header-chip {
@@ -785,8 +798,8 @@ input[type="file"]:hover {
 }
 
 .score-header-chip.is-mid {
-  background: #edf1ff;
-  color: #3f4dc2;
+  background: #fff2df;
+  color: #8f4d08;
 }
 
 .score-header-chip.is-low {
@@ -800,7 +813,7 @@ input[type="file"]:hover {
   height: 148px;
   margin: 0 auto 10px;
   border-radius: 50%;
-  background: conic-gradient(#ee8a24 calc(var(--score) * 1%), rgba(120, 153, 188, 0.28) 0);
+  background: conic-gradient(#ee8a24 calc(var(--score) * 1%), rgba(247, 166, 58, 0.24) 0);
   display: grid;
   place-items: center;
   position: relative;
@@ -825,10 +838,11 @@ input[type="file"]:hover {
 
 .score-caption {
   margin-top: 2px;
-  font-family: "Sora", sans-serif;
-  font-size: 1.45rem;
+  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
+  font-size: var(--report-heading-size);
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .explain-strip {
@@ -875,6 +889,7 @@ input[type="file"]:hover {
 .score-text {
   margin-top: 10px;
   color: var(--muted);
+  font-size: var(--report-body-size);
   line-height: 1.5;
 }
 
@@ -929,18 +944,19 @@ input[type="file"]:hover {
 .action-title {
   margin: 0;
   font-weight: 700;
+  font-size: var(--report-body-size);
   line-height: 1.35;
 }
 
 .action-sub {
   margin: 2px 0 0;
   color: #816962;
-  font-size: 0.82rem;
+  font-size: var(--report-body-size);
 }
 
 .meta {
   margin-top: 10px;
-  font-size: 0.84rem;
+  font-size: var(--report-body-size);
   color: var(--muted);
 }
 
@@ -951,9 +967,14 @@ input[type="file"]:hover {
   gap: 8px;
 }
 
-.insight-head h3,
-.history-head h3,
-.card-lite h3,
+.report-card h3 {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
+  font-size: var(--report-heading-size);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
 .history-title-row h4 {
   margin: 0;
   font-family: "Sora", sans-serif;
@@ -964,6 +985,8 @@ input[type="file"]:hover {
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   padding: 4px 10px;
 }
 
@@ -992,7 +1015,7 @@ input[type="file"]:hover {
   border: 1px solid #ead5c5;
   padding: 8px 12px;
   background: #fff;
-  font-size: 0.86rem;
+  font-size: var(--report-body-size);
   font-weight: 600;
 }
 
@@ -1008,13 +1031,15 @@ input[type="file"]:hover {
 }
 
 .roadmap-card {
-  background: linear-gradient(180deg, #ffffff, #f5faff);
+  background: linear-gradient(180deg, #ffffff, #fff7ed);
 }
 
 .roadmap-progress {
-  font-size: 0.75rem;
-  color: #7a6058;
+  font-size: 0.74rem;
+  color: #8b5a36;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .roadmap-list {
@@ -1048,21 +1073,21 @@ input[type="file"]:hover {
 }
 
 .roadmap-item.is-done .roadmap-check {
-  background: #4f63dc;
-  border-color: #4f63dc;
+  background: #ef7d00;
+  border-color: #ef7d00;
 }
 
 .roadmap-title {
   margin: 0;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--report-body-size);
   line-height: 1.3;
 }
 
 .roadmap-detail {
   margin: 2px 0 0;
   color: #7f6861;
-  font-size: 0.78rem;
+  font-size: var(--report-body-size);
 }
 
 .priority-pill {
@@ -1080,8 +1105,8 @@ input[type="file"]:hover {
 }
 
 .priority-pill.is-medium {
-  background: #e8efff;
-  color: #3352b8;
+  background: #fff1df;
+  color: #8f500d;
 }
 
 .priority-pill.is-low {
@@ -1109,7 +1134,7 @@ input[type="file"]:hover {
   border-radius: 12px;
   border: 1px solid #d8ebde;
   background: #f5fbf7;
-  font-size: 0.87rem;
+  font-size: var(--report-body-size);
   font-weight: 600;
 }
 
@@ -1279,6 +1304,7 @@ ul {
   font-size: 0.86rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-width: 460px;
@@ -1294,6 +1320,7 @@ ul {
   font-size: 0.8rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-width: 460px;

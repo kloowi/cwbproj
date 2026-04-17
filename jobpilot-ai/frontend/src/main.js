@@ -129,14 +129,9 @@ app.innerHTML = `
                   Upload Resume
                 </h3>
               </div>
-              <p class="input-card-copy">PDF ors DOCX(Max 5MB)</p>
+              <p class="input-card-copy">PDF or DOCX (Max 5MB)</p>
               <div class="input-zone upload-zone">
-                <p class="upload-zone-copy">Drag and drop your file here</p>
-                <div class="upload-zone-divider" aria-hidden="true">
-                  <span></span>
-                  <strong>or</strong>
-                  <span></span>
-                </div>
+             
                 <label class="browse-files-btn" for="resume-file">Browse Files</label>
                 <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
               </div>
@@ -154,7 +149,7 @@ app.innerHTML = `
                   Job Description
                 </h3>
               </div>
-              <p class="input-card-copy">Paste the requirements below</p>
+              <p class="input-card-copy">Job information</p>
               <label class="field-label" for="job"></label>
               <textarea id="job" name="job" class="input-zone" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
             </section>
@@ -162,7 +157,7 @@ app.innerHTML = `
             <div class="form-actions consent-card">
               <label class="consent-row" for="consent-checkbox">
                 <input id="consent-checkbox" name="consent" type="checkbox" />
-                <span class="consent-copy">I consent to the collection and analysis of my uploaded resume and job application data for matching and improvement purposes.</span>
+                <span class="consent-copy">I consent to the collection and analysis of my uploaded resume and job application data.</span>
               </label>
               <div class="submit-row">
                 <button id="submit-btn" type="submit" class="primary-btn">Analyze with CareerHive AI</button>
@@ -440,7 +435,7 @@ function getScoreProfile(score) {
     return {
       headline: "Promising Match",
       toneClass: "is-mid",
-      pillLabel: "Competitive",
+      pillLabel: "Promising Fit",
       summary: "You meet a solid share of requirements. Closing a few skill gaps can meaningfully improve your odds."
     };
   }
