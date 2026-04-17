@@ -113,7 +113,10 @@ app.innerHTML = `
 
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
-          <div class="section-label">New Analysis</div>
+          <div class="analysis-intro">
+            <h2>Start a New Analysis</h2>
+            <p>Compare your professional profile with specific job requirements to optimize your chances and discover critical skill gaps.</p>
+          </div>
           <form id="analyze-form" class="input-grid">
             <section class="input-card">
               <div class="input-card-head">
@@ -126,23 +129,18 @@ app.innerHTML = `
                   Upload Resume
                 </h3>
               </div>
-              <p class="input-card-copy">PDF or DOCX, up to 5 MB.</p>
-              <label class="field-label" for="resume-file"></label>
-              <input id="resume-file" name="resumeFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-              <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
-              <details class="privacy-disclosure" aria-label="Privacy Notice">
-                <summary class="privacy-summary">
-                  <span class="summary-icon" aria-hidden="true">i</span>
-                  Privacy details
-                </summary>
-                <div class="privacy-notice">
-                  <ul class="privacy-list">
-                    <li><span class="privacy-label">Stored:</span> Resume preview (first 250 chars), job preview (first 250 chars), match score, skill gaps, and roadmap.</li>
-                    <li><span class="privacy-label">Retention:</span> History is kept for 30 days.</li>
-                    <li><span class="privacy-label">Delete:</span> Dashboard &gt; Application History, then delete from a card.</li>
-                  </ul>
+              <p class="input-card-copy">PDF ors DOCX(Max 5MB)</p>
+              <div class="input-zone upload-zone">
+                <p class="upload-zone-copy">Drag and drop your file here</p>
+                <div class="upload-zone-divider" aria-hidden="true">
+                  <span></span>
+                  <strong>or</strong>
+                  <span></span>
                 </div>
-              </details>
+                <label class="browse-files-btn" for="resume-file">Browse Files</label>
+                <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+              </div>
+              <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
             </section>
 
             <section class="input-card">
@@ -156,22 +154,18 @@ app.innerHTML = `
                   Job Description
                 </h3>
               </div>
-              <p class="input-card-copy">Paste the role requirements.</p>
+              <p class="input-card-copy">Paste the requirements below</p>
               <label class="field-label" for="job"></label>
-              <textarea id="job" name="job" placeholder="Paste role requirements"></textarea>
-              <div class="job-meta-row">
-                <p class="job-tip"><span class="summary-icon" aria-hidden="true">i</span> Include skills and responsibilities.</p>
-                <p class="job-char-count" id="job-char-count">0 characters</p>
-              </div>
+              <textarea id="job" name="job" class="input-zone" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
             </section>
 
             <div class="form-actions consent-card">
               <label class="consent-row" for="consent-checkbox">
                 <input id="consent-checkbox" name="consent" type="checkbox" />
-                <span class="consent-copy">I consent to analysis and 30-day history.</span>
+                <span class="consent-copy">I consent to the collection and analysis of my uploaded resume and job application data for matching and improvement purposes.</span>
               </label>
               <div class="submit-row">
-                <button id="submit-btn" type="submit" class="primary-btn">Analyze</button>
+                <button id="submit-btn" type="submit" class="primary-btn">Analyze with CareerHive AI</button>
               </div>
             </div>
           </form>
@@ -217,7 +211,6 @@ const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
 const resumeFileEl = document.querySelector("#resume-file");
 const resumeFileStatusEl = document.querySelector("#resume-file-status");
-const jobCharCountEl = document.querySelector("#job-char-count");
 const consentCheckboxEl = document.querySelector("#consent-checkbox");
 
 let openSavedAnalysisId = "";
@@ -236,11 +229,6 @@ function setResumeFileStatus(message, state) {
 function hasAllowedResumeExtension(fileName) {
   const lower = String(fileName || "").toLowerCase();
   return ALLOWED_RESUME_EXTENSIONS.some((ext) => lower.endsWith(ext));
-}
-
-function updateJobCharacterCount() {
-  const count = String(form.job.value || "").length;
-  jobCharCountEl.textContent = `${count.toLocaleString()} characters`;
 }
 
 function setActiveView(view) {
@@ -1123,7 +1111,7 @@ form.addEventListener("submit", async (event) => {
     errorEl.textContent = formatRequestError(error);
   } finally {
     updateSubmitAvailability();
-    submitBtn.textContent = "Start AI Analysis";
+    submitBtn.textContent = "Analyze with CareerHive AI";
   }
 });
 
@@ -1180,7 +1168,6 @@ consentCheckboxEl.addEventListener("change", () => {
 });
 
 form.job.addEventListener("input", () => {
-  updateJobCharacterCount();
   updateSubmitAvailability();
 });
 
@@ -1255,5 +1242,4 @@ renderEmptyResultsState();
 setActiveView(getInitialView());
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");
-updateJobCharacterCount();
 updateSubmitAvailability();
