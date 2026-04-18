@@ -5,6 +5,7 @@ const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "local
 const SESSION_KEY = "jobpilot_session_id";
 const ACTIVE_VIEW_KEY = "jobpilot_active_view";
 const ROADMAP_PROGRESS_KEY = "jobpilot_roadmap_progress_v1";
+const SAVED_INTERVIEW_ROLES_KEY = "careerhive_saved_interview_roles_v1";
 const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
 const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
@@ -320,6 +321,7 @@ const interviewDetailViewEl = document.querySelector("#interview-detail-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
+const interviewPrepActionsEl = document.querySelector(".interview-prep-actions");
 const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
 const interviewDetailBackBtn = document.querySelector("#interview-detail-back-btn");
@@ -358,6 +360,7 @@ let interviewDetailState = {
   questions: []
 };
 const roadmapProgressState = loadRoadmapProgressState();
+let savedInterviewRoles = loadSavedInterviewRoles();
 
 function loadRoadmapProgressState() {
   try {
@@ -377,6 +380,120 @@ function persistRoadmapProgressState() {
     localStorage.setItem(ROADMAP_PROGRESS_KEY, JSON.stringify(roadmapProgressState));
   } catch (_error) {
   }
+}
+
+function loadSavedInterviewRoles() {
+  try {
+    const raw = localStorage.getItem(SAVED_INTERVIEW_ROLES_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((item) => item && typeof item === "object")
+      .filter((item) => String(item.roleSlug || "").trim())
+      .map((item) => ({
+        roleSlug: String(item.roleSlug || "").trim(),
+        roleLabel: String(item.roleLabel || "").trim() || roleLabelFromSlug(String(item.roleSlug || "")),
+        roleType: String(item.roleType || "").trim() || inferRoleType(String(item.roleLabel || ""), ""),
+        score: Number.isFinite(Number(item.score)) ? Math.max(0, Math.min(100, Number(item.score))) : 0,
+        preview: String(item.preview || "").trim(),
+        savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now()
+      }))
+      .sort((a, b) => b.savedAt - a.savedAt)
+      .slice(0, 6);
+  } catch (_error) {
+    return [];
+  }
+}
+
+function persistSavedInterviewRoles() {
+  try {
+    localStorage.setItem(SAVED_INTERVIEW_ROLES_KEY, JSON.stringify(savedInterviewRoles));
+  } catch (_error) {
+  }
+}
+
+function getSavedRoleIcon(roleType) {
+  if (roleType === "frontend") return "code";
+  if (roleType === "backend") return "dns";
+  return "work";
+}
+
+function shortenPreview(text, maxLength = 92) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "Role snapshot saved from your latest interview prep session.";
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}...`;
+}
+
+function renderSavedInterviewRoleCards() {
+  if (!interviewPrepActionsEl || !interviewPrepAnalyzeRoleBtn) return;
+
+  interviewPrepActionsEl
+    .querySelectorAll(".interview-prep-saved-role-card")
+    .forEach((card) => card.remove());
+
+  if (!savedInterviewRoles.length) return;
+
+  const cardsMarkup = savedInterviewRoles
+    .map((item) => {
+      const score = Math.round(Math.max(0, Math.min(100, Number(item.score) || 0)));
+      const icon = getSavedRoleIcon(item.roleType);
+      const preview = shortenPreview(item.preview);
+      return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-role-slug="${escapeHtml(item.roleSlug)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
+        <span class="interview-prep-saved-role-icon" aria-hidden="true">
+          <span class="material-symbols-outlined">${icon}</span>
+        </span>
+        <p class="interview-prep-saved-role-score-label">Match Score</p>
+        <p class="interview-prep-saved-role-score">${score}%</p>
+        <h3>${escapeHtml(item.roleLabel)}</h3>
+        <p class="interview-prep-saved-role-preview">${escapeHtml(preview)}</p>
+        <span class="interview-prep-saved-role-continue">Continue</span>
+      </button>`;
+    })
+    .join("");
+
+  interviewPrepAnalyzeRoleBtn.insertAdjacentHTML("beforebegin", cardsMarkup);
+}
+
+function saveInterviewRoleSnapshot(roleContext, options = {}) {
+  if (!roleContext?.roleSlug) return;
+
+  const useSaved = Boolean(options.useSaved);
+  const sourceData = useSaved ? latestSavedReportData : latestMainReportData;
+  const previewFallback = useSaved ? sourceData?.input?.jobSnippet : form?.job?.value;
+  const preview = String(sourceData?.input?.jobSnippet || previewFallback || "").replace(/\s+/g, " ").trim();
+  const score = Number(sourceData?.match?.score || 0);
+
+  const nextItem = {
+    roleSlug: roleContext.roleSlug,
+    roleLabel: roleContext.roleLabel || roleLabelFromSlug(roleContext.roleSlug),
+    roleType: roleContext.roleType || inferRoleType(roleContext.roleLabel || "", preview),
+    score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
+    preview,
+    savedAt: Date.now()
+  };
+
+  savedInterviewRoles = [
+    nextItem,
+    ...savedInterviewRoles.filter((item) => item.roleSlug !== nextItem.roleSlug)
+  ].slice(0, 6);
+
+  persistSavedInterviewRoles();
+  renderSavedInterviewRoleCards();
+}
+
+function openSavedInterviewRole(roleSlug) {
+  const target = savedInterviewRoles.find((item) => item.roleSlug === roleSlug);
+  if (!target) return;
+
+  openInterviewDetail({
+    roleSlug: target.roleSlug,
+    roleLabel: target.roleLabel,
+    roleType: target.roleType
+  });
 }
 
 function hashString(value) {
@@ -1830,6 +1947,16 @@ interviewPrepBrowseRolesBtn.addEventListener("click", () => {
   setPathForView("dashboard");
 });
 
+interviewPrepActionsEl.addEventListener("click", (event) => {
+  const savedRoleButton = event.target.closest("[data-action='open-saved-role']");
+  if (!savedRoleButton) return;
+
+  event.preventDefault();
+  const roleSlug = String(savedRoleButton.getAttribute("data-role-slug") || "").trim();
+  if (!roleSlug) return;
+  openSavedInterviewRole(roleSlug);
+});
+
 interviewDetailBackBtn.addEventListener("click", () => {
   setPathForView("interview-prep");
 });
@@ -1931,7 +2058,9 @@ resultsEl.addEventListener("click", (event) => {
 
   event.preventDefault();
   hideSavedAnalysisOverlay();
-  openInterviewDetail(deriveInterviewRoleContext());
+  const roleContext = deriveInterviewRoleContext();
+  saveInterviewRoleSnapshot(roleContext, { useSaved: false });
+  openInterviewDetail(roleContext);
 });
 
 savedReportContentEl.addEventListener("click", (event) => {
@@ -1941,7 +2070,9 @@ savedReportContentEl.addEventListener("click", (event) => {
   if (!nextStepBtn) return;
 
   event.preventDefault();
-  openInterviewDetail(deriveInterviewRoleContext({ useSaved: true }));
+  const roleContext = deriveInterviewRoleContext({ useSaved: true });
+  saveInterviewRoleSnapshot(roleContext, { useSaved: true });
+  openInterviewDetail(roleContext);
 });
 
 interviewQuestionListEl.addEventListener("click", (event) => {
@@ -2012,6 +2143,7 @@ if (!syncViewToCurrentRoute()) {
   setActiveView(initialView);
   setPathForView(initialView, { replace: true });
 }
+renderSavedInterviewRoleCards();
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");
 updateSubmitAvailability();
