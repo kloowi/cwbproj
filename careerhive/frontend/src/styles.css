@@ -556,9 +556,9 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
   background:
     radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.16), transparent 34%),
     linear-gradient(180deg, #ffffff, #fff8ef);
@@ -572,7 +572,7 @@ body {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
 }
 
@@ -592,43 +592,7 @@ body {
   color: #10212d;
   font-weight: 700;
   line-height: 1;
-}
-
-.stat-trend {
-  border-radius: 999px;
-  padding: 4px 9px;
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stat-trend.is-neutral {
-  color: #6c6764;
-  background: #ece9e6;
-}
-
-.stat-trend.is-good {
-  color: #1f6b45;
-  background: #d8f1e2;
-}
-
-.stat-trend.is-mid {
-  color: #8a4f12;
-  background: #ffe7c8;
-}
-
-.stat-trend.is-low {
-  color: #9d4a35;
-  background: #ffe1d9;
-}
-
-.stat-foot {
-  margin: -3px 0 0;
-  color: #6f5f57;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  max-width: 320px;
+  margin-top: 2px;
 }
 
 .stat-icon-badge {
@@ -2354,6 +2318,10 @@ ul {
 
   .dashboard-hero-highlight {
     width: 100%;
+  }
+
+  .stat-value {
+    margin-top: 4px;
   }
 
   .analysis-intro {

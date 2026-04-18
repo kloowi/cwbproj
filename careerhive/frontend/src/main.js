@@ -936,10 +936,8 @@ function renderDashboard(items) {
       <article class="stat-card card-lite">
         <div class="stat-head">
           <p class="stat-label">Applications Sent</p>
-          <span class="stat-trend is-neutral">No data</span>
         </div>
         <p class="stat-value">0</p>
-        <p class="stat-foot">Run your first analysis to populate this dashboard.</p>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">send</span>
         </div>
@@ -948,10 +946,8 @@ function renderDashboard(items) {
         <div>
           <div class="stat-head">
             <p class="stat-label">Average Match Score</p>
-            <span class="stat-trend is-neutral">No data</span>
           </div>
           <p class="stat-value">0%</p>
-          <p class="stat-foot">We calculate this after at least one completed analysis.</p>
         </div>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
@@ -961,10 +957,8 @@ function renderDashboard(items) {
         <div>
           <div class="stat-head">
             <p class="stat-label">Best Match Score</p>
-            <span class="stat-trend is-neutral">No data</span>
           </div>
           <p class="stat-value">0%</p>
-          <p class="stat-foot">Your strongest role-fit snapshot will appear here.</p>
         </div>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">verified</span>
@@ -981,22 +975,13 @@ function renderDashboard(items) {
   const totalApplications = items.length;
   const avgScore = scoreValues.length ? Math.round(scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length) : 0;
   const topScore = scoreValues.length ? Math.max(...scoreValues) : 0;
-  const strongFits = scoreValues.filter((value) => value >= 85).length;
-  const promisingFits = scoreValues.filter((value) => value >= 65 && value < 85).length;
-
-  const avgTrendClass = avgScore >= 80 ? "is-good" : avgScore >= 60 ? "is-mid" : "is-low";
-  const avgTrendLabel = avgScore >= 80 ? "Strong" : avgScore >= 60 ? "Promising" : "Needs work";
-  const topTrendClass = topScore >= 85 ? "is-good" : topScore >= 65 ? "is-mid" : "is-low";
-  const topTrendLabel = topScore >= 85 ? "Top fit" : topScore >= 65 ? "Growing" : "Early";
 
   dashboardStatsEl.innerHTML = `
     <article class="stat-card card-lite">
       <div class="stat-head">
         <p class="stat-label">Applications Sent</p>
-        <span class="stat-trend is-neutral">${strongFits} strong</span>
       </div>
       <p class="stat-value">${totalApplications}</p>
-      <p class="stat-foot">${promisingFits} additional analyses are in promising range.</p>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">send</span>
       </div>
@@ -1005,10 +990,8 @@ function renderDashboard(items) {
       <div>
         <div class="stat-head">
           <p class="stat-label">Average Match Score</p>
-          <span class="stat-trend ${avgTrendClass}">${avgTrendLabel}</span>
         </div>
         <p class="stat-value">${avgScore}%</p>
-        <p class="stat-foot">Based on the latest ${totalApplications} saved analyses.</p>
       </div>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
@@ -1018,10 +1001,8 @@ function renderDashboard(items) {
       <div>
         <div class="stat-head">
           <p class="stat-label">Best Match Score</p>
-          <span class="stat-trend ${topTrendClass}">${topTrendLabel}</span>
         </div>
         <p class="stat-value">${topScore}%</p>
-        <p class="stat-foot">Your strongest role-fit benchmark so far.</p>
       </div>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">verified</span>
