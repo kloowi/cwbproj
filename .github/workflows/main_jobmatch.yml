@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "jobpilot-ai/backend/**"
+      - "careerhive/backend/**"
       - ".github/workflows/main_jobmatch.yml"
   workflow_dispatch:
 
@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: jobpilot-ai/backend/package-lock.json
+          cache-dependency-path: careerhive/backend/package-lock.json
 
       - name: Install backend dependencies
-        working-directory: ./jobpilot-ai/backend
+        working-directory: ./careerhive/backend
         run: npm ci
 
       - name: Login to Azure
@@ -57,4 +57,4 @@ jobs:
         with:
           app-name: jobmatch
           slot-name: Production
-          package: ./jobpilot-ai/backend
+          package: ./careerhive/backend

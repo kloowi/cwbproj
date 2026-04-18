@@ -1353,6 +1353,81 @@ input[type="file"]:hover {
   grid-template-columns: 1fr;
 }
 
+.next-step-section {
+  margin-top: 16px;
+}
+
+.next-step-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 162px;
+  padding: 24px 28px;
+  box-shadow: none;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(247, 166, 58, 0.2), transparent 30%),
+    linear-gradient(180deg, #ffffff, #fff8ef);
+}
+
+.next-step-card::after {
+  display: none;
+}
+
+.next-step-content {
+  min-width: 0;
+}
+
+.next-step-title {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
+  font-size: var(--report-heading-size);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: inherit;
+}
+
+.next-step-subtext {
+  margin: 10px 0 0;
+  color: #6f5a53;
+  max-width: 720px;
+  font-size: var(--report-body-size);
+  line-height: 1.5;
+}
+
+.next-step-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.next-step-cta {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f28a2c, #ef7d22);
+  color: #fff9f3;
+  font: inherit;
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  padding: 14px 34px;
+  min-height: 50px;
+  cursor: default;
+  box-shadow: none;
+}
+
+.next-step-cta:hover {
+  background: linear-gradient(180deg, #f3953f, #f08028);
+}
+
+.next-step-cta:focus-visible {
+  outline: 2px solid rgba(242, 138, 44, 0.42);
+  outline-offset: 2px;
+}
+
 .strength-list {
   list-style: none;
   margin: 12px 0 0;
@@ -1994,6 +2069,25 @@ ul {
 
   .roadmap-reset-btn {
     margin-left: 38px;
+  }
+
+  .next-step-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .next-step-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .next-step-cta {
+    width: auto;
+    min-height: 46px;
+    padding: 12px 26px;
+    font-size: 0.94rem;
   }
 
   .history-filters {

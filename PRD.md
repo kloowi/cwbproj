@@ -5,7 +5,7 @@
 
 ### 🧠 Product Name (working):
 
-**JobPilot AI**
+**CareerHive AI**
 
 ### 🎯 Vision:
 

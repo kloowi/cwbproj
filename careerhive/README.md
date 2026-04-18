@@ -1,4 +1,4 @@
-# JobPilot AI Scaffold
+# CareerHive AI Scaffold
 
 This scaffold gives you a strict MVP flow:
 

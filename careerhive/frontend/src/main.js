@@ -790,6 +790,17 @@ function renderAnalysisReport(data, options = {}) {
     </section>`
     : "";
 
+  const nextStepMarkup = `<div class="section-label">Next Step</div>
+    <section class="card-lite report-card next-step-card" aria-label="Next step">
+      <div class="next-step-content">
+        <h3 class="next-step-title">Interview Preparation</h3>
+        <p class="next-step-subtext">Practice real interview scenarios with AI-generated questions.</p>
+      </div>
+      <div class="next-step-actions">
+        <button class="next-step-cta" type="button">Prepare Now →</button>
+      </div>
+    </section>`;
+
   return `
     ${options.kicker ? `<div class="saved-report-kicker">${escapeHtml(options.kicker)}</div>` : ""}
     <div class="report-title-row">
@@ -856,6 +867,7 @@ function renderAnalysisReport(data, options = {}) {
     </div>
 
     ${secondaryCardMarkup ? `<div class="results-grid secondary report-secondary is-single">${secondaryCardMarkup}</div>` : ""}
+    <div class="report-secondary next-step-section">${nextStepMarkup}</div>
   `;
 }
 
