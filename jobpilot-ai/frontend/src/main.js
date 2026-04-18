@@ -4,6 +4,7 @@ const configuredApiBaseUrl = (import.meta.env.VITE_API_URL || "").trim();
 const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "localhost" ? "http://localhost:5050" : "")).replace(/\/$/, "");
 const SESSION_KEY = "jobpilot_session_id";
 const ACTIVE_VIEW_KEY = "jobpilot_active_view";
+const ROADMAP_PROGRESS_KEY = "jobpilot_roadmap_progress_v1";
 const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
 const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
@@ -214,6 +215,162 @@ let pipelineState = null;
 let pipelineRunToken = 0;
 let pipelineTimers = [];
 let resumeFileIsValid = false;
+let latestMainReportData = null;
+let latestMainReportOptions = null;
+let latestSavedReportData = null;
+let latestSavedReportOptions = null;
+const roadmapProgressState = loadRoadmapProgressState();
+
+function loadRoadmapProgressState() {
+  try {
+    const raw = localStorage.getItem(ROADMAP_PROGRESS_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed;
+  } catch (_error) {
+    return {};
+  }
+}
+
+function persistRoadmapProgressState() {
+  try {
+    localStorage.setItem(ROADMAP_PROGRESS_KEY, JSON.stringify(roadmapProgressState));
+  } catch (_error) {
+  }
+}
+
+function hashString(value) {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function resolveAnalysisId(data, options = {}) {
+  const explicit = String(options.analysisId || data?.meta?.analysisId || data?.id || "").trim();
+  if (explicit) return explicit;
+
+  const fallbackFingerprint = JSON.stringify({
+    title: data?.job?.title || "",
+    roadmap: data?.plan?.roadmap || [],
+    missing: data?.match?.missing || [],
+    strengths: data?.match?.strengths || []
+  });
+
+  return `analysis-${hashString(fallbackFingerprint)}`;
+}
+
+function ensureRoadmapProgress(analysisId, stepCount) {
+  if (!roadmapProgressState[analysisId] || typeof roadmapProgressState[analysisId] !== "object") {
+    roadmapProgressState[analysisId] = {};
+  }
+
+  const nextState = { ...roadmapProgressState[analysisId] };
+  let changed = false;
+
+  for (let index = 1; index < stepCount; index += 1) {
+    const key = String(index);
+    if (typeof nextState[key] !== "boolean") {
+      nextState[key] = false;
+      changed = true;
+    }
+  }
+
+  if (Object.keys(nextState).length !== Object.keys(roadmapProgressState[analysisId]).length) {
+    changed = true;
+  }
+
+  roadmapProgressState[analysisId] = nextState;
+  if (changed) {
+    persistRoadmapProgressState();
+  }
+}
+
+function setRoadmapStepCompletion(analysisId, stepIndex, isCompleted) {
+  if (stepIndex <= 0) return;
+  if (!roadmapProgressState[analysisId] || typeof roadmapProgressState[analysisId] !== "object") {
+    roadmapProgressState[analysisId] = {};
+  }
+
+  roadmapProgressState[analysisId][String(stepIndex)] = Boolean(isCompleted);
+  persistRoadmapProgressState();
+}
+
+function resetRoadmapCompletion(analysisId) {
+  if (!roadmapProgressState[analysisId] || typeof roadmapProgressState[analysisId] !== "object") return;
+
+  Object.keys(roadmapProgressState[analysisId]).forEach((stepIndex) => {
+    roadmapProgressState[analysisId][stepIndex] = false;
+  });
+
+  persistRoadmapProgressState();
+}
+
+function getRoadmapStepCompletion(analysisId, stepIndex) {
+  if (stepIndex <= 0) return true;
+  return Boolean(roadmapProgressState[analysisId]?.[String(stepIndex)]);
+}
+
+function buildRoadmapCompleteButtonMarkup(step, index, analysisId) {
+  return `<button class="roadmap-complete-btn" type="button" data-roadmap-action="complete" data-roadmap-step-index="${index}" data-roadmap-analysis-id="${escapeHtml(analysisId)}" aria-label="Mark ${escapeHtml(step.title)} as done">Mark done</button>`;
+}
+
+function buildRoadmapActionPlaceholderMarkup() {
+  return "<span class=\"roadmap-action-placeholder\" aria-hidden=\"true\">Mark done</span>";
+}
+
+function updateRoadmapCardUi(roadmapCardEl, analysisId) {
+  if (!roadmapCardEl || !analysisId) return;
+
+  const rows = Array.from(roadmapCardEl.querySelectorAll(".roadmap-item"));
+  if (!rows.length) return;
+
+  const firstIncompleteIndex = rows.findIndex((row, index) => index > 0 && !getRoadmapStepCompletion(analysisId, index));
+  let completedCount = 0;
+
+  rows.forEach((row, index) => {
+    const isDone = index === 0 ? true : getRoadmapStepCompletion(analysisId, index);
+    const isActive = index > 0 && index === firstIncompleteIndex;
+    const nextClass = isDone ? "is-done" : isActive ? "is-active" : "is-upcoming";
+    const labelText = isDone ? "Completed" : isActive ? "In Progress" : "Locked";
+    const labelClass = isDone ? "is-complete" : isActive ? "is-progress" : "is-locked";
+
+    if (isDone) completedCount += 1;
+
+    row.classList.remove("is-done", "is-active", "is-upcoming");
+    row.classList.add(nextClass);
+
+    const checkEl = row.querySelector(".roadmap-check");
+    if (checkEl) {
+      checkEl.textContent = isDone ? "v" : "";
+    }
+
+    const stateEl = row.querySelector(".roadmap-state");
+    if (stateEl) {
+      stateEl.textContent = labelText;
+      stateEl.classList.remove("is-complete", "is-progress", "is-locked");
+      stateEl.classList.add(labelClass);
+    }
+
+    const actionsEl = row.querySelector(".roadmap-actions");
+    if (actionsEl) {
+      if (index > 0 && !isDone && isActive) {
+        const titleEl = row.querySelector(".roadmap-title");
+        actionsEl.innerHTML = buildRoadmapCompleteButtonMarkup({ title: titleEl?.textContent || "action" }, index, analysisId);
+      } else {
+        actionsEl.innerHTML = buildRoadmapActionPlaceholderMarkup();
+      }
+    }
+  });
+
+  const progressEl = roadmapCardEl.querySelector(".roadmap-progress");
+  if (progressEl) {
+    progressEl.textContent = `${completedCount} of ${rows.length} completed`;
+  }
+}
 
 function setResumeFileStatus(message, state) {
   resumeFileStatusEl.textContent = message;
@@ -262,6 +419,52 @@ function toTitleCase(text) {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
+}
+
+const SKILL_DISPLAY_MAP = {
+  ai: "AI",
+  api: "API",
+  apis: "APIs",
+  aws: "AWS",
+  azure: "Azure",
+  cicd: "CI/CD",
+  gcp: "GCP",
+  gke: "GKE",
+  github: "GitHub",
+  graphql: "GraphQL",
+  java: "Java",
+  javascript: "JavaScript",
+  llm: "LLM",
+  ml: "ML",
+  mongodb: "MongoDB",
+  mysql: "MySQL",
+  nodejs: "Node.js",
+  nosql: "NoSQL",
+  nlp: "NLP",
+  postgresql: "PostgreSQL",
+  react: "React",
+  rest: "REST",
+  sql: "SQL",
+  typescript: "TypeScript",
+  uiux: "UI/UX"
+};
+
+function formatSkillDisplay(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  const directKey = raw.toLowerCase().replace(/\s+/g, " ");
+  const compactKey = directKey.replace(/[\s._-]/g, "");
+
+  if (SKILL_DISPLAY_MAP[directKey]) {
+    return SKILL_DISPLAY_MAP[directKey];
+  }
+
+  if (SKILL_DISPLAY_MAP[compactKey]) {
+    return SKILL_DISPLAY_MAP[compactKey];
+  }
+
+  return toTitleCase(raw);
 }
 
 function toSentenceCase(text) {
@@ -332,7 +535,8 @@ function mapStoredAnalysisToResult(item) {
       roadmap: Array.isArray(item?.roadmap) ? item.roadmap : []
     },
     meta: {
-      provider: item?.provider || "unknown"
+      provider: item?.provider || "unknown",
+      analysisId: String(item?.id || "").trim()
     }
   };
 }
@@ -450,7 +654,7 @@ function getScoreProfile(score) {
 
 function formatSkillList(items) {
   return (items || [])
-    .map((item) => toTitleCase(String(item || "")))
+    .map((item) => formatSkillDisplay(item))
     .filter(Boolean);
 }
 
@@ -501,6 +705,7 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
 }
 
 function renderAnalysisReport(data, options = {}) {
+  const analysisId = resolveAnalysisId(data, options);
   const title = escapeHtml(options.title || data.job?.title || "Role Analysis");
   const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
   const profile = getScoreProfile(score);
@@ -510,9 +715,23 @@ function renderAnalysisReport(data, options = {}) {
   const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
   const actionItems = buildActionableItems(missingSkills, roadmapItems);
   const roadmapSteps = buildRoadmapSteps(roadmapItems, missingSkills);
+  ensureRoadmapProgress(analysisId, roadmapSteps.length);
+
+  const roadmapUiSteps = roadmapSteps.map((step, index) => {
+    if (index === 0) {
+      return { ...step, done: true, isToggleable: false };
+    }
+
+    return {
+      ...step,
+      done: Boolean(roadmapProgressState[analysisId]?.[String(index)]),
+      isToggleable: true
+    };
+  });
+
   const matchedCount = strengths.length;
   const missingCount = missingSkills.length;
-  const completedCount = roadmapSteps.filter((item) => item.done).length;
+  const completedCount = roadmapUiSteps.filter((item) => item.done).length;
   const previewResume = escapeHtml(options.resumeSnippet || "Resume preview is unavailable for this record.");
   const previewJob = escapeHtml(options.jobSnippet || "Job description preview is unavailable for this record.");
 
@@ -536,14 +755,18 @@ function renderAnalysisReport(data, options = {}) {
     ? strengths.map((item) => `<li><span class="skill-dot" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
     : "<li><span class=\"skill-dot\" aria-hidden=\"true\"></span>Strength signals unavailable</li>";
 
-  const activeRoadmapIndex = roadmapSteps.findIndex((step) => !step.done);
-  const roadmapMarkup = roadmapSteps
+  const activeRoadmapIndex = roadmapUiSteps.findIndex((step) => !step.done);
+  const roadmapMarkup = roadmapUiSteps
     .map((step, index) => {
       const priorityClass = step.priority === "High" ? "is-high" : step.priority === "Medium" ? "is-medium" : "is-low";
       const stateClass = step.done ? "is-done" : index === activeRoadmapIndex ? "is-active" : "is-upcoming";
       const stateLabel = step.done ? "Completed" : index === activeRoadmapIndex ? "In Progress" : "Locked";
       const stateLabelClass = step.done ? "is-complete" : index === activeRoadmapIndex ? "is-progress" : "is-locked";
-      return `<li class="roadmap-item ${stateClass}">
+      const showCompleteButton = step.isToggleable && !step.done && index === activeRoadmapIndex;
+      const toggleControlMarkup = showCompleteButton
+        ? buildRoadmapCompleteButtonMarkup(step, index, analysisId)
+        : buildRoadmapActionPlaceholderMarkup();
+      return `<li class="roadmap-item ${stateClass}" data-roadmap-step-index="${index}">
         <span class="roadmap-check" aria-hidden="true">${step.done ? "v" : ""}</span>
         <div class="roadmap-main">
           <p class="roadmap-title">${escapeHtml(step.title)}</p>
@@ -552,6 +775,7 @@ function renderAnalysisReport(data, options = {}) {
             <span class="roadmap-state ${stateLabelClass}">${stateLabel}</span>
           </div>
         </div>
+        <div class="roadmap-actions">${toggleControlMarkup}</div>
       </li>`;
     })
     .join("");
@@ -623,10 +847,11 @@ function renderAnalysisReport(data, options = {}) {
 
       <section class="card-lite report-card roadmap-card">
         <div class="insight-head">
-          <h3><span class="section-mark" aria-hidden="true">v</span>Your Application Roadmap</h3>
-          <span class="roadmap-progress">${completedCount} of ${roadmapSteps.length} completed</span>
+          <h3><span class="section-mark" aria-hidden="true">◉</span>Your Application Roadmap</h3>
+          <span class="roadmap-progress">${completedCount} of ${roadmapUiSteps.length} completed</span>
         </div>
         <ol class="roadmap-list">${roadmapMarkup}</ol>
+        <button class="roadmap-reset-btn" type="button" data-roadmap-action="reset" data-roadmap-analysis-id="${escapeHtml(analysisId)}">Reset actions</button>
       </section>
     </div>
 
@@ -635,13 +860,19 @@ function renderAnalysisReport(data, options = {}) {
 }
 
 function renderSavedAnalysisOverlay(data) {
+  latestSavedReportData = data;
+  latestSavedReportOptions = {
+    title: data.job?.title || "Role Analysis",
+    kicker: "Saved Snapshot",
+    includeInputPreview: true,
+    resumeSnippet: data.input?.resumeSnippet,
+    jobSnippet: data.input?.jobSnippet,
+    analysisId: data.meta?.analysisId || ""
+  };
+
   showSavedAnalysisOverlay(
     renderAnalysisReport(data, {
-      title: data.job?.title || "Role Analysis",
-      kicker: "Saved Snapshot",
-      includeInputPreview: true,
-      resumeSnippet: data.input?.resumeSnippet,
-      jobSnippet: data.input?.jobSnippet
+      ...latestSavedReportOptions
     })
   );
 }
@@ -719,7 +950,7 @@ function renderDashboard(items) {
   `;
 
   dashboardHistoryEl.innerHTML = `<div class="history-grid">${items.slice(0, 8).map((item) => {
-    const missing = (item.missingSkills || []).map(toTitleCase);
+    const missing = (item.missingSkills || []).map(formatSkillDisplay);
     const date = formatHistoryDateTime(item.createdAt);
     const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
     const status = score >= 85 ? "Strong Match" : score >= 65 ? "Promising" : "Needs Work";
@@ -949,11 +1180,15 @@ function renderEmptyResultsState() {
   `;
 }
 
-function renderResults(data) {
-  resultsEl.innerHTML = renderAnalysisReport(data, {
+function renderResults(data, options = {}) {
+  latestMainReportData = data;
+  latestMainReportOptions = {
     title: data.job?.title || "Role Analysis",
-    includeInputPreview: false
-  });
+    includeInputPreview: false,
+    analysisId: options.analysisId || data.meta?.analysisId || data.id || ""
+  };
+
+  resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
 }
 
 async function openSavedAnalysis(id) {
@@ -1179,6 +1414,43 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !dashboardReportOverlayEl.classList.contains("is-hidden")) {
     hideSavedAnalysisOverlay();
   }
+});
+
+function handleRoadmapInteraction(event) {
+  const completeButton = event.target.closest("[data-roadmap-action='complete']");
+  if (completeButton) {
+    event.preventDefault();
+    const analysisId = String(completeButton.getAttribute("data-roadmap-analysis-id") || "").trim();
+    const stepIndex = Number(completeButton.getAttribute("data-roadmap-step-index"));
+    if (!analysisId || !Number.isInteger(stepIndex) || stepIndex <= 0) return true;
+
+    setRoadmapStepCompletion(analysisId, stepIndex, true);
+    const roadmapCardEl = completeButton.closest(".roadmap-card");
+    updateRoadmapCardUi(roadmapCardEl, analysisId);
+    return true;
+  }
+
+  const resetButton = event.target.closest("[data-roadmap-action='reset']");
+  if (resetButton) {
+    event.preventDefault();
+    const analysisId = String(resetButton.getAttribute("data-roadmap-analysis-id") || "").trim();
+    if (!analysisId) return true;
+
+    resetRoadmapCompletion(analysisId);
+    const roadmapCardEl = resetButton.closest(".roadmap-card");
+    updateRoadmapCardUi(roadmapCardEl, analysisId);
+    return true;
+  }
+
+  return false;
+}
+
+resultsEl.addEventListener("click", (event) => {
+  handleRoadmapInteraction(event);
+});
+
+savedReportContentEl.addEventListener("click", (event) => {
+  handleRoadmapInteraction(event);
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {

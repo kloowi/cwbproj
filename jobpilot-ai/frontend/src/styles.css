@@ -1129,13 +1129,14 @@ input[type="file"]:hover {
 .roadmap-item {
   position: relative;
   display: grid;
-  grid-template-columns: 36px 1fr;
+  grid-template-columns: 36px 1fr auto;
   align-items: start;
   gap: 12px;
   border-radius: 20px;
   background: #fffdf9;
   border: 1px solid #efdfd1;
   padding: 12px 14px;
+  transition: border-color 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
 }
 
 .roadmap-item::before {
@@ -1200,6 +1201,60 @@ input[type="file"]:hover {
   min-width: 0;
 }
 
+.roadmap-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  min-width: 96px;
+  padding-top: 2px;
+}
+
+.roadmap-complete-btn {
+  width: 96px;
+  min-width: 96px;
+  border: 1px solid #d8b89f;
+  border-radius: 999px;
+  padding: 5px 0;
+  background: #fff4e9;
+  color: #9b5220;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.roadmap-action-placeholder {
+  width: 96px;
+  min-width: 96px;
+  display: inline-block;
+  visibility: hidden;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 0;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 200;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+}
+
+.roadmap-complete-btn:hover {
+  background: #ffeada;
+  border-color: #c98c5d;
+  color: #8f4615;
+}
+
+.roadmap-complete-btn:focus-visible {
+  outline: 2px solid rgba(186, 103, 40, 0.45);
+  outline-offset: 2px;
+}
+
 .roadmap-title {
   margin: 0;
   font-weight: 600;
@@ -1224,7 +1279,7 @@ input[type="file"]:hover {
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1261,6 +1316,33 @@ input[type="file"]:hover {
 
 .roadmap-state.is-locked {
   color: #8a7a73;
+}
+
+.roadmap-reset-btn {
+  margin: 10px 0 0 48px;
+  border: 0;
+  background: transparent;
+  color: #9b6f50;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  padding: 0;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.roadmap-reset-btn:hover {
+  color: #8a4d22;
+}
+
+.roadmap-reset-btn:focus-visible {
+  outline: 2px solid rgba(186, 103, 40, 0.4);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 .report-secondary {
@@ -1864,7 +1946,7 @@ ul {
   }
 
   .roadmap-item {
-    grid-template-columns: 30px 1fr;
+    grid-template-columns: 30px 1fr auto;
     border-radius: 16px;
     padding: 10px 10px 10px 9px;
   }
@@ -1888,6 +1970,30 @@ ul {
 
   .roadmap-title {
     font-size: 0.94rem;
+  }
+
+  .roadmap-actions {
+    width: 82px;
+    min-width: 82px;
+    padding-top: 0;
+  }
+
+  .roadmap-complete-btn {
+    width: 82px;
+    min-width: 82px;
+    padding: 4px 0;
+    font-size: 0.68rem;
+  }
+
+  .roadmap-action-placeholder {
+    width: 82px;
+    min-width: 82px;
+    padding: 4px 0;
+    font-size: 0.68rem;
+  }
+
+  .roadmap-reset-btn {
+    margin-left: 38px;
   }
 
   .history-filters {
