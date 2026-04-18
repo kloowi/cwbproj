@@ -9,7 +9,6 @@ const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
 const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_RESUME_EXTENSIONS = [".pdf", ".docx"];
-const INTERVIEW_ROUTE_PREFIX = "#/interview-prep/";
 const DEFAULT_INTERVIEW_ROLE_SLUG = "software-eng";
 const DEFAULT_INTERVIEW_ROLE_LABEL = "Software Engineer";
 
@@ -585,10 +584,12 @@ function inferRoleType(roleLabel, contextText = "") {
   return "software";
 }
 
-function parseInterviewRoute(hashValue = window.location.hash) {
-  const hash = String(hashValue || "");
-  if (!hash.startsWith(INTERVIEW_ROUTE_PREFIX)) return null;
-  const encoded = hash.slice(INTERVIEW_ROUTE_PREFIX.length).trim();
+function parseInterviewRoute(pathnameValue = window.location.pathname) {
+  const pathname = String(pathnameValue || "").trim();
+  const match = pathname.match(/^\/interview-prep\/([^/]+)$/);
+  if (!match) return null;
+
+  const encoded = match[1].trim();
   if (!encoded) return DEFAULT_INTERVIEW_ROLE_SLUG;
 
   try {
@@ -600,18 +601,40 @@ function parseInterviewRoute(hashValue = window.location.hash) {
   }
 }
 
-function buildInterviewRouteHash(roleSlug) {
-  return `${INTERVIEW_ROUTE_PREFIX}${encodeURIComponent(roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG)}`;
+function parseTopLevelRoute(pathnameValue = window.location.pathname) {
+  const pathname = String(pathnameValue || "").replace(/\/+$/, "") || "/";
+  if (pathname === "/dashboard") return "dashboard";
+  if (pathname === "/analysis" || pathname === "/") return "analysis";
+  if (pathname === "/interview-prep") return "interview-prep";
+  return null;
 }
 
-function clearInterviewRouteHash({ replace = false } = {}) {
-  if (!parseInterviewRoute(window.location.hash)) return;
-  const nextUrl = `${window.location.pathname}${window.location.search}`;
-  if (replace) {
-    window.history.replaceState(null, "", nextUrl);
+function setPathForView(view, options = {}) {
+  const route = view === "dashboard"
+    ? "dashboard"
+    : view === "interview-prep"
+      ? "interview-prep"
+      : "analysis";
+  const nextPath = `/${route}`;
+  const nextUrl = `${nextPath}${window.location.search}`;
+
+  if (window.location.pathname === nextPath) {
+    setActiveView(route);
     return;
   }
+
+  if (options.replace) {
+    window.history.replaceState(null, "", nextUrl);
+    setActiveView(route);
+    return;
+  }
+
   window.history.pushState(null, "", nextUrl);
+  setActiveView(route);
+}
+
+function buildInterviewRouteHash(roleSlug) {
+  return `/interview-prep/${encodeURIComponent(roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG)}`;
 }
 
 function inferRoleLabelFromInputText(inputText) {
@@ -749,17 +772,25 @@ function openInterviewDetail(roleContext, options = {}) {
   const context = roleContext || deriveInterviewRoleContext();
   renderInterviewDetail(context, options);
 
-  const targetHash = buildInterviewRouteHash(context.roleSlug);
-  if (window.location.hash !== targetHash) {
-    window.location.hash = targetHash;
+  const targetPath = buildInterviewRouteHash(context.roleSlug);
+  if (window.location.pathname !== targetPath) {
+    const nextUrl = `${targetPath}${window.location.search}`;
+    window.history.pushState(null, "", nextUrl);
+    setActiveView("interview-detail");
     return;
   }
 
   setActiveView("interview-detail");
 }
 
-function syncViewToCurrentHash() {
-  const roleSlug = parseInterviewRoute(window.location.hash);
+function syncViewToCurrentRoute() {
+  const topLevelRoute = parseTopLevelRoute(window.location.pathname);
+  if (topLevelRoute) {
+    setActiveView(topLevelRoute);
+    return true;
+  }
+
+  const roleSlug = parseInterviewRoute(window.location.pathname);
   if (!roleSlug) return false;
 
   const roleLabel = roleLabelFromSlug(roleSlug);
@@ -953,10 +984,6 @@ function getSessionId() {
 }
 
 function getInitialView() {
-  if (parseInterviewRoute(window.location.hash)) {
-    return "interview-detail";
-  }
-
   try {
     const stored = localStorage.getItem(ACTIVE_VIEW_KEY);
     if (stored === "dashboard" || stored === "analysis" || stored === "interview-prep") {
@@ -1780,37 +1807,31 @@ form.addEventListener("submit", async (event) => {
 
 navDashboardBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
-  clearInterviewRouteHash({ replace: true });
-  setActiveView("dashboard");
+  setPathForView("dashboard");
 });
 
 navNewAnalysisBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
-  clearInterviewRouteHash({ replace: true });
-  setActiveView("analysis");
+  setPathForView("analysis");
 });
 
 navInterviewPrepBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
-  clearInterviewRouteHash({ replace: true });
-  setActiveView("interview-prep");
+  setPathForView("interview-prep");
 });
 
 interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
-  clearInterviewRouteHash({ replace: true });
-  setActiveView("analysis");
+  setPathForView("analysis");
   resumeFileEl.focus();
 });
 
 interviewPrepBrowseRolesBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
-  clearInterviewRouteHash({ replace: true });
-  setActiveView("dashboard");
+  setPathForView("dashboard");
 });
 
 interviewDetailBackBtn.addEventListener("click", () => {
-  clearInterviewRouteHash();
-  setActiveView("interview-prep");
+  setPathForView("interview-prep");
 });
 
 interviewDetailRegenerateBtn.addEventListener("click", () => {
@@ -1932,8 +1953,8 @@ interviewQuestionListEl.addEventListener("click", (event) => {
   setInterviewQuestionOpen(index);
 });
 
-window.addEventListener("hashchange", () => {
-  const isInterviewRoute = syncViewToCurrentHash();
+window.addEventListener("popstate", () => {
+  const isInterviewRoute = syncViewToCurrentRoute();
   if (isInterviewRoute) return;
 
   if (activeView === "interview-detail") {
@@ -1986,8 +2007,10 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
 });
 
 setAnalysisResultsPanelVisibility(false);
-if (!syncViewToCurrentHash()) {
-  setActiveView(getInitialView());
+if (!syncViewToCurrentRoute()) {
+  const initialView = getInitialView();
+  setActiveView(initialView);
+  setPathForView(initialView, { replace: true });
 }
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");
