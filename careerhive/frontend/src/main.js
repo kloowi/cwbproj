@@ -62,7 +62,7 @@ app.innerHTML = `
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">work</span>
           <span class="nav-label">Job Matches</span>
         </button>
-        <button class="nav-item" type="button" disabled>
+        <button class="nav-item" type="button" id="nav-interview-prep">
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">psychology</span>
           <span class="nav-label">Interview Prep</span>
         </button>
@@ -71,22 +71,30 @@ app.innerHTML = `
 
     <main class="workspace">
       <section class="dashboard-view view-hidden" id="dashboard-view" aria-label="Dashboard">
-        <header class="hero">
-          <div>
-            <p class="hero-kicker">CareerHive AI</p>
+        <header class="dashboard-hero">
+          <div class="dashboard-hero-copy">
+            <p class="dashboard-hero-kicker">CareerHive AI</p>
             <h2>Design your next move with clarity.</h2>
             <p>Turn your resume and target role into concrete, score-backed next steps.</p>
           </div>
+          <div class="dashboard-hero-highlight" aria-hidden="true">
+            <p>Pipeline</p>
+            <strong>Resume -> Match -> Plan</strong>
+            <span>Track every analysis and focus on the highest-impact skill gaps.</span>
+          </div>
         </header>
 
-        <section class="dashboard-panel">
+        <section class="dashboard-panel dashboard-overview-panel">
           <div class="section-label">Dashboard Overview</div>
           <div class="dashboard-stats" id="dashboard-stats"></div>
         </section>
 
-        <section class="dashboard-panel" aria-label="Application History">
+        <section class="dashboard-panel dashboard-history-panel" aria-label="Application History">
           <div class="history-head">
-            <h3>Recent Analyses</h3>
+            <div>
+              <h3>Recent Analyses</h3>
+              <p class="history-head-sub">Review your latest role-fit snapshots and reopen any saved report.</p>
+            </div>
             <button class="text-link-btn" type="button" id="view-analysis-btn">Start New Analysis</button>
           </div>
           <div class="history-filters" aria-label="History Filters">
@@ -115,11 +123,12 @@ app.innerHTML = `
       <section class="analysis-view" id="analysis-view">
         <section class="panel" aria-label="Analysis Input">
           <div class="analysis-intro">
+            <p class="analysis-kicker">CareerHive Analyzer</p>
             <h2>Start a New Analysis</h2>
             <p>Compare your professional profile with specific job requirements to optimize your chances and discover critical skill gaps.</p>
           </div>
           <form id="analyze-form" class="input-grid">
-            <section class="input-card">
+            <section class="input-card analysis-upload-card">
               <div class="input-card-head">
                 <h3>
                   <span class="card-title-icon" aria-hidden="true">
@@ -132,14 +141,15 @@ app.innerHTML = `
               </div>
               <p class="input-card-copy">PDF or DOCX (Max 5MB)</p>
               <div class="input-zone upload-zone">
-             
+                <p class="upload-zone-copy">Drop your resume here or select a file from your device.</p>
+                <span class="upload-zone-divider" aria-hidden="true"><span></span><strong>or</strong><span></span></span>
                 <label class="browse-files-btn" for="resume-file">Browse Files</label>
                 <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
               </div>
               <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
             </section>
 
-            <section class="input-card">
+            <section class="input-card analysis-job-card">
               <div class="input-card-head">
                 <h3>
                   <span class="card-title-icon" aria-hidden="true">
@@ -151,7 +161,6 @@ app.innerHTML = `
                 </h3>
               </div>
               <p class="input-card-copy">Enter job title only or full description.</p>
-              <label class="field-label" for="job"></label>
               <textarea id="job" name="job" class="input-zone" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
             </section>
 
@@ -168,9 +177,38 @@ app.innerHTML = `
           <div id="error" class="error"></div>
         </section>
 
-        <section class="results-panel" aria-label="Analysis Results">
+        <section class="results-panel view-hidden" id="analysis-results-panel" aria-label="Analysis Results" aria-hidden="true">
           <div class="section-label">Analysis Results</div>
           <div id="results"></div>
+        </section>
+      </section>
+
+      <section class="interview-prep-view view-hidden" id="interview-prep-view" aria-label="Interview Prep">
+        <section class="panel" aria-label="Interview Prep Landing">
+          <div class="interview-prep-intro">
+            <h2>Start Your Interview Preparation</h2>
+            <p>Choose a role to generate a tailored preparation session.</p>
+          </div>
+
+          <div class="interview-prep-actions" aria-label="Interview Prep Primary Actions">
+            <button type="button" class="interview-prep-action-card interview-prep-analyze-card" id="interview-prep-analyze-role-btn" aria-label="Analyze new role to start interview preparation">
+              <span class="interview-prep-action-icon" aria-hidden="true">
+                <span class="material-symbols-outlined">upload_file</span>
+              </span>
+              <h3>Analyze New Role</h3>
+              <p>Upload a new job description and get an instant AI-powered preparation roadmap.</p>
+              <span class="interview-prep-action-cta">Start from scratch <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></span>
+            </button>
+
+            <button type="button" class="interview-prep-action-card interview-prep-browse-card" id="interview-prep-browse-roles-btn" aria-label="Browse predefined roles for interview preparation">
+              <span class="interview-prep-action-icon" aria-hidden="true">
+                <span class="material-symbols-outlined">travel_explore</span>
+              </span>
+              <h3>Browse Roles</h3>
+              <p>Explore the "Hive" for predefined industry roles and common interview patterns.</p>
+              <span class="interview-prep-action-cta">Go to Hive <span class="material-symbols-outlined" aria-hidden="true">hive</span></span>
+            </button>
+          </div>
         </section>
       </section>
 
@@ -191,13 +229,18 @@ const form = document.querySelector("#analyze-form");
 const submitBtn = document.querySelector("#submit-btn");
 const errorEl = document.querySelector("#error");
 const resultsEl = document.querySelector("#results");
+const analysisResultsPanelEl = document.querySelector("#analysis-results-panel");
 const dashboardStatsEl = document.querySelector("#dashboard-stats");
 const dashboardHistoryEl = document.querySelector("#dashboard-history");
 const dashboardViewEl = document.querySelector("#dashboard-view");
 const analysisViewEl = document.querySelector("#analysis-view");
+const interviewPrepViewEl = document.querySelector("#interview-prep-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
+const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
 const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
+const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
+const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
 const filterDateRangeEl = document.querySelector("#filter-date-range");
@@ -384,12 +427,19 @@ function hasAllowedResumeExtension(fileName) {
 }
 
 function setActiveView(view) {
-  const normalizedView = view === "dashboard" ? "dashboard" : "analysis";
+  const normalizedView = view === "dashboard"
+    ? "dashboard"
+    : view === "interview-prep"
+      ? "interview-prep"
+      : "analysis";
   const showDashboard = normalizedView === "dashboard";
+  const showInterviewPrep = normalizedView === "interview-prep";
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
-  analysisViewEl.classList.toggle("view-hidden", showDashboard);
+  analysisViewEl.classList.toggle("view-hidden", showDashboard || showInterviewPrep);
+  interviewPrepViewEl.classList.toggle("view-hidden", !showInterviewPrep);
   navDashboardBtn.classList.toggle("nav-active", showDashboard);
-  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard);
+  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard && !showInterviewPrep);
+  navInterviewPrepBtn.classList.toggle("nav-active", showInterviewPrep);
 
   try {
     localStorage.setItem(ACTIVE_VIEW_KEY, normalizedView);
@@ -555,7 +605,7 @@ function getSessionId() {
 function getInitialView() {
   try {
     const stored = localStorage.getItem(ACTIVE_VIEW_KEY);
-    if (stored === "dashboard" || stored === "analysis") {
+    if (stored === "dashboard" || stored === "analysis" || stored === "interview-prep") {
       return stored;
     }
   } catch (_error) {
@@ -893,18 +943,24 @@ function renderDashboard(items) {
   if (!items.length) {
     dashboardStatsEl.innerHTML = `
       <article class="stat-card card-lite">
-        <div>
+        <div class="stat-head">
           <p class="stat-label">Applications Sent</p>
-          <p class="stat-value">0</p>
+          <span class="stat-trend is-neutral">No data</span>
         </div>
+        <p class="stat-value">0</p>
+        <p class="stat-foot">Run your first analysis to populate this dashboard.</p>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">send</span>
         </div>
       </article>
       <article class="stat-card card-lite">
         <div>
-          <p class="stat-label">Average Match Score</p>
+          <div class="stat-head">
+            <p class="stat-label">Average Match Score</p>
+            <span class="stat-trend is-neutral">No data</span>
+          </div>
           <p class="stat-value">0%</p>
+          <p class="stat-foot">We calculate this after at least one completed analysis.</p>
         </div>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
@@ -912,8 +968,12 @@ function renderDashboard(items) {
       </article>
       <article class="stat-card card-lite">
         <div>
-          <p class="stat-label">Best Match Score</p>
+          <div class="stat-head">
+            <p class="stat-label">Best Match Score</p>
+            <span class="stat-trend is-neutral">No data</span>
+          </div>
           <p class="stat-value">0%</p>
+          <p class="stat-foot">Your strongest role-fit snapshot will appear here.</p>
         </div>
         <div class="stat-icon-badge" aria-hidden="true">
           <span class="material-symbols-outlined stat-icon-symbol">verified</span>
@@ -930,21 +990,34 @@ function renderDashboard(items) {
   const totalApplications = items.length;
   const avgScore = scoreValues.length ? Math.round(scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length) : 0;
   const topScore = scoreValues.length ? Math.max(...scoreValues) : 0;
+  const strongFits = scoreValues.filter((value) => value >= 85).length;
+  const promisingFits = scoreValues.filter((value) => value >= 65 && value < 85).length;
+
+  const avgTrendClass = avgScore >= 80 ? "is-good" : avgScore >= 60 ? "is-mid" : "is-low";
+  const avgTrendLabel = avgScore >= 80 ? "Strong" : avgScore >= 60 ? "Promising" : "Needs work";
+  const topTrendClass = topScore >= 85 ? "is-good" : topScore >= 65 ? "is-mid" : "is-low";
+  const topTrendLabel = topScore >= 85 ? "Top fit" : topScore >= 65 ? "Growing" : "Early";
 
   dashboardStatsEl.innerHTML = `
     <article class="stat-card card-lite">
-      <div>
+      <div class="stat-head">
         <p class="stat-label">Applications Sent</p>
-        <p class="stat-value">${totalApplications}</p>
+        <span class="stat-trend is-neutral">${strongFits} strong</span>
       </div>
+      <p class="stat-value">${totalApplications}</p>
+      <p class="stat-foot">${promisingFits} additional analyses are in promising range.</p>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">send</span>
       </div>
     </article>
     <article class="stat-card card-lite">
       <div>
-        <p class="stat-label">Average Match Score</p>
+        <div class="stat-head">
+          <p class="stat-label">Average Match Score</p>
+          <span class="stat-trend ${avgTrendClass}">${avgTrendLabel}</span>
+        </div>
         <p class="stat-value">${avgScore}%</p>
+        <p class="stat-foot">Based on the latest ${totalApplications} saved analyses.</p>
       </div>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">analytics</span>
@@ -952,8 +1025,12 @@ function renderDashboard(items) {
     </article>
     <article class="stat-card card-lite">
       <div>
-        <p class="stat-label">Best Match Score</p>
+        <div class="stat-head">
+          <p class="stat-label">Best Match Score</p>
+          <span class="stat-trend ${topTrendClass}">${topTrendLabel}</span>
+        </div>
         <p class="stat-value">${topScore}%</p>
+        <p class="stat-foot">Your strongest role-fit benchmark so far.</p>
       </div>
       <div class="stat-icon-badge" aria-hidden="true">
         <span class="material-symbols-outlined stat-icon-symbol">verified</span>
@@ -971,6 +1048,7 @@ function renderDashboard(items) {
     const title = inferJobTitle(item);
     const skillsPreview = missing.slice(0, 2).join(", ") || "No major gaps detected";
     const contextPreview = String(item.jobSnippet || "").replace(/\s+/g, " ").trim();
+    const rolePreview = contextPreview ? `Job preview: ${escapeHtml(contextPreview.slice(0, 90))}` : "Job preview unavailable";
 
     return `
       <article class="history-item history-item-clickable card-lite" data-analysis-id="${item.id || ""}" tabindex="0" role="button" aria-label="Open saved report for ${title}">
@@ -985,9 +1063,9 @@ function renderDashboard(items) {
               <h4>${title}</h4>
               <span class="history-chip ${statusClass}">${status}</span>
             </div>
-            <p class="history-sub">${date}</p>
+            <p class="history-sub"><span class="material-symbols-outlined" aria-hidden="true">schedule</span>${date}</p>
             <p class="history-gaps">Skill gaps: ${skillsPreview}</p>
-            <p class="history-context">${contextPreview ? `Job preview: ${escapeHtml(contextPreview.slice(0, 90))}` : "Job preview unavailable"}</p>
+            <p class="history-context">${rolePreview}</p>
           </div>
         </div>
         <div class="history-score-wrap">
@@ -1001,6 +1079,7 @@ function renderDashboard(items) {
             <span style="--score:${score};--meter-color:${meterColor}"></span>
           </div>
           <strong>${score}%</strong>
+          <span class="history-open-label">Open report</span>
         </div>
       </article>
     `;
@@ -1027,6 +1106,7 @@ async function loadHistory() {
 }
 
 function renderLoadingState(title = "Analyzing your profile...", subtitle = "Please wait while we evaluate match quality and recommendations.") {
+  setAnalysisResultsPanelVisibility(true);
   const pipelineHtml = pipelineState
     ? `
       <div class="pipeline-track" aria-live="polite" aria-label="Analysis stage progress">
@@ -1183,7 +1263,13 @@ function updateSubmitAvailability() {
   submitBtn.disabled = !(hasResumeFile && hasJob && hasConsent && resumeFileIsValid);
 }
 
+function setAnalysisResultsPanelVisibility(isVisible) {
+  analysisResultsPanelEl.classList.toggle("view-hidden", !isVisible);
+  analysisResultsPanelEl.setAttribute("aria-hidden", isVisible ? "false" : "true");
+}
+
 function renderEmptyResultsState() {
+  setAnalysisResultsPanelVisibility(true);
   resultsEl.innerHTML = `
     <section class="card-lite empty-state">
       <strong>Find Out Your Analysis</strong>
@@ -1193,6 +1279,7 @@ function renderEmptyResultsState() {
 }
 
 function renderResults(data, options = {}) {
+  setAnalysisResultsPanelVisibility(true);
   latestMainReportData = data;
   latestMainReportOptions = {
     title: data.job?.title || "Role Analysis",
@@ -1366,10 +1453,24 @@ navNewAnalysisBtn.addEventListener("click", () => {
   setActiveView("analysis");
 });
 
+navInterviewPrepBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
+  setActiveView("interview-prep");
+});
+
 viewAnalysisBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
   setActiveView("analysis");
   resumeFileEl.focus();
+});
+
+interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
+  setActiveView("analysis");
+  resumeFileEl.focus();
+});
+
+interviewPrepBrowseRolesBtn.addEventListener("click", () => {
+  // Placeholder for upcoming predefined-role browsing flow.
 });
 
 resumeFileEl.addEventListener("change", () => {
@@ -1516,7 +1617,7 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
   openSavedAnalysis(id);
 });
 
-renderEmptyResultsState();
+setAnalysisResultsPanelVisibility(false);
 setActiveView(getInitialView());
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");

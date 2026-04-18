@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CareerHive - Interview Prep</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#cfe6f2",
+                        "on-surface": "#071e27",
+                        "on-secondary-fixed-variant": "#604100",
+                        "surface-dim": "#c7dde9",
+                        "surface-container-low": "#e6f6ff",
+                        "secondary": "#7e5700",
+                        "primary-container": "#f57c00",
+                        "surface": "#f3faff",
+                        "on-tertiary-container": "#3f340b",
+                        "on-background": "#071e27",
+                        "surface-tint": "#964900",
+                        "inverse-on-surface": "#dff4ff",
+                        "inverse-surface": "#1e333c",
+                        "on-primary-fixed": "#311300",
+                        "tertiary-container": "#ad9d6a",
+                        "on-tertiary-fixed-variant": "#52461c",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "background": "#f3faff",
+                        "outline": "#8b7263",
+                        "on-primary-fixed-variant": "#723600",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#6a4800",
+                        "tertiary-fixed-dim": "#d7c690",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#ffba38",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#cfe6f2",
+                        "primary-fixed": "#ffdcc6",
+                        "on-secondary-fixed": "#281900",
+                        "primary-fixed-dim": "#ffb786",
+                        "on-primary-container": "#572800",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#d5ecf8",
+                        "on-tertiary-fixed": "#231b00",
+                        "tertiary": "#6b5e31",
+                        "surface-bright": "#f3faff",
+                        "primary": "#964900",
+                        "outline-variant": "#dec1af",
+                        "surface-container": "#dbf1fe",
+                        "on-surface-variant": "#574235",
+                        "secondary-container": "#feb300",
+                        "tertiary-fixed": "#f4e2a9",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#ffdeac",
+                        "inverse-primary": "#ffb786",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .honeycomb-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(245, 124, 0, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen honeycomb-pattern">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-charcoal-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm flex justify-between items-center px-8 h-16 w-full">
+<div class="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-500">CareerHive</div>
+<div class="hidden md:flex items-center gap-8 font-plus-jakarta-sans text-sm font-medium">
+<a class="text-gray-500 dark:text-gray-400 hover:text-orange-500 transition-colors" href="#">Dashboard</a>
+<a class="text-gray-500 dark:text-gray-400 hover:text-orange-500 transition-colors" href="#">Jobs</a>
+<a class="text-orange-600 dark:text-orange-400 border-b-2 border-orange-500 pb-1" href="#">Practice</a>
+<a class="text-gray-500 dark:text-gray-400 hover:text-orange-500 transition-colors" href="#">Resources</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-gray-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-gray-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile" class="w-8 h-8 rounded-full border-2 border-orange-100 object-cover" data-alt="Close-up portrait of a professional man with a friendly expression in a brightly lit office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCETLI8fn41ruIEpU84jTeqAlGDyFSbxENJPppBr6YvmF6JRUXuixB0XfEO572FRTwnB1ztz9bPbbz5OchounEgqs4p4u4b9St-9zfkRxTWteaCoeKRJySQbsWKqIUSFTExdIQFfIyd5Ivu96Lc-hSGfiVK0a6oNciKbTjbiS5leNGW4a3HQYQDLP7OVpOd5fC7UOATx5g42uF8Me5S5BtegVZPY1NOf-7fmxXfK8UgoR6j9S29MlEkVxoUBe1Dbwlt73hTCGDu4kc"/>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 pt-20 bg-gray-50 dark:bg-charcoal-950 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full gap-2 font-plus-jakarta-sans text-sm">
+<div class="px-6 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-yellow-400 flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hexagon</span>
+</div>
+<div>
+<div class="font-bold text-orange-600">Interview Prep</div>
+<div class="text-[10px] text-gray-500 uppercase tracking-wider">Master your craft</div>
+</div>
+</div>
+</div>
+<div class="flex-grow flex flex-col gap-1">
+<a class="text-gray-600 dark:text-gray-400 mx-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-all flex items-center gap-3 active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">grid_view</span> Home
+            </a>
+<a class="text-gray-600 dark:text-gray-400 mx-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-all flex items-center gap-3 active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">history</span> Recent Analysis
+            </a>
+<a class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-semibold rounded-full mx-2 px-4 py-3 flex items-center gap-3 active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">add_circle</span> New Session
+            </a>
+<a class="text-gray-600 dark:text-gray-400 mx-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-all flex items-center gap-3 active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">work</span> Job Roles
+            </a>
+<a class="text-gray-600 dark:text-gray-400 mx-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-all flex items-center gap-3 active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span> History
+            </a>
+</div>
+<div class="p-4 mt-auto border-t border-gray-100 flex flex-col gap-1">
+<a class="text-gray-600 dark:text-gray-400 px-4 py-2 hover:bg-gray-200 rounded-full transition-all flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">help</span> Help
+            </a>
+<a class="text-gray-600 dark:text-gray-400 px-4 py-2 hover:bg-gray-200 rounded-full transition-all flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">logout</span> Logout
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 pt-24 px-12 pb-12">
+<div class="max-w-6xl mx-auto">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">Interview Prep</h1>
+<p class="text-gray-500 text-lg">Choose a role to generate a tailored preparation session</p>
+</header>
+<!-- Primary Actions: Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+<!-- Action Card 1: Analyze New Role -->
+<div class="group relative overflow-hidden bg-white rounded-lg p-8 shadow-sm border border-orange-100 hover:shadow-xl hover:shadow-orange-100 transition-all cursor-pointer">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-orange-50 rounded-full group-hover:scale-110 transition-transform"></div>
+<div class="relative z-10">
+<div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+</div>
+<h3 class="text-2xl font-bold text-on-surface mb-2">Analyze New Role</h3>
+<p class="text-gray-500 mb-8 max-w-xs">Upload a new Job Description and get an instant AI-powered preparation roadmap.</p>
+<button class="flex items-center gap-2 font-bold text-orange-600 group-hover:gap-4 transition-all">
+                            Start from scratch <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Action Card 2: Browse Roles -->
+<div class="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg p-8 shadow-lg shadow-orange-200 hover:scale-[1.02] transition-all cursor-pointer text-white">
+<div class="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full group-hover:scale-125 transition-transform"></div>
+<div class="relative z-10">
+<div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white mb-6">
+<span class="material-symbols-outlined text-4xl">travel_explore</span>
+</div>
+<h3 class="text-2xl font-bold mb-2">Browse Roles</h3>
+<p class="text-orange-50 mb-8 max-w-xs">Explore the 'Hive' for predefined industry roles and common interview patterns.</p>
+<button class="flex items-center gap-2 font-bold text-white bg-black/10 hover:bg-black/20 px-6 py-2 rounded-full transition-all">
+                            Go to Hive <span class="material-symbols-outlined">hive</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Recent Analysis Section -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-500">history</span>
+                        Recent Analyses
+                    </h2>
+<a class="text-sm font-semibold text-orange-600 hover:underline" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Role Card 1 -->
+<div class="bg-white rounded-lg p-6 border border-gray-100 shadow-sm hover:border-orange-200 transition-colors">
+<div class="flex items-start justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined">code</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest bg-green-100 text-green-700 px-2 py-1 rounded">Active</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Software Engineer</h4>
+<p class="text-gray-400 text-sm mb-6">Last analyzed 2 days ago</p>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-gray-500">Prep Score</span>
+<span class="font-bold text-orange-600">78%</span>
+</div>
+<div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+<div class="bg-orange-500 h-full w-[78%]"></div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border-2 border-orange-100 text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition-colors">
+                            Continue Prep
+                        </button>
+</div>
+<!-- Role Card 2 -->
+<div class="bg-white rounded-lg p-6 border border-gray-100 shadow-sm hover:border-orange-200 transition-colors">
+<div class="flex items-start justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined">palette</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-gray-500 px-2 py-1 rounded">Archived</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Graphic Designer</h4>
+<p class="text-gray-400 text-sm mb-6">Last analyzed 2 weeks ago</p>
+<div class="flex flex-col gap-2 opacity-50">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-gray-500">Prep Score</span>
+<span class="font-bold">45%</span>
+</div>
+<div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+<div class="bg-gray-400 h-full w-[45%]"></div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border-2 border-gray-100 text-gray-400 font-bold rounded-xl hover:bg-gray-50 transition-colors">
+                            Review Analysis
+                        </button>
+</div>
+<!-- Add New Placeholder -->
+<div class="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center text-center group hover:border-orange-300 transition-colors">
+<div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-4 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<p class="text-sm font-medium text-gray-500 group-hover:text-orange-600 transition-colors">Start a new analysis to see it here</p>
+</div>
+</div>
+</section>
+<!-- Bottom Illustration/Tip Area -->
+<div class="mt-16 p-8 bg-surface-container rounded-lg flex items-center gap-10">
+<div class="hidden lg:block w-32 h-32 flex-shrink-0 relative">
+<div class="absolute inset-0 bg-secondary-container/20 rounded-full"></div>
+<img alt="Collaboration illustration" class="w-full h-full object-cover rounded-full mix-blend-multiply" data-alt="Abstract 3D render of floating organic shapes and glowing spheres in warm orange and golden honey tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB721rhR6g8C6Cc9CM9w61YmR1iKNIhl7l42B0ZBIJp2Y-JUMha4qCxQA5xtEhXXwh5hE0SWnb3C-8dmvchgJzOuUOyzcczvc9AUzjflRgRs4r2C-Y9T99mLVSveF7RNZPLed0V36Nm0tS57HQAigeZvIVQM73LsC8KHPvE9CPHdhTj0EbgKK-vBRzdliOg7dYyHvhRRDpZ7aXw-B4fzUuxjqGNs0bQP9EscqUjWtdc2NiGxf99xmq67g1K5SHVkYZYla55Pu4FcM4"/>
+</div>
+<div>
+<h5 class="text-lg font-bold text-on-surface-variant mb-2">Pro Prep Tip</h5>
+<p class="text-on-surface-variant/80 text-sm leading-relaxed max-w-2xl">
+                        When you upload a Job Description, CareerHive's AI doesn't just scan for keywords—it maps behavioral expectations and cultural markers to give you a 360° interview advantage.
+                    </p>
+</div>
+<button class="ml-auto flex-shrink-0 bg-white px-6 py-3 rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-all">
+                    Read Guide
+                </button>
+</div>
+</div>
+</main>
+<!-- Contextual FAB -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 duration-200 z-50">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</button>
+</body></html>
