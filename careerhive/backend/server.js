@@ -16,7 +16,7 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/health", (_req, res) => {
 	res.json({
 		ok: true,
-		service: "jobpilot-backend",
+		service: "careerhive-backend",
 		time: new Date().toISOString(),
 		releaseCommit: process.env.RELEASE_COMMIT || "unknown",
 		cosmos: getCosmosStatus()
@@ -36,5 +36,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(port, () => {
-	console.log(`JobPilot backend running on ${port}`);
+	console.log(`CareerHive backend running on ${port}`);
 });

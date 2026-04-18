@@ -315,12 +315,3 @@ Because it demonstrates:
 * Real-time job scraping
 * Voice-based interview simulator
 
----
-
-If you want next step, I can also generate:
-
-🔥 system design diagram (clean architecture image spec)
-🔥 actual system prompts for each agent
-🔥 or a killer 2-minute demo script (this is what wins hackathons)
-
-Just tell me 👍

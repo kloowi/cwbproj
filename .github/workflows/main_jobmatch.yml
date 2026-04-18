@@ -47,10 +47,15 @@ jobs:
               exit 1
             fi
 
+            az webapp config set \
+              --name jobmatch \
+              --resource-group "$RG" \
+              --startup-file "node server.js"
+
             az webapp config appsettings set \
               --name jobmatch \
               --resource-group "$RG" \
-              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true RELEASE_COMMIT=${{ github.sha }}
+              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true WEBSITE_NODE_DEFAULT_VERSION=~20 RELEASE_COMMIT=${{ github.sha }}
 
       - name: Deploy backend folder to App Service
         uses: azure/webapps-deploy@v3
