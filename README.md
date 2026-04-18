@@ -1,4 +1,4 @@
-# 🚀 JobPilot AI — Deployment Guide (Multi-Agent System)
+# 🚀 CareerHive — Deployment Guide (Multi-Agent System)
 
 ## 📌 Overview
 JobPilot AI is a multi-agent career assistant consisting of a frontend UI, backend API, and AI agent pipeline (Resume Agent, Job Agent, Matching Agent, Planner Agent). The system processes resume + job description inputs and returns structured career insights.

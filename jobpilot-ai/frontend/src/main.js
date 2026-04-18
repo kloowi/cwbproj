@@ -149,7 +149,7 @@ app.innerHTML = `
                   Job Description
                 </h3>
               </div>
-              <p class="input-card-copy">Job information</p>
+              <p class="input-card-copy">Enter job title only or full description.</p>
               <label class="field-label" for="job"></label>
               <textarea id="job" name="job" class="input-zone" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
             </section>
@@ -536,16 +536,22 @@ function renderAnalysisReport(data, options = {}) {
     ? strengths.map((item) => `<li><span class="skill-dot" aria-hidden="true"></span>${escapeHtml(item)}</li>`).join("")
     : "<li><span class=\"skill-dot\" aria-hidden=\"true\"></span>Strength signals unavailable</li>";
 
+  const activeRoadmapIndex = roadmapSteps.findIndex((step) => !step.done);
   const roadmapMarkup = roadmapSteps
-    .map((step) => {
+    .map((step, index) => {
       const priorityClass = step.priority === "High" ? "is-high" : step.priority === "Medium" ? "is-medium" : "is-low";
-      return `<li class="roadmap-item ${step.done ? "is-done" : ""}">
+      const stateClass = step.done ? "is-done" : index === activeRoadmapIndex ? "is-active" : "is-upcoming";
+      const stateLabel = step.done ? "Completed" : index === activeRoadmapIndex ? "In Progress" : "Locked";
+      const stateLabelClass = step.done ? "is-complete" : index === activeRoadmapIndex ? "is-progress" : "is-locked";
+      return `<li class="roadmap-item ${stateClass}">
         <span class="roadmap-check" aria-hidden="true">${step.done ? "v" : ""}</span>
-        <div>
+        <div class="roadmap-main">
           <p class="roadmap-title">${escapeHtml(step.title)}</p>
-          <p class="roadmap-detail">${escapeHtml(step.detail)}</p>
+          <div class="roadmap-meta">
+            <span class="priority-pill ${priorityClass}">${step.priority} Priority</span>
+            <span class="roadmap-state ${stateLabelClass}">${stateLabel}</span>
+          </div>
         </div>
-        <span class="priority-pill ${priorityClass}">${step.priority}</span>
       </li>`;
     })
     .join("");
@@ -605,10 +611,14 @@ function renderAnalysisReport(data, options = {}) {
         </div>
         <ul class="pill-list gap-cloud">${gapsMarkup}</ul>
         <p class="meta">Closing these gaps should improve keyword relevance and interview readiness.</p>
-        <div class="insight-subsection">
-          <h4><span class="section-mark is-positive" aria-hidden="true">+</span>Strength Highlights</h4>
-          <ul class="pill-list gap-cloud strength-cloud">${strengthsMarkup}</ul>
+      </section>
+
+      <section class="card-lite report-card strengths-card">
+        <div class="insight-head">
+          <h3><span class="section-mark" aria-hidden="true">+</span>Strength Highlights</h3>
         </div>
+        <ul class="pill-list gap-cloud strength-cloud">${strengthsMarkup}</ul>
+        <p class="meta">Building on these strengths should improve confidence and interview performance.</p>
       </section>
 
       <section class="card-lite report-card roadmap-card">
