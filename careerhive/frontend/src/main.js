@@ -90,7 +90,6 @@ app.innerHTML = `
               <h3>Recent Analyses</h3>
               <p class="history-head-sub">Review your latest role-fit snapshots and reopen any saved report.</p>
             </div>
-            <button class="text-link-btn" type="button" id="view-analysis-btn">Start New Analysis</button>
           </div>
           <div class="history-filters" aria-label="History Filters">
             <label class="filter-field">
@@ -109,7 +108,6 @@ app.innerHTML = `
                 <option value="30d">Last 30 days</option>
               </select>
             </label>
-            <button type="button" class="text-link-btn" id="reset-history-filters">Reset</button>
           </div>
           <div id="dashboard-history"></div>
         </section>
@@ -233,13 +231,11 @@ const interviewPrepViewEl = document.querySelector("#interview-prep-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
-const viewAnalysisBtn = document.querySelector("#view-analysis-btn");
 const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
 const filterDateRangeEl = document.querySelector("#filter-date-range");
-const resetHistoryFiltersBtn = document.querySelector("#reset-history-filters");
 const dashboardReportOverlayEl = document.querySelector("#dashboard-report-overlay");
 const savedReportContentEl = document.querySelector("#saved-report-content");
 const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
@@ -1453,12 +1449,6 @@ navInterviewPrepBtn.addEventListener("click", () => {
   setActiveView("interview-prep");
 });
 
-viewAnalysisBtn.addEventListener("click", () => {
-  hideSavedAnalysisOverlay();
-  setActiveView("analysis");
-  resumeFileEl.focus();
-});
-
 interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
   setActiveView("analysis");
   resumeFileEl.focus();
@@ -1587,13 +1577,6 @@ filterMaxScoreEl.addEventListener("input", () => {
 });
 
 filterDateRangeEl.addEventListener("change", () => {
-  loadHistory();
-});
-
-resetHistoryFiltersBtn.addEventListener("click", () => {
-  filterMinScoreEl.value = "0";
-  filterMaxScoreEl.value = "100";
-  filterDateRangeEl.value = "all";
   loadHistory();
 });
 
