@@ -9,6 +9,9 @@ const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
 const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_RESUME_EXTENSIONS = [".pdf", ".docx"];
+const INTERVIEW_ROUTE_PREFIX = "#/interview-prep/";
+const DEFAULT_INTERVIEW_ROLE_SLUG = "software-eng";
+const DEFAULT_INTERVIEW_ROLE_LABEL = "Software Engineer";
 
 const PIPELINE_STAGES = [
   {
@@ -32,6 +35,63 @@ const PIPELINE_STAGES = [
     detail: "Building targeted roadmap"
   }
 ];
+
+const INTERVIEW_QUESTION_SETS = {
+  frontend: [
+    {
+      prompt: "How do you handle state management in complex React applications?",
+      answer: "I split state into three layers: server state with React Query/SWR, shared client state with a focused store, and local component state for isolated UI. I optimize re-renders with memoization, selectors, and targeted profiling in React DevTools."
+    },
+    {
+      prompt: "Describe a time you resolved a production bug under high pressure.",
+      answer: "I begin with fast triage and impact scoping, then isolate the failing path with logs, metrics, and recent deploy deltas. I ship a minimal rollback or hotfix first, then add regression tests and run a postmortem to prevent recurrence."
+    },
+    {
+      prompt: "How do you approach accessibility in a design system used by millions?",
+      answer: "I bake accessibility into tokens and primitives first, then enforce keyboard navigation, semantic HTML, and contrast budgets through testing gates. I validate with screen readers and ensure component docs include a11y usage patterns."
+    },
+    {
+      prompt: "What is your process for reviewing PRs for performance regressions?",
+      answer: "I review rendering paths, bundle impact, and data-fetch lifecycles before visual polish. I look for unnecessary re-renders, unstable dependencies, and expensive work in hot paths, then confirm with lightweight profiling before merge."
+    }
+  ],
+  backend: [
+    {
+      prompt: "How do you design resilient APIs for high-traffic systems?",
+      answer: "I start with clear contracts and idempotent operations, then design for retries, backpressure, and graceful degradation. I pair observability with SLO-driven alerts so failures are detected and mitigated quickly."
+    },
+    {
+      prompt: "How do you debug an intermittent production latency spike?",
+      answer: "I narrow by endpoint and dependency, correlate traces with infrastructure metrics, and inspect saturation points like DB pools and queue depth. I apply short-term mitigation first, then remove the root bottleneck with load-tested changes."
+    },
+    {
+      prompt: "How do you evolve a schema without breaking clients?",
+      answer: "I use additive migrations, compatibility windows, and explicit deprecation phases. Backfills and dual-write or dual-read strategies keep services stable while clients transition safely."
+    },
+    {
+      prompt: "What guardrails do you use for secure service-to-service communication?",
+      answer: "I enforce least-privilege identities, short-lived credentials, mTLS where applicable, and audit logging on sensitive flows. Security checks are automated in CI so policy is consistent across environments."
+    }
+  ],
+  software: [
+    {
+      prompt: "How do you prioritize technical tradeoffs when product timelines are tight?",
+      answer: "I frame tradeoffs by user impact, delivery risk, and long-term maintenance cost. I ship the smallest safe increment, document debt explicitly, and schedule follow-up hardening with measurable outcomes."
+    },
+    {
+      prompt: "How do you collaborate across design, product, and engineering during delivery?",
+      answer: "I align early on success criteria and constraints, then keep a fast feedback loop through short demos and decision logs. This reduces churn and keeps execution focused on user value."
+    },
+    {
+      prompt: "Tell me about a system you improved for reliability or performance.",
+      answer: "I start with baseline metrics, identify the dominant failure or latency driver, and roll out incremental fixes behind safe toggles. I validate impact after release and keep observability in place to prevent regressions."
+    },
+    {
+      prompt: "How do you mentor teammates while still delivering your own roadmap?",
+      answer: "I mentor through scoped design reviews, pairing on tricky tasks, and reusable documentation. That scales team output while protecting execution focus on committed milestones."
+    }
+  ]
+};
 
 const app = document.querySelector("#app");
 
@@ -57,6 +117,7 @@ app.innerHTML = `
         <button class="nav-item nav-active" type="button" id="nav-new-analysis">
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">analytics</span>
           <span class="nav-label">Add Analysis</span>
+        </button>
         <button class="nav-item" type="button" id="nav-interview-prep">
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">psychology</span>
           <span class="nav-label">Interview Prep</span>
@@ -134,7 +195,7 @@ app.innerHTML = `
               </div>
               <p class="input-card-copy">PDF or DOCX (Max 5MB)</p>
               <div class="input-zone upload-zone">
-                <p class="upload-zone-copy">Drop your resume here or select a file from your device.</p>
+                <p class="upload-zone-copy">Drop your resume here</p>
                 <span class="upload-zone-divider" aria-hidden="true"><span></span><strong>or</strong><span></span></span>
                 <label class="browse-files-btn" for="resume-file">Browse Files</label>
                 <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
@@ -199,9 +260,37 @@ app.innerHTML = `
               </span>
               <h3>Browse Roles</h3>
               <p>Explore the "Hive" for predefined industry roles and common interview patterns.</p>
-              <span class="interview-prep-action-cta">Go to Hive <span class="material-symbols-outlined" aria-hidden="true">hive</span></span>
+              <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
+        </section>
+      </section>
+
+      <section class="interview-detail-view view-hidden" id="interview-detail-view" aria-label="Interview Session Detail">
+        <section class="panel interview-detail-panel" aria-label="Interview Role Session">
+          <button type="button" class="interview-detail-back-btn" id="interview-detail-back-btn">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            Back to Interview Prep
+          </button>
+          <p class="interview-detail-breadcrumb" id="interview-detail-breadcrumb">
+            Interview Prep <span class="interview-detail-breadcrumb-sep" aria-hidden="true">&gt;</span> <strong id="interview-detail-role-label">Software Engineer</strong>
+          </p>
+          <header class="interview-detail-head">
+            <h2 id="interview-detail-title">Interview Preparation: Software Engineer</h2>
+            <p id="interview-detail-subtitle">Build confidence with role-specific prompts, concise answer structures, and focused practice loops.</p>
+          </header>
+
+          <section class="interview-detail-readiness" aria-label="Readiness Overview">
+            <div class="interview-detail-stats" id="interview-detail-stats"></div>
+          </section>
+
+          <section class="interview-detail-questions card-lite" aria-label="Tailored Questions">
+            <div class="interview-detail-questions-head">
+              <h3>Tailored Questions</h3>
+              <button type="button" class="text-link-btn" id="interview-detail-regenerate-btn">Generate New</button>
+            </div>
+            <div class="interview-question-list" id="interview-question-list"></div>
+          </section>
         </section>
       </section>
 
@@ -228,11 +317,19 @@ const dashboardHistoryEl = document.querySelector("#dashboard-history");
 const dashboardViewEl = document.querySelector("#dashboard-view");
 const analysisViewEl = document.querySelector("#analysis-view");
 const interviewPrepViewEl = document.querySelector("#interview-prep-view");
+const interviewDetailViewEl = document.querySelector("#interview-detail-view");
 const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
 const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
+const interviewDetailBackBtn = document.querySelector("#interview-detail-back-btn");
+const interviewDetailRoleLabelEl = document.querySelector("#interview-detail-role-label");
+const interviewDetailTitleEl = document.querySelector("#interview-detail-title");
+const interviewDetailSubtitleEl = document.querySelector("#interview-detail-subtitle");
+const interviewDetailStatsEl = document.querySelector("#interview-detail-stats");
+const interviewQuestionListEl = document.querySelector("#interview-question-list");
+const interviewDetailRegenerateBtn = document.querySelector("#interview-detail-regenerate-btn");
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
 const filterDateRangeEl = document.querySelector("#filter-date-range");
@@ -253,6 +350,14 @@ let latestMainReportData = null;
 let latestMainReportOptions = null;
 let latestSavedReportData = null;
 let latestSavedReportOptions = null;
+let activeView = "analysis";
+let interviewDetailState = {
+  roleSlug: DEFAULT_INTERVIEW_ROLE_SLUG,
+  roleLabel: DEFAULT_INTERVIEW_ROLE_LABEL,
+  roleType: "software",
+  activeQuestionIndex: 0,
+  questions: []
+};
 const roadmapProgressState = loadRoadmapProgressState();
 
 function loadRoadmapProgressState() {
@@ -417,23 +522,277 @@ function hasAllowedResumeExtension(fileName) {
   return ALLOWED_RESUME_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
+function normalizeRoleLabel(value) {
+  const cleaned = String(value || "")
+    .replace(/[_/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return DEFAULT_INTERVIEW_ROLE_LABEL;
+  return cleaned
+    .split(" ")
+    .map((part) => {
+      const lower = part.toLowerCase();
+      if (lower === "ui") return "UI";
+      if (lower === "ux") return "UX";
+      if (lower === "qa") return "QA";
+      if (lower === "ml") return "ML";
+      if (lower === "ai") return "AI";
+      if (lower === "devops") return "DevOps";
+      if (lower === "sre") return "SRE";
+      if (lower === "fe") return "Frontend";
+      if (lower === "be") return "Backend";
+      if (lower === "eng") return "Engineer";
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+function toRoleSlug(value) {
+  const lower = String(value || "").toLowerCase();
+  if (!lower.trim()) return DEFAULT_INTERVIEW_ROLE_SLUG;
+
+  if (/(software)\s+(engineer|eng|developer)/.test(lower)) return "software-eng";
+  if (/(frontend|front-end|front end)\s+(engineer|eng|developer)/.test(lower)) return "frontend-eng";
+  if (/(backend|back-end|back end)\s+(engineer|eng|developer)/.test(lower)) return "backend-eng";
+
+  const collapsed = lower
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\b(engineer|engineering)\b/g, "eng")
+    .replace(/\bdeveloper\b/g, "dev")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!collapsed) return DEFAULT_INTERVIEW_ROLE_SLUG;
+  return collapsed.split(" ").slice(0, 4).join("-");
+}
+
+function roleLabelFromSlug(slug) {
+  if (!slug) return DEFAULT_INTERVIEW_ROLE_LABEL;
+  if (slug === "software-eng") return "Software Engineer";
+  if (slug === "frontend-eng") return "Frontend Engineer";
+  if (slug === "backend-eng") return "Backend Engineer";
+  return normalizeRoleLabel(slug.replace(/-/g, " "));
+}
+
+function inferRoleType(roleLabel, contextText = "") {
+  const corpus = `${String(roleLabel || "")} ${String(contextText || "")}`.toLowerCase();
+  if (/frontend|front-end|react|vue|angular|typescript|javascript|ui|ux/.test(corpus)) {
+    return "frontend";
+  }
+  if (/backend|back-end|node|java|spring|api|database|postgres|distributed|microservice/.test(corpus)) {
+    return "backend";
+  }
+  return "software";
+}
+
+function parseInterviewRoute(hashValue = window.location.hash) {
+  const hash = String(hashValue || "");
+  if (!hash.startsWith(INTERVIEW_ROUTE_PREFIX)) return null;
+  const encoded = hash.slice(INTERVIEW_ROUTE_PREFIX.length).trim();
+  if (!encoded) return DEFAULT_INTERVIEW_ROLE_SLUG;
+
+  try {
+    const decoded = decodeURIComponent(encoded).toLowerCase();
+    const sanitized = decoded.replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    return sanitized || DEFAULT_INTERVIEW_ROLE_SLUG;
+  } catch (_error) {
+    return DEFAULT_INTERVIEW_ROLE_SLUG;
+  }
+}
+
+function buildInterviewRouteHash(roleSlug) {
+  return `${INTERVIEW_ROUTE_PREFIX}${encodeURIComponent(roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG)}`;
+}
+
+function clearInterviewRouteHash({ replace = false } = {}) {
+  if (!parseInterviewRoute(window.location.hash)) return;
+  const nextUrl = `${window.location.pathname}${window.location.search}`;
+  if (replace) {
+    window.history.replaceState(null, "", nextUrl);
+    return;
+  }
+  window.history.pushState(null, "", nextUrl);
+}
+
+function inferRoleLabelFromInputText(inputText) {
+  const normalized = String(inputText || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+
+  const splitCandidate = normalized.split(/[\.|\n\-:|]/)[0].trim();
+  if (!splitCandidate) return "";
+
+  if (/software engineer|software developer/i.test(splitCandidate)) return "Software Engineer";
+  if (/frontend engineer|frontend developer|react/i.test(splitCandidate)) return "Frontend Engineer";
+  if (/backend engineer|backend developer/i.test(splitCandidate)) return "Backend Engineer";
+
+  return normalizeRoleLabel(splitCandidate.split(" ").slice(0, 5).join(" "));
+}
+
+function deriveInterviewRoleContext(options = {}) {
+  const useSaved = Boolean(options.useSaved);
+  const sourceData = useSaved ? latestSavedReportData : latestMainReportData;
+  const sourceOptions = useSaved ? latestSavedReportOptions : latestMainReportOptions;
+  const candidates = [
+    sourceData?.job?.title,
+    sourceOptions?.title,
+    inferRoleLabelFromInputText(sourceData?.input?.jobSnippet),
+    inferRoleLabelFromInputText(form?.job?.value)
+  ];
+
+  const roleLabel = normalizeRoleLabel(candidates.find((item) => String(item || "").trim()) || DEFAULT_INTERVIEW_ROLE_LABEL);
+  const roleSlug = toRoleSlug(roleLabel);
+  const roleType = inferRoleType(roleLabel, `${sourceData?.input?.jobSnippet || ""} ${sourceData?.match?.missing?.join(" ") || ""}`);
+
+  return {
+    roleLabel,
+    roleSlug,
+    roleType
+  };
+}
+
+function getInterviewReadinessStats(roleType) {
+  if (roleType === "frontend") {
+    return [
+      { label: "Technical Readiness", score: 85, tone: "is-blue", icon: "code" },
+      { label: "Behavioral Confidence", score: 72, tone: "is-green", icon: "groups" },
+      { label: "Industry Knowledge", score: 94, tone: "is-indigo", icon: "book_4" }
+    ];
+  }
+
+  if (roleType === "backend") {
+    return [
+      { label: "Systems Depth", score: 81, tone: "is-blue", icon: "lan" },
+      { label: "Behavioral Confidence", score: 74, tone: "is-green", icon: "groups" },
+      { label: "Architecture Fluency", score: 89, tone: "is-indigo", icon: "schema" }
+    ];
+  }
+
+  return [
+    { label: "Technical Readiness", score: 83, tone: "is-blue", icon: "code_blocks" },
+    { label: "Behavioral Confidence", score: 73, tone: "is-green", icon: "groups" },
+    { label: "Industry Knowledge", score: 90, tone: "is-indigo", icon: "book_4" }
+  ];
+}
+
+function buildRoleQuestions(roleType) {
+  const baseSet = INTERVIEW_QUESTION_SETS[roleType] || INTERVIEW_QUESTION_SETS.software;
+  return baseSet.map((item) => ({ ...item }));
+}
+
+function renderInterviewDetailQuestions() {
+  if (!interviewQuestionListEl) return;
+
+  interviewQuestionListEl.innerHTML = interviewDetailState.questions
+    .map((question, index) => {
+      const isOpen = index === interviewDetailState.activeQuestionIndex;
+      return `<article class="interview-question-item ${isOpen ? "is-open" : ""}">
+        <button class="interview-question-trigger" type="button" data-interview-question-index="${index}" aria-expanded="${isOpen ? "true" : "false"}">
+          <span class="interview-question-trigger-icon material-symbols-outlined" aria-hidden="true">chat</span>
+          <span class="interview-question-trigger-text">${escapeHtml(question.prompt)}</span>
+          <span class="interview-question-trigger-caret material-symbols-outlined" aria-hidden="true">${isOpen ? "expand_less" : "expand_more"}</span>
+        </button>
+        <div class="interview-question-answer ${isOpen ? "" : "is-hidden"}">
+          <p class="interview-question-answer-label">AI Suggested Answer</p>
+          <p>${escapeHtml(question.answer)}</p>
+        </div>
+      </article>`;
+    })
+    .join("");
+}
+
+function renderInterviewDetail(roleContext, options = {}) {
+  const roleSlug = roleContext?.roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG;
+  const roleLabel = roleContext?.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL;
+  const roleType = roleContext?.roleType || "software";
+  const shouldRefreshQuestions = options.regenerate || roleSlug !== interviewDetailState.roleSlug;
+
+  if (shouldRefreshQuestions) {
+    interviewDetailState.questions = buildRoleQuestions(roleType);
+    interviewDetailState.activeQuestionIndex = 0;
+  }
+
+  interviewDetailState.roleSlug = roleSlug;
+  interviewDetailState.roleLabel = roleLabel;
+  interviewDetailState.roleType = roleType;
+
+  interviewDetailRoleLabelEl.textContent = roleLabel;
+  interviewDetailTitleEl.textContent = `Interview Preparation: ${roleLabel}`;
+  interviewDetailSubtitleEl.textContent = `Practice targeted questions for ${roleLabel} and sharpen structured responses before your next round.`;
+
+  const stats = getInterviewReadinessStats(roleType);
+  interviewDetailStatsEl.innerHTML = stats
+    .map(
+      (stat) => `<article class="interview-detail-stat-card">
+        <div class="interview-detail-stat-top">
+          <span class="interview-detail-stat-icon ${stat.tone}">
+            <span class="material-symbols-outlined" aria-hidden="true">${stat.icon}</span>
+          </span>
+          <strong>${stat.score}%</strong>
+        </div>
+        <p>${escapeHtml(stat.label)}</p>
+        <div class="interview-detail-stat-meter"><span style="width:${stat.score}%"></span></div>
+      </article>`
+    )
+    .join("");
+
+  renderInterviewDetailQuestions();
+}
+
+function setInterviewQuestionOpen(index) {
+  if (!Number.isInteger(index)) return;
+  if (index < 0 || index >= interviewDetailState.questions.length) return;
+  interviewDetailState.activeQuestionIndex = index;
+  renderInterviewDetailQuestions();
+}
+
+function openInterviewDetail(roleContext, options = {}) {
+  const context = roleContext || deriveInterviewRoleContext();
+  renderInterviewDetail(context, options);
+
+  const targetHash = buildInterviewRouteHash(context.roleSlug);
+  if (window.location.hash !== targetHash) {
+    window.location.hash = targetHash;
+    return;
+  }
+
+  setActiveView("interview-detail");
+}
+
+function syncViewToCurrentHash() {
+  const roleSlug = parseInterviewRoute(window.location.hash);
+  if (!roleSlug) return false;
+
+  const roleLabel = roleLabelFromSlug(roleSlug);
+  const roleType = inferRoleType(roleLabel, "");
+  renderInterviewDetail({ roleSlug, roleLabel, roleType });
+  setActiveView("interview-detail");
+  return true;
+}
+
 function setActiveView(view) {
   const normalizedView = view === "dashboard"
     ? "dashboard"
+    : view === "interview-detail"
+      ? "interview-detail"
     : view === "interview-prep"
       ? "interview-prep"
       : "analysis";
+
+  activeView = normalizedView;
+
   const showDashboard = normalizedView === "dashboard";
   const showInterviewPrep = normalizedView === "interview-prep";
+  const showInterviewDetail = normalizedView === "interview-detail";
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
-  analysisViewEl.classList.toggle("view-hidden", showDashboard || showInterviewPrep);
+  analysisViewEl.classList.toggle("view-hidden", showDashboard || showInterviewPrep || showInterviewDetail);
   interviewPrepViewEl.classList.toggle("view-hidden", !showInterviewPrep);
+  interviewDetailViewEl.classList.toggle("view-hidden", !showInterviewDetail);
   navDashboardBtn.classList.toggle("nav-active", showDashboard);
-  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard && !showInterviewPrep);
-  navInterviewPrepBtn.classList.toggle("nav-active", showInterviewPrep);
+  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard && !showInterviewPrep && !showInterviewDetail);
+  navInterviewPrepBtn.classList.toggle("nav-active", showInterviewPrep || showInterviewDetail);
 
   try {
-    localStorage.setItem(ACTIVE_VIEW_KEY, normalizedView);
+    localStorage.setItem(ACTIVE_VIEW_KEY, showInterviewDetail ? "interview-prep" : normalizedView);
   } catch (_error) {
   }
 }
@@ -594,6 +953,10 @@ function getSessionId() {
 }
 
 function getInitialView() {
+  if (parseInterviewRoute(window.location.hash)) {
+    return "interview-detail";
+  }
+
   try {
     const stored = localStorage.getItem(ACTIVE_VIEW_KEY);
     if (stored === "dashboard" || stored === "analysis" || stored === "interview-prep") {
@@ -1417,26 +1780,41 @@ form.addEventListener("submit", async (event) => {
 
 navDashboardBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
+  clearInterviewRouteHash({ replace: true });
   setActiveView("dashboard");
 });
 
 navNewAnalysisBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
+  clearInterviewRouteHash({ replace: true });
   setActiveView("analysis");
 });
 
 navInterviewPrepBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
+  clearInterviewRouteHash({ replace: true });
   setActiveView("interview-prep");
 });
 
 interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
+  clearInterviewRouteHash({ replace: true });
   setActiveView("analysis");
   resumeFileEl.focus();
 });
 
 interviewPrepBrowseRolesBtn.addEventListener("click", () => {
-  // Placeholder for upcoming predefined-role browsing flow.
+  hideSavedAnalysisOverlay();
+  clearInterviewRouteHash({ replace: true });
+  setActiveView("dashboard");
+});
+
+interviewDetailBackBtn.addEventListener("click", () => {
+  clearInterviewRouteHash();
+  setActiveView("interview-prep");
+});
+
+interviewDetailRegenerateBtn.addEventListener("click", () => {
+  renderInterviewDetail(interviewDetailState, { regenerate: true });
 });
 
 resumeFileEl.addEventListener("change", () => {
@@ -1525,11 +1903,42 @@ function handleRoadmapInteraction(event) {
 }
 
 resultsEl.addEventListener("click", (event) => {
-  handleRoadmapInteraction(event);
+  if (handleRoadmapInteraction(event)) return;
+
+  const nextStepBtn = event.target.closest(".next-step-cta");
+  if (!nextStepBtn) return;
+
+  event.preventDefault();
+  hideSavedAnalysisOverlay();
+  openInterviewDetail(deriveInterviewRoleContext());
 });
 
 savedReportContentEl.addEventListener("click", (event) => {
-  handleRoadmapInteraction(event);
+  if (handleRoadmapInteraction(event)) return;
+
+  const nextStepBtn = event.target.closest(".next-step-cta");
+  if (!nextStepBtn) return;
+
+  event.preventDefault();
+  openInterviewDetail(deriveInterviewRoleContext({ useSaved: true }));
+});
+
+interviewQuestionListEl.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-interview-question-index]");
+  if (!trigger) return;
+
+  const index = Number(trigger.getAttribute("data-interview-question-index"));
+  if (!Number.isInteger(index)) return;
+  setInterviewQuestionOpen(index);
+});
+
+window.addEventListener("hashchange", () => {
+  const isInterviewRoute = syncViewToCurrentHash();
+  if (isInterviewRoute) return;
+
+  if (activeView === "interview-detail") {
+    setActiveView("interview-prep");
+  }
 });
 
 dashboardHistoryEl.addEventListener("click", (event) => {
@@ -1577,7 +1986,9 @@ dashboardHistoryEl.addEventListener("keydown", (event) => {
 });
 
 setAnalysisResultsPanelVisibility(false);
-setActiveView(getInitialView());
+if (!syncViewToCurrentHash()) {
+  setActiveView(getInitialView());
+}
 loadHistory();
 setResumeFileStatus("No file selected", "is-idle");
 updateSubmitAvailability();
