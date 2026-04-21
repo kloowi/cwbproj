@@ -259,7 +259,7 @@ app.innerHTML = `
                 <span class="material-symbols-outlined">travel_explore</span>
               </span>
               <h3>Browse Roles</h3>
-              <p>Explore the "Hive" for predefined industry roles and common interview patterns.</p>
+              <p>To start preparation, choose or add a new role.</p>
               <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
