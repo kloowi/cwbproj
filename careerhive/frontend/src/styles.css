@@ -435,9 +435,9 @@ body {
   border-radius: 28px;
   border: 1px solid #ecdacb;
   padding: 22px;
-  display: grid;
-  align-content: start;
-  justify-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
   text-align: left;
   box-shadow: 0 12px 26px rgba(102, 56, 33, 0.1);
@@ -535,12 +535,6 @@ body {
 }
 
 .interview-prep-saved-role-card {
-  align-content: start;
-  justify-items: start;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto auto 1fr auto;
-  column-gap: 8px;
-  row-gap: 8px;
   background:
     radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.14), transparent 34%),
     linear-gradient(180deg, #ffffff, #fffaf4);
@@ -560,8 +554,6 @@ body {
   color: #cc6e23;
   display: inline-grid;
   place-items: center;
-  grid-column: 1;
-  grid-row: 1 / span 2;
 }
 
 .interview-prep-saved-role-icon .material-symbols-outlined {
@@ -570,8 +562,6 @@ body {
 
 .interview-prep-saved-role-score-label {
   margin: 0;
-  grid-column: 2;
-  grid-row: 1;
   color: #7d7772;
   font-size: 0.72rem;
   font-weight: 800;
@@ -581,9 +571,6 @@ body {
 
 .interview-prep-saved-role-score {
   margin: 0;
-  grid-column: 2;
-  grid-row: 2;
-  justify-self: end;
   font-family: "Plus Jakarta Sans", "Sora", sans-serif;
   font-size: clamp(2.45rem, 3vw, 3rem);
   line-height: 0.88;
@@ -592,15 +579,11 @@ body {
 }
 
 .interview-prep-saved-role-card h3 {
-  grid-column: 1 / -1;
-  grid-row: 3;
   color: #e46b1f;
   font-size: clamp(1.45rem, 2vw, 1.95rem);
 }
 
 .interview-prep-saved-role-preview {
-  grid-column: 1 / -1;
-  grid-row: 4;
   margin: 0;
   color: #516173;
   max-width: 100%;
@@ -609,16 +592,20 @@ body {
 }
 
 .interview-prep-saved-role-continue {
-  grid-column: 1;
-  grid-row: 5;
-  margin-top: 4px;
-  border: 2px solid #c4c1be;
+  margin-top: auto;
+  border: 1px solid #c4c1be;
   border-radius: 999px;
   background: #fff;
   color: #9a541f;
   font-size: 0.9rem;
   font-weight: 700;
   padding: 8px 22px;
+  transition: all 180ms ease;
+}
+
+.interview-prep-saved-role-continue:hover {
+  background: #fff8ef;
+  border-color: #f1d7be;
 }
 
 .interview-detail-panel {

@@ -434,11 +434,15 @@ function renderSavedInterviewRoleCards() {
       const icon = getSavedRoleIcon(item.roleType);
       const preview = shortenPreview(item.preview);
       return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-role-slug="${escapeHtml(item.roleSlug)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
-        <span class="interview-prep-saved-role-icon" aria-hidden="true">
-          <span class="material-symbols-outlined">${icon}</span>
-        </span>
-        <p class="interview-prep-saved-role-score-label">Match Score</p>
-        <p class="interview-prep-saved-role-score">${score}%</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 4px;">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">${icon}</span>
+          </span>
+          <div style="text-align: right;">
+            <p class="interview-prep-saved-role-score-label">Match Score</p>
+            <p class="interview-prep-saved-role-score">${score}%</p>
+          </div>
+        </div>
         <h3>${escapeHtml(item.roleLabel)}</h3>
         <p class="interview-prep-saved-role-preview">${escapeHtml(preview)}</p>
         <span class="interview-prep-saved-role-continue">Continue</span>
