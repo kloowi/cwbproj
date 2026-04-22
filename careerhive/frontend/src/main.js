@@ -434,26 +434,21 @@ function renderSavedInterviewRoleCards() {
       const icon = getSavedRoleIcon(item.roleType);
       const preview = shortenPreview(item.preview);
       return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-role-slug="${escapeHtml(item.roleSlug)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
-        <div class="interview-prep-saved-role-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 4px;">
-          <div class="interview-prep-saved-role-icon-wrapper" aria-hidden="true">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 4px;">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
             <span class="material-symbols-outlined">${icon}</span>
-          </div>
-          <span class="interview-prep-saved-role-status">Saved</span>
-        </div>
-        <h3 class="interview-prep-saved-role-title">${escapeHtml(item.roleLabel)}</h3>
-        <p class="interview-prep-saved-role-preview" title="${escapeHtml(preview)}">${escapeHtml(preview)}</p>
-        
-        <div class="interview-prep-saved-role-score-container">
-          <div class="interview-prep-saved-role-score-text">
-            <span>Match Score</span>
-            <strong>${score}%</strong>
-          </div>
-          <div class="interview-prep-saved-role-score-bar-bg">
-            <div class="interview-prep-saved-role-score-bar-fill" style="width: ${score}%"></div>
+          </span>
+          <div style="text-align: right;">
+            <p class="interview-prep-saved-role-score-label">Match Score</p>
+            <p class="interview-prep-saved-role-score">${score}%</p>
           </div>
         </div>
-        
-        <span class="interview-prep-saved-role-continue">Continue Prep</span>
+        <h3>${escapeHtml(item.roleLabel)}</h3>
+        <p class="interview-prep-saved-role-preview">${escapeHtml(preview)}</p>
+        <span class="interview-prep-saved-role-continue">
+          Continue
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-left: 2px;">arrow_forward</span>
+        </span>
       </button>`;
     })
     .join("");
