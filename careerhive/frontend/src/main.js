@@ -251,7 +251,7 @@ app.innerHTML = `
                 <span class="material-symbols-outlined">travel_explore</span>
               </span>
               <h3>Browse Roles</h3>
-              <p>To start preparation, choose or add a new role.</p>
+              <p>To start preparation, choose or add a new role and click Prepare Now.</p>
               <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
@@ -913,9 +913,9 @@ function setActiveView(view) {
     ? "dashboard"
     : view === "interview-detail"
       ? "interview-detail"
-    : view === "interview-prep"
-      ? "interview-prep"
-      : "analysis";
+      : view === "interview-prep"
+        ? "interview-prep"
+        : "analysis";
 
   activeView = normalizedView;
 
@@ -1581,14 +1581,14 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
     ? `
       <div class="pipeline-track" aria-live="polite" aria-label="Analysis stage progress">
         ${pipelineState.stages.map((stage, index) => {
-          const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
-          const connectorClass = index === PIPELINE_STAGES.length - 1
-            ? ""
-            : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
-              ? "is-active"
-              : "";
+      const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
+      const connectorClass = index === PIPELINE_STAGES.length - 1
+        ? ""
+        : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
+          ? "is-active"
+          : "";
 
-          return `
+      return `
             <div class="pipeline-stage ${stage.status === "active" ? "is-active" : ""} ${stage.status === "done" ? "is-done" : ""} ${stage.status === "error" ? "is-error" : ""}" data-stage-id="${escapeHtml(stage.id)}">
               <div class="pipeline-icon" aria-hidden="true">${icon}</div>
               <div class="pipeline-copy">
@@ -1598,7 +1598,7 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
             </div>
             ${index === PIPELINE_STAGES.length - 1 ? "" : `<div class="pipeline-connector ${connectorClass}" aria-hidden="true"></div>`}
           `;
-        }).join("")}
+    }).join("")}
       </div>
     `
     : `
