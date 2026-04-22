@@ -535,77 +535,115 @@ body {
 }
 
 .interview-prep-saved-role-card {
-  background:
-    radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.14), transparent 34%),
-    linear-gradient(180deg, #ffffff, #fffaf4);
+  background: #ffffff;
+  border: 1px solid #f3e8e0;
+  box-shadow: 0 4px 14px rgba(102, 56, 33, 0.05);
 }
 
 .interview-prep-saved-role-card:hover {
-  border-color: #e2c7b7;
-  box-shadow: 0 15px 30px rgba(102, 56, 33, 0.14);
+  border-color: #f7d2b5;
+  box-shadow: 0 8px 24px rgba(228, 107, 31, 0.1);
 }
 
-.interview-prep-saved-role-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 20px;
-  border: 1px solid #f1d7be;
-  background: #f9e8d6;
-  color: #cc6e23;
-  display: inline-grid;
-  place-items: center;
+.interview-prep-saved-role-header {
+  margin-bottom: 12px;
 }
 
-.interview-prep-saved-role-icon .material-symbols-outlined {
-  font-size: 28px;
+.interview-prep-saved-role-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f0f7ff;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.interview-prep-saved-role-score-label {
-  margin: 0;
-  color: #7d7772;
-  font-size: 0.72rem;
-  font-weight: 800;
+.interview-prep-saved-role-icon-wrapper .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.interview-prep-saved-role-status {
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-.interview-prep-saved-role-score {
-  margin: 0;
-  font-family: "Plus Jakarta Sans", "Sora", sans-serif;
-  font-size: clamp(2.45rem, 3vw, 3rem);
-  line-height: 0.88;
-  letter-spacing: -0.02em;
-  color: #b34d09;
-}
-
-.interview-prep-saved-role-card h3 {
-  color: #e46b1f;
-  font-size: clamp(1.45rem, 2vw, 1.95rem);
+.interview-prep-saved-role-title {
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #111827;
 }
 
 .interview-prep-saved-role-preview {
-  margin: 0;
-  color: #516173;
-  max-width: 100%;
-  font-size: 0.97rem;
-  line-height: 1.38;
+  margin: 0 0 16px 0;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.interview-prep-saved-role-score-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.interview-prep-saved-role-score-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+
+.interview-prep-saved-role-score-text span {
+  color: #6b7280;
+}
+
+.interview-prep-saved-role-score-text strong {
+  font-weight: 700;
+  color: #ea580c;
+}
+
+.interview-prep-saved-role-score-bar-bg {
+  width: 100%;
+  height: 6px;
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.interview-prep-saved-role-score-bar-fill {
+  height: 100%;
+  background-color: #f97316;
+  border-radius: 9999px;
 }
 
 .interview-prep-saved-role-continue {
+  width: 100%;
   margin-top: auto;
-  border: 1px solid #c4c1be;
-  border-radius: 999px;
-  background: #fff;
-  color: #9a541f;
-  font-size: 0.9rem;
+  padding: 12px;
+  border: 2px solid #ffedd5;
+  color: #ea580c;
   font-weight: 700;
-  padding: 8px 22px;
-  transition: all 180ms ease;
+  border-radius: 12px;
+  text-align: center;
+  background: transparent;
+  transition: background-color 150ms ease;
 }
 
 .interview-prep-saved-role-continue:hover {
-  background: #fff8ef;
-  border-color: #f1d7be;
+  background: #fff7ed;
 }
 
 .interview-detail-panel {
