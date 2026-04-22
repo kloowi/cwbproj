@@ -204,6 +204,10 @@ body {
   padding: 22px 26px 52px;
 }
 
+.dashboard-view {
+  padding: 0 22px;
+}
+
 .dashboard-hero {
   display: flex;
   align-items: stretch;
