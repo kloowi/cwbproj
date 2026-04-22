@@ -245,14 +245,6 @@ app.innerHTML = `
           </div>
 
           <div class="interview-prep-actions" aria-label="Interview Prep Primary Actions">
-            <button type="button" class="interview-prep-action-card interview-prep-analyze-card" id="interview-prep-analyze-role-btn" aria-label="Analyze new role to start interview preparation">
-              <span class="interview-prep-action-icon" aria-hidden="true">
-                <span class="material-symbols-outlined">upload_file</span>
-              </span>
-              <h3>Analyze New Role</h3>
-              <p>Upload a new job description and get an instant AI-powered preparation roadmap.</p>
-              <span class="interview-prep-action-cta">Start from scratch <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></span>
-            </button>
 
             <button type="button" class="interview-prep-action-card interview-prep-browse-card" id="interview-prep-browse-roles-btn" aria-label="Browse predefined roles for interview preparation">
               <span class="interview-prep-action-icon" aria-hidden="true">
@@ -322,7 +314,6 @@ const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
 const interviewPrepActionsEl = document.querySelector(".interview-prep-actions");
-const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
 const interviewDetailBackBtn = document.querySelector("#interview-detail-back-btn");
 const interviewDetailRoleLabelEl = document.querySelector("#interview-detail-role-label");
@@ -429,7 +420,7 @@ function shortenPreview(text, maxLength = 92) {
 }
 
 function renderSavedInterviewRoleCards() {
-  if (!interviewPrepActionsEl || !interviewPrepAnalyzeRoleBtn) return;
+  if (!interviewPrepActionsEl) return;
 
   interviewPrepActionsEl
     .querySelectorAll(".interview-prep-saved-role-card")
@@ -455,7 +446,7 @@ function renderSavedInterviewRoleCards() {
     })
     .join("");
 
-  interviewPrepAnalyzeRoleBtn.insertAdjacentHTML("beforebegin", cardsMarkup);
+  interviewPrepActionsEl.insertAdjacentHTML("afterbegin", cardsMarkup);
 }
 
 function saveInterviewRoleSnapshot(roleContext, options = {}) {
@@ -1937,10 +1928,6 @@ navInterviewPrepBtn.addEventListener("click", () => {
   setPathForView("interview-prep");
 });
 
-interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
-  setPathForView("analysis");
-  resumeFileEl.focus();
-});
 
 interviewPrepBrowseRolesBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();

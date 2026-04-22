@@ -443,13 +443,6 @@ body {
   backface-visibility: hidden;
 }
 
-.interview-prep-analyze-card {
-  background:
-    radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.18), transparent 34%),
-    radial-gradient(circle at 88% 16%, rgba(236, 198, 160, 0.25), transparent 44%),
-    linear-gradient(180deg, #ffffff, #fff8ef);
-  color: #132936;
-}
 
 .interview-prep-browse-card {
   background:
@@ -465,10 +458,6 @@ body {
   transform: translateY(-3px);
 }
 
-.interview-prep-analyze-card:hover {
-  border-color: #e2c7b7;
-  box-shadow: 0 15px 30px rgba(102, 56, 33, 0.14);
-}
 
 .interview-prep-browse-card:hover {
   border-color: #f7c170;
@@ -488,10 +477,6 @@ body {
   place-items: center;
 }
 
-.interview-prep-analyze-card .interview-prep-action-icon {
-  background: #fdefdf;
-  color: #de6d1d;
-}
 
 .interview-prep-browse-card .interview-prep-action-icon {
   background: rgba(255, 255, 255, 0.22);
@@ -518,9 +503,6 @@ body {
   line-height: 1.4;
 }
 
-.interview-prep-analyze-card p {
-  color: #4f6273;
-}
 
 .interview-prep-browse-card p {
   color: rgba(255, 250, 242, 0.95);
@@ -536,9 +518,6 @@ body {
   line-height: 1;
 }
 
-.interview-prep-analyze-card .interview-prep-action-cta {
-  color: #d45e13;
-}
 
 .interview-prep-browse-card .interview-prep-action-cta {
   color: #ffffff;
