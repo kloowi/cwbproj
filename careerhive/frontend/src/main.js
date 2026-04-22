@@ -251,7 +251,7 @@ app.innerHTML = `
                 <span class="material-symbols-outlined">travel_explore</span>
               </span>
               <h3>Browse Roles</h3>
-              <p>To start preparation, choose or add a new role and click Prepare Now.</p>
+              <p>To start, choose from a role and click Prepare.</p>
               <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
