@@ -36,62 +36,24 @@ const PIPELINE_STAGES = [
   }
 ];
 
-const INTERVIEW_QUESTION_SETS = {
-  frontend: [
-    {
-      prompt: "How do you handle state management in complex React applications?",
-      answer: "I split state into three layers: server state with React Query/SWR, shared client state with a focused store, and local component state for isolated UI. I optimize re-renders with memoization, selectors, and targeted profiling in React DevTools."
-    },
-    {
-      prompt: "Describe a time you resolved a production bug under high pressure.",
-      answer: "I begin with fast triage and impact scoping, then isolate the failing path with logs, metrics, and recent deploy deltas. I ship a minimal rollback or hotfix first, then add regression tests and run a postmortem to prevent recurrence."
-    },
-    {
-      prompt: "How do you approach accessibility in a design system used by millions?",
-      answer: "I bake accessibility into tokens and primitives first, then enforce keyboard navigation, semantic HTML, and contrast budgets through testing gates. I validate with screen readers and ensure component docs include a11y usage patterns."
-    },
-    {
-      prompt: "What is your process for reviewing PRs for performance regressions?",
-      answer: "I review rendering paths, bundle impact, and data-fetch lifecycles before visual polish. I look for unnecessary re-renders, unstable dependencies, and expensive work in hot paths, then confirm with lightweight profiling before merge."
-    }
-  ],
-  backend: [
-    {
-      prompt: "How do you design resilient APIs for high-traffic systems?",
-      answer: "I start with clear contracts and idempotent operations, then design for retries, backpressure, and graceful degradation. I pair observability with SLO-driven alerts so failures are detected and mitigated quickly."
-    },
-    {
-      prompt: "How do you debug an intermittent production latency spike?",
-      answer: "I narrow by endpoint and dependency, correlate traces with infrastructure metrics, and inspect saturation points like DB pools and queue depth. I apply short-term mitigation first, then remove the root bottleneck with load-tested changes."
-    },
-    {
-      prompt: "How do you evolve a schema without breaking clients?",
-      answer: "I use additive migrations, compatibility windows, and explicit deprecation phases. Backfills and dual-write or dual-read strategies keep services stable while clients transition safely."
-    },
-    {
-      prompt: "What guardrails do you use for secure service-to-service communication?",
-      answer: "I enforce least-privilege identities, short-lived credentials, mTLS where applicable, and audit logging on sensitive flows. Security checks are automated in CI so policy is consistent across environments."
-    }
-  ],
-  software: [
-    {
-      prompt: "How do you prioritize technical tradeoffs when product timelines are tight?",
-      answer: "I frame tradeoffs by user impact, delivery risk, and long-term maintenance cost. I ship the smallest safe increment, document debt explicitly, and schedule follow-up hardening with measurable outcomes."
-    },
-    {
-      prompt: "How do you collaborate across design, product, and engineering during delivery?",
-      answer: "I align early on success criteria and constraints, then keep a fast feedback loop through short demos and decision logs. This reduces churn and keeps execution focused on user value."
-    },
-    {
-      prompt: "Tell me about a system you improved for reliability or performance.",
-      answer: "I start with baseline metrics, identify the dominant failure or latency driver, and roll out incremental fixes behind safe toggles. I validate impact after release and keep observability in place to prevent regressions."
-    },
-    {
-      prompt: "How do you mentor teammates while still delivering your own roadmap?",
-      answer: "I mentor through scoped design reviews, pairing on tricky tasks, and reusable documentation. That scales team output while protecting execution focus on committed milestones."
-    }
-  ]
-};
+const INTERVIEW_FALLBACK_QUESTIONS = [
+  {
+    prompt: "How do you prioritize technical tradeoffs when product timelines are tight?",
+    answer: "I frame tradeoffs by user impact, delivery risk, and long-term maintenance cost. I ship the smallest safe increment, document debt explicitly, and schedule hardening work with measurable outcomes."
+  },
+  {
+    prompt: "How do you collaborate across product, design, and engineering during delivery?",
+    answer: "I align early on success criteria and constraints, then maintain a fast feedback loop with short demos and decision logs so execution stays focused on user value."
+  },
+  {
+    prompt: "Tell me about a system you improved for reliability or performance.",
+    answer: "I start with baseline metrics, isolate the dominant bottleneck, roll out changes incrementally with safeguards, and validate impact after release."
+  },
+  {
+    prompt: "How do you keep your technical knowledge current in your target domain?",
+    answer: "I combine focused reading, practical experiments, and project postmortems to turn new trends into reusable decisions and better implementation patterns."
+  }
+];
 
 const app = document.querySelector("#app");
 
@@ -348,7 +310,9 @@ let interviewDetailState = {
   roleLabel: DEFAULT_INTERVIEW_ROLE_LABEL,
   roleType: "software",
   activeQuestionIndex: 0,
-  questions: []
+  questions: [],
+  readiness: null,
+  analysisHints: null
 };
 const roadmapProgressState = loadRoadmapProgressState();
 let savedInterviewRoles = loadSavedInterviewRoles();
@@ -390,6 +354,7 @@ function loadSavedInterviewRoles() {
         roleLabel: String(item.roleLabel || "").trim() || roleLabelFromSlug(String(item.roleSlug || "")),
         roleType: String(item.roleType || "").trim() || inferRoleType(String(item.roleLabel || ""), ""),
         score: Number.isFinite(Number(item.score)) ? Math.max(0, Math.min(100, Number(item.score))) : 0,
+        readiness: normalizeReadinessSnapshot(item.readiness),
         preview: String(item.preview || "").trim(),
         savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now()
       }))
@@ -473,6 +438,7 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
     roleLabel: roleContext.roleLabel || roleLabelFromSlug(roleContext.roleSlug),
     roleType: roleContext.roleType || inferRoleType(roleContext.roleLabel || "", preview),
     score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
+    readiness: normalizeReadinessSnapshot(roleContext.readiness),
     preview,
     savedAt: Date.now()
   };
@@ -494,8 +460,126 @@ function openSavedInterviewRole(id) {
     id: target.id,
     roleSlug: target.roleSlug,
     roleLabel: target.roleLabel,
-    roleType: target.roleType
+    roleType: target.roleType,
+    readiness: target.readiness
   });
+}
+
+function clampScore(value, min = 0, max = 100) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return min;
+  return Math.max(min, Math.min(max, numeric));
+}
+
+function toTrimmedArray(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+}
+
+function normalizeReadinessSnapshot(readiness) {
+  if (!readiness || typeof readiness !== "object") return null;
+
+  const technical = clampScore(readiness.technicalReadiness);
+  const behavioral = clampScore(readiness.behavioralReadiness);
+  const industry = clampScore(readiness.industryKnowledge);
+
+  return {
+    technicalReadiness: Math.round(technical),
+    behavioralReadiness: Math.round(behavioral),
+    industryKnowledge: Math.round(industry)
+  };
+}
+
+function extractInterviewSignals(roleContext, options = {}) {
+  if (roleContext?.analysisHints && typeof roleContext.analysisHints === "object") {
+    return {
+      roleLabel: roleContext.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL,
+      roleType: roleContext.roleType || "software",
+      matchScore: clampScore(roleContext.analysisHints.matchScore),
+      missingSkills: toTrimmedArray(roleContext.analysisHints.missingSkills),
+      strengths: toTrimmedArray(roleContext.analysisHints.strengths),
+      roadmap: toTrimmedArray(roleContext.analysisHints.roadmap),
+      reasoning: String(roleContext.analysisHints.reasoning || ""),
+      resumeSnippet: String(roleContext.analysisHints.resumeSnippet || ""),
+      jobSnippet: String(roleContext.analysisHints.jobSnippet || "")
+    };
+  }
+
+  const useSaved = Boolean(options.useSaved);
+  const sourceData = useSaved ? latestSavedReportData : latestMainReportData;
+
+  return {
+    roleLabel: roleContext?.roleLabel || sourceData?.job?.title || DEFAULT_INTERVIEW_ROLE_LABEL,
+    roleType: roleContext?.roleType || inferRoleType(sourceData?.job?.title || "", sourceData?.input?.jobSnippet || ""),
+    matchScore: clampScore(sourceData?.match?.score),
+    missingSkills: toTrimmedArray(sourceData?.match?.missing),
+    strengths: toTrimmedArray(sourceData?.match?.strengths),
+    roadmap: toTrimmedArray(sourceData?.plan?.roadmap),
+    reasoning: String(sourceData?.match?.reasoning || ""),
+    resumeSnippet: String(sourceData?.input?.resumeSnippet || ""),
+    jobSnippet: String(sourceData?.input?.jobSnippet || "")
+  };
+}
+
+function scoreKeywordPresence(text, patterns) {
+  const corpus = String(text || "").toLowerCase();
+  if (!corpus) return 0;
+  let matches = 0;
+  patterns.forEach((pattern) => {
+    if (pattern.test(corpus)) matches += 1;
+  });
+  return matches;
+}
+
+function deriveReadinessFromSignals(signals) {
+  const matchScore = clampScore(signals.matchScore);
+  const missingCount = signals.missingSkills.length;
+  const strengthsCount = signals.strengths.length;
+  const totalSkillEvidence = strengthsCount + missingCount;
+  const overlapRatio = totalSkillEvidence > 0 ? strengthsCount / totalSkillEvidence : matchScore / 100;
+  const missingPressure = clampScore(missingCount * 13);
+  const technical = Math.round(clampScore((matchScore * 0.58) + (overlapRatio * 100 * 0.24) + ((100 - missingPressure) * 0.18), 35, 98));
+
+  const behavioralText = `${signals.resumeSnippet} ${signals.reasoning} ${signals.strengths.join(" ")} ${signals.roadmap.join(" ")}`;
+  const behavioralSignal = scoreKeywordPresence(behavioralText, [
+    /collaborat(e|ion)/g,
+    /mentor|coaching/g,
+    /stakeholder|cross-functional/g,
+    /communication|present|influence/g,
+    /ownership|initiative|leadership/g,
+    /conflict|feedback|align/g
+  ]);
+  const behavioral = Math.round(clampScore(40 + (matchScore * 0.34) + (behavioralSignal * 4.5) + (Math.min(signals.roadmap.length, 5) * 1.8) - (missingCount * 1.5), 30, 97));
+
+  const domainText = `${signals.roleLabel} ${signals.jobSnippet} ${signals.reasoning} ${signals.strengths.join(" ")} ${signals.roadmap.join(" ")}`;
+  const industrySignal = scoreKeywordPresence(domainText, [
+    /regulation|compliance|soc2|hipaa|gdpr|pci/g,
+    /market|customer|business|kpi|revenue/g,
+    /domain|industry|workflow|operations/g,
+    /security|privacy|risk|audit/g,
+    /ai|ml|cloud|distributed|platform|infra/g,
+    /fintech|healthcare|ecommerce|saas|logistics|education/g
+  ]);
+  const roleSpecificBonus = /manager|lead|principal|staff|director/i.test(signals.roleLabel) ? 4 : 0;
+  const industry = Math.round(clampScore(38 + (matchScore * 0.36) + (industrySignal * 4.2) + roleSpecificBonus - (missingCount * 1.2), 30, 98));
+
+  return {
+    technicalReadiness: technical,
+    behavioralReadiness: behavioral,
+    industryKnowledge: industry
+  };
+}
+
+function inferIndustryFocus(signals) {
+  const corpus = `${signals.roleLabel} ${signals.jobSnippet}`.toLowerCase();
+  if (/fintech|bank|payments|finance/.test(corpus)) return "risk controls, compliance, and reliability in financial systems";
+  if (/health|clinical|medical|hospital|biotech/.test(corpus)) return "privacy, safety, and reliability expectations in healthcare products";
+  if (/ecommerce|retail|marketplace/.test(corpus)) return "conversion, growth loops, and operational efficiency for digital commerce";
+  if (/data|analytics|bi|warehouse/.test(corpus)) return "data quality, governance, and decision-making impact";
+  if (/security|cyber|identity/.test(corpus)) return "threat modeling, security controls, and incident response discipline";
+  return "how your target industry measures product and technical impact";
 }
 
 function hashString(value) {
@@ -785,42 +869,61 @@ function deriveInterviewRoleContext(options = {}) {
   const roleSlug = toRoleSlug(roleLabel);
   const roleType = inferRoleType(roleLabel, `${sourceData?.input?.jobSnippet || ""} ${sourceData?.match?.missing?.join(" ") || ""}`);
   const id = options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const analysisHints = extractInterviewSignals({ roleLabel, roleType }, options);
+  const readiness = normalizeReadinessSnapshot(deriveReadinessFromSignals(analysisHints));
 
   return {
     id,
     roleLabel,
     roleSlug,
-    roleType
+    roleType,
+    readiness,
+    analysisHints
   };
 }
 
-function getInterviewReadinessStats(roleType) {
-  if (roleType === "frontend") {
-    return [
-      { label: "Technical Readiness", score: 85, tone: "is-blue", icon: "code" },
-      { label: "Behavioral Confidence", score: 72, tone: "is-green", icon: "groups" },
-      { label: "Industry Knowledge", score: 94, tone: "is-indigo", icon: "book_4" }
-    ];
-  }
-
-  if (roleType === "backend") {
-    return [
-      { label: "Systems Depth", score: 81, tone: "is-blue", icon: "lan" },
-      { label: "Behavioral Confidence", score: 74, tone: "is-green", icon: "groups" },
-      { label: "Architecture Fluency", score: 89, tone: "is-indigo", icon: "schema" }
-    ];
-  }
+function getInterviewReadinessStats(roleContext, options = {}) {
+  const snapshot = normalizeReadinessSnapshot(roleContext?.readiness);
+  const derived = snapshot || normalizeReadinessSnapshot(deriveReadinessFromSignals(extractInterviewSignals(roleContext, options)));
 
   return [
-    { label: "Technical Readiness", score: 83, tone: "is-blue", icon: "code_blocks" },
-    { label: "Behavioral Confidence", score: 73, tone: "is-green", icon: "groups" },
-    { label: "Industry Knowledge", score: 90, tone: "is-indigo", icon: "book_4" }
+    { label: "Technical Readiness", score: derived.technicalReadiness, tone: "is-blue", icon: "code_blocks" },
+    { label: "Behavioral Readiness", score: derived.behavioralReadiness, tone: "is-green", icon: "groups" },
+    { label: "Industry Knowledge", score: derived.industryKnowledge, tone: "is-indigo", icon: "book_4" }
   ];
 }
 
-function buildRoleQuestions(roleType) {
-  const baseSet = INTERVIEW_QUESTION_SETS[roleType] || INTERVIEW_QUESTION_SETS.software;
-  return baseSet.map((item) => ({ ...item }));
+function buildRoleQuestions(roleContext, options = {}) {
+  const signals = extractInterviewSignals(roleContext, options);
+  const roleLabel = roleContext?.roleLabel || signals.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL;
+  const topGap = signals.missingSkills[0] || "a critical requirement from the job description";
+  const secondGap = signals.missingSkills[1] || topGap;
+  const topStrength = signals.strengths[0] || "a high-impact project from your recent work";
+  const roadmapFocus = signals.roadmap[0] || `the highest-priority gap for the ${roleLabel} role`;
+  const industryFocus = inferIndustryFocus(signals);
+
+  if (!signals.missingSkills.length && !signals.strengths.length && !signals.jobSnippet) {
+    return INTERVIEW_FALLBACK_QUESTIONS.map((item) => ({ ...item }));
+  }
+
+  return [
+    {
+      prompt: `For this ${roleLabel} role, how would you close a gap in ${topGap} within your first 60 days?`,
+      answer: `I would start with a focused learning sprint on ${topGap}, then apply it in a scoped deliverable tied to team priorities. I would define measurable outcomes and share progress in weekly check-ins so the ramp-up is visible and accountable.`
+    },
+    {
+      prompt: `Walk me through a project where your strength in ${topStrength} changed the outcome.`,
+      answer: "I would structure the story with context, constraints, actions, and measurable impact. I would highlight the technical decisions, tradeoffs considered, and what I would improve in a second iteration."
+    },
+    {
+      prompt: `How do you handle feedback when interviewers point out a potential weakness in ${secondGap}?`,
+      answer: `I acknowledge the gap directly, explain the plan I am already executing to improve it, and provide evidence from recent practice or deliverables. This shows coachability, ownership, and ability to convert feedback into execution.`
+    },
+    {
+      prompt: `What industry trends matter most for this role, and how would they influence your decisions around ${roadmapFocus}?`,
+      answer: `I would connect decisions to ${industryFocus}, then explain how that context changes architecture, prioritization, and risk management. The goal is to show domain awareness and practical decision quality, not only tool knowledge.`
+    }
+  ];
 }
 
 function renderInterviewDetailQuestions() {
@@ -851,19 +954,21 @@ function renderInterviewDetail(roleContext, options = {}) {
   const shouldRefreshQuestions = options.regenerate || roleSlug !== interviewDetailState.roleSlug;
 
   if (shouldRefreshQuestions) {
-    interviewDetailState.questions = buildRoleQuestions(roleType);
+    interviewDetailState.questions = buildRoleQuestions(roleContext, options);
     interviewDetailState.activeQuestionIndex = 0;
   }
 
   interviewDetailState.roleSlug = roleSlug;
   interviewDetailState.roleLabel = roleLabel;
   interviewDetailState.roleType = roleType;
+  interviewDetailState.readiness = normalizeReadinessSnapshot(roleContext?.readiness);
+  interviewDetailState.analysisHints = roleContext?.analysisHints || null;
 
   interviewDetailRoleLabelEl.textContent = roleLabel;
   interviewDetailTitleEl.textContent = `Interview Preparation: ${roleLabel}`;
   interviewDetailSubtitleEl.textContent = `Practice targeted questions for ${roleLabel} and sharpen structured responses before your next round.`;
 
-  const stats = getInterviewReadinessStats(roleType);
+  const stats = getInterviewReadinessStats(roleContext, options);
   interviewDetailStatsEl.innerHTML = stats
     .map(
       (stat) => `<article class="interview-detail-stat-card">
