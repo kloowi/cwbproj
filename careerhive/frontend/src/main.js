@@ -245,21 +245,13 @@ app.innerHTML = `
           </div>
 
           <div class="interview-prep-actions" aria-label="Interview Prep Primary Actions">
-            <button type="button" class="interview-prep-action-card interview-prep-analyze-card" id="interview-prep-analyze-role-btn" aria-label="Analyze new role to start interview preparation">
-              <span class="interview-prep-action-icon" aria-hidden="true">
-                <span class="material-symbols-outlined">upload_file</span>
-              </span>
-              <h3>Analyze New Role</h3>
-              <p>Upload a new job description and get an instant AI-powered preparation roadmap.</p>
-              <span class="interview-prep-action-cta">Start from scratch <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></span>
-            </button>
 
             <button type="button" class="interview-prep-action-card interview-prep-browse-card" id="interview-prep-browse-roles-btn" aria-label="Browse predefined roles for interview preparation">
               <span class="interview-prep-action-icon" aria-hidden="true">
                 <span class="material-symbols-outlined">travel_explore</span>
               </span>
               <h3>Browse Roles</h3>
-              <p>To start preparation, choose or add a new role.</p>
+              <p>To start, choose from a role and click Prepare.</p>
               <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
@@ -322,7 +314,6 @@ const navDashboardBtn = document.querySelector("#nav-dashboard");
 const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
 const interviewPrepActionsEl = document.querySelector(".interview-prep-actions");
-const interviewPrepAnalyzeRoleBtn = document.querySelector("#interview-prep-analyze-role-btn");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
 const interviewDetailBackBtn = document.querySelector("#interview-detail-back-btn");
 const interviewDetailRoleLabelEl = document.querySelector("#interview-detail-role-label");
@@ -394,6 +385,7 @@ function loadSavedInterviewRoles() {
       .filter((item) => item && typeof item === "object")
       .filter((item) => String(item.roleSlug || "").trim())
       .map((item) => ({
+        id: String(item.id || item.roleSlug || "").trim(),
         roleSlug: String(item.roleSlug || "").trim(),
         roleLabel: String(item.roleLabel || "").trim() || roleLabelFromSlug(String(item.roleSlug || "")),
         roleType: String(item.roleType || "").trim() || inferRoleType(String(item.roleLabel || ""), ""),
@@ -429,7 +421,7 @@ function shortenPreview(text, maxLength = 92) {
 }
 
 function renderSavedInterviewRoleCards() {
-  if (!interviewPrepActionsEl || !interviewPrepAnalyzeRoleBtn) return;
+  if (!interviewPrepActionsEl) return;
 
   interviewPrepActionsEl
     .querySelectorAll(".interview-prep-saved-role-card")
@@ -442,20 +434,27 @@ function renderSavedInterviewRoleCards() {
       const score = Math.round(Math.max(0, Math.min(100, Number(item.score) || 0)));
       const icon = getSavedRoleIcon(item.roleType);
       const preview = shortenPreview(item.preview);
-      return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-role-slug="${escapeHtml(item.roleSlug)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
-        <span class="interview-prep-saved-role-icon" aria-hidden="true">
-          <span class="material-symbols-outlined">${icon}</span>
-        </span>
-        <p class="interview-prep-saved-role-score-label">Match Score</p>
-        <p class="interview-prep-saved-role-score">${score}%</p>
+      return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 4px;">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">${icon}</span>
+          </span>
+          <div style="text-align: right;">
+            <p class="interview-prep-saved-role-score-label">Match Score</p>
+            <p class="interview-prep-saved-role-score">${score}%</p>
+          </div>
+        </div>
         <h3>${escapeHtml(item.roleLabel)}</h3>
         <p class="interview-prep-saved-role-preview">${escapeHtml(preview)}</p>
-        <span class="interview-prep-saved-role-continue">Continue</span>
+        <span class="interview-prep-saved-role-continue">
+          Continue
+          <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-left: 2px;">arrow_forward</span>
+        </span>
       </button>`;
     })
     .join("");
 
-  interviewPrepAnalyzeRoleBtn.insertAdjacentHTML("beforebegin", cardsMarkup);
+  interviewPrepActionsEl.insertAdjacentHTML("afterbegin", cardsMarkup);
 }
 
 function saveInterviewRoleSnapshot(roleContext, options = {}) {
@@ -466,8 +465,10 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
   const previewFallback = useSaved ? sourceData?.input?.jobSnippet : form?.job?.value;
   const preview = String(sourceData?.input?.jobSnippet || previewFallback || "").replace(/\s+/g, " ").trim();
   const score = Number(sourceData?.match?.score || 0);
+  const id = roleContext.id || options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
   const nextItem = {
+    id,
     roleSlug: roleContext.roleSlug,
     roleLabel: roleContext.roleLabel || roleLabelFromSlug(roleContext.roleSlug),
     roleType: roleContext.roleType || inferRoleType(roleContext.roleLabel || "", preview),
@@ -478,18 +479,19 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
 
   savedInterviewRoles = [
     nextItem,
-    ...savedInterviewRoles.filter((item) => item.roleSlug !== nextItem.roleSlug)
+    ...savedInterviewRoles.filter((item) => item.id !== nextItem.id)
   ].slice(0, 6);
 
   persistSavedInterviewRoles();
   renderSavedInterviewRoleCards();
 }
 
-function openSavedInterviewRole(roleSlug) {
-  const target = savedInterviewRoles.find((item) => item.roleSlug === roleSlug);
+function openSavedInterviewRole(id) {
+  const target = savedInterviewRoles.find((item) => item.id === id);
   if (!target) return;
 
   openInterviewDetail({
+    id: target.id,
     roleSlug: target.roleSlug,
     roleLabel: target.roleLabel,
     roleType: target.roleType
@@ -750,8 +752,8 @@ function setPathForView(view, options = {}) {
   setActiveView(route);
 }
 
-function buildInterviewRouteHash(roleSlug) {
-  return `/interview-prep/${encodeURIComponent(roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG)}`;
+function buildInterviewRouteHash(id) {
+  return `/interview-prep/${encodeURIComponent(id || DEFAULT_INTERVIEW_ROLE_SLUG)}`;
 }
 
 function inferRoleLabelFromInputText(inputText) {
@@ -782,8 +784,10 @@ function deriveInterviewRoleContext(options = {}) {
   const roleLabel = normalizeRoleLabel(candidates.find((item) => String(item || "").trim()) || DEFAULT_INTERVIEW_ROLE_LABEL);
   const roleSlug = toRoleSlug(roleLabel);
   const roleType = inferRoleType(roleLabel, `${sourceData?.input?.jobSnippet || ""} ${sourceData?.match?.missing?.join(" ") || ""}`);
+  const id = options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
   return {
+    id,
     roleLabel,
     roleSlug,
     roleType
@@ -889,7 +893,7 @@ function openInterviewDetail(roleContext, options = {}) {
   const context = roleContext || deriveInterviewRoleContext();
   renderInterviewDetail(context, options);
 
-  const targetPath = buildInterviewRouteHash(context.roleSlug);
+  const targetPath = buildInterviewRouteHash(context.id || context.roleSlug);
   if (window.location.pathname !== targetPath) {
     const nextUrl = `${targetPath}${window.location.search}`;
     window.history.pushState(null, "", nextUrl);
@@ -907,12 +911,33 @@ function syncViewToCurrentRoute() {
     return true;
   }
 
-  const roleSlug = parseInterviewRoute(window.location.pathname);
-  if (!roleSlug) return false;
+  const roleId = parseInterviewRoute(window.location.pathname);
+  if (!roleId) return false;
 
-  const roleLabel = roleLabelFromSlug(roleSlug);
-  const roleType = inferRoleType(roleLabel, "");
-  renderInterviewDetail({ roleSlug, roleLabel, roleType });
+  const savedRole = savedInterviewRoles.find(r => r.id === roleId);
+  if (savedRole) {
+    renderInterviewDetail({
+      id: savedRole.id,
+      roleSlug: savedRole.roleSlug,
+      roleLabel: savedRole.roleLabel,
+      roleType: savedRole.roleType
+    });
+  } else {
+    const legacyRole = savedInterviewRoles.find(r => r.roleSlug === roleId);
+    if (legacyRole) {
+      renderInterviewDetail({
+        id: legacyRole.id,
+        roleSlug: legacyRole.roleSlug,
+        roleLabel: legacyRole.roleLabel,
+        roleType: legacyRole.roleType
+      });
+    } else {
+      const roleLabel = roleLabelFromSlug(roleId);
+      const roleType = inferRoleType(roleLabel, "");
+      renderInterviewDetail({ id: roleId, roleSlug: roleId, roleLabel, roleType });
+    }
+  }
+
   setActiveView("interview-detail");
   return true;
 }
@@ -922,9 +947,9 @@ function setActiveView(view) {
     ? "dashboard"
     : view === "interview-detail"
       ? "interview-detail"
-    : view === "interview-prep"
-      ? "interview-prep"
-      : "analysis";
+      : view === "interview-prep"
+        ? "interview-prep"
+        : "analysis";
 
   activeView = normalizedView;
 
@@ -1590,14 +1615,14 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
     ? `
       <div class="pipeline-track" aria-live="polite" aria-label="Analysis stage progress">
         ${pipelineState.stages.map((stage, index) => {
-          const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
-          const connectorClass = index === PIPELINE_STAGES.length - 1
-            ? ""
-            : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
-              ? "is-active"
-              : "";
+      const icon = stage.status === "done" ? "✓" : stage.status === "error" ? "!" : String(index + 1);
+      const connectorClass = index === PIPELINE_STAGES.length - 1
+        ? ""
+        : pipelineState.stages[index + 1].status === "active" || pipelineState.stages[index + 1].status === "done"
+          ? "is-active"
+          : "";
 
-          return `
+      return `
             <div class="pipeline-stage ${stage.status === "active" ? "is-active" : ""} ${stage.status === "done" ? "is-done" : ""} ${stage.status === "error" ? "is-error" : ""}" data-stage-id="${escapeHtml(stage.id)}">
               <div class="pipeline-icon" aria-hidden="true">${icon}</div>
               <div class="pipeline-copy">
@@ -1607,7 +1632,7 @@ function renderLoadingState(title = "Analyzing your profile...", subtitle = "Ple
             </div>
             ${index === PIPELINE_STAGES.length - 1 ? "" : `<div class="pipeline-connector ${connectorClass}" aria-hidden="true"></div>`}
           `;
-        }).join("")}
+    }).join("")}
       </div>
     `
     : `
@@ -1937,10 +1962,6 @@ navInterviewPrepBtn.addEventListener("click", () => {
   setPathForView("interview-prep");
 });
 
-interviewPrepAnalyzeRoleBtn.addEventListener("click", () => {
-  setPathForView("analysis");
-  resumeFileEl.focus();
-});
 
 interviewPrepBrowseRolesBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
@@ -1952,9 +1973,9 @@ interviewPrepActionsEl.addEventListener("click", (event) => {
   if (!savedRoleButton) return;
 
   event.preventDefault();
-  const roleSlug = String(savedRoleButton.getAttribute("data-role-slug") || "").trim();
-  if (!roleSlug) return;
-  openSavedInterviewRole(roleSlug);
+  const roleId = String(savedRoleButton.getAttribute("data-id") || savedRoleButton.getAttribute("data-role-slug") || "").trim();
+  if (!roleId) return;
+  openSavedInterviewRole(roleId);
 });
 
 interviewDetailBackBtn.addEventListener("click", () => {

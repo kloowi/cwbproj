@@ -204,6 +204,10 @@ body {
   padding: 22px 26px 52px;
 }
 
+.dashboard-view {
+  padding: 0 22px;
+}
+
 .dashboard-hero {
   display: flex;
   align-items: stretch;
@@ -322,24 +326,28 @@ body {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .analysis-view .results-panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .interview-prep-view .panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .interview-detail-view .panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .view-hidden {
@@ -416,24 +424,21 @@ body {
 }
 
 .interview-prep-actions {
-  width: min(100%, 1320px);
-  margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  justify-content: start;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
 .interview-prep-action-card {
   position: relative;
   overflow: hidden;
-  min-height: 244px;
+  height: 244px;
   border-radius: 28px;
   border: 1px solid #ecdacb;
   padding: 22px;
-  display: grid;
-  align-content: start;
-  justify-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
   text-align: left;
   box-shadow: 0 12px 26px rgba(102, 56, 33, 0.1);
@@ -443,13 +448,6 @@ body {
   backface-visibility: hidden;
 }
 
-.interview-prep-analyze-card {
-  background:
-    radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.18), transparent 34%),
-    radial-gradient(circle at 88% 16%, rgba(236, 198, 160, 0.25), transparent 44%),
-    linear-gradient(180deg, #ffffff, #fff8ef);
-  color: #132936;
-}
 
 .interview-prep-browse-card {
   background:
@@ -465,10 +463,6 @@ body {
   transform: translateY(-3px);
 }
 
-.interview-prep-analyze-card:hover {
-  border-color: #e2c7b7;
-  box-shadow: 0 15px 30px rgba(102, 56, 33, 0.14);
-}
 
 .interview-prep-browse-card:hover {
   border-color: #f7c170;
@@ -481,17 +475,13 @@ body {
 }
 
 .interview-prep-action-icon {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 20px;
   display: inline-grid;
   place-items: center;
 }
 
-.interview-prep-analyze-card .interview-prep-action-icon {
-  background: #fdefdf;
-  color: #de6d1d;
-}
 
 .interview-prep-browse-card .interview-prep-action-icon {
   background: rgba(255, 255, 255, 0.22);
@@ -499,7 +489,7 @@ body {
 }
 
 .interview-prep-action-icon .material-symbols-outlined {
-  font-size: 34px;
+  font-size: 28px;
   line-height: 1;
 }
 
@@ -518,9 +508,6 @@ body {
   line-height: 1.4;
 }
 
-.interview-prep-analyze-card p {
-  color: #4f6273;
-}
 
 .interview-prep-browse-card p {
   color: rgba(255, 250, 242, 0.95);
@@ -536,9 +523,6 @@ body {
   line-height: 1;
 }
 
-.interview-prep-analyze-card .interview-prep-action-cta {
-  color: #d45e13;
-}
 
 .interview-prep-browse-card .interview-prep-action-cta {
   color: #ffffff;
@@ -552,13 +536,6 @@ body {
 }
 
 .interview-prep-saved-role-card {
-  min-height: 252px;
-  align-content: start;
-  justify-items: start;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto auto 1fr auto;
-  column-gap: 8px;
-  row-gap: 8px;
   background:
     radial-gradient(circle at 90% 12%, rgba(247, 166, 58, 0.14), transparent 34%),
     linear-gradient(180deg, #ffffff, #fffaf4);
@@ -570,73 +547,80 @@ body {
 }
 
 .interview-prep-saved-role-icon {
-  width: 74px;
-  height: 74px;
-  border-radius: 20px;
-  border: 1px solid #f1d7be;
-  background: #f9e8d6;
-  color: #cc6e23;
-  display: inline-grid;
-  place-items: center;
-  grid-column: 1;
-  grid-row: 1 / span 2;
+  width: 56px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid #ffedd5;
+  background: #fffaf5;
+  color: #ea580c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.08);
 }
 
 .interview-prep-saved-role-icon .material-symbols-outlined {
-  font-size: 34px;
+  font-size: 26px;
 }
 
 .interview-prep-saved-role-score-label {
   margin: 0;
-  grid-column: 2;
-  grid-row: 1;
-  color: #7d7772;
-  font-size: 0.72rem;
+  color: #a0aec0;
+  font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 .interview-prep-saved-role-score {
   margin: 0;
-  grid-column: 2;
-  grid-row: 2;
-  justify-self: end;
   font-family: "Plus Jakarta Sans", "Sora", sans-serif;
-  font-size: clamp(2.45rem, 3vw, 3rem);
-  line-height: 0.88;
-  letter-spacing: -0.02em;
-  color: #b34d09;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #ea580c;
 }
 
 .interview-prep-saved-role-card h3 {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  color: #e46b1f;
-  font-size: clamp(1.45rem, 2vw, 1.95rem);
+  margin: 0;
+  color: #1a202c;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .interview-prep-saved-role-preview {
-  grid-column: 1 / -1;
-  grid-row: 4;
   margin: 0;
-  color: #516173;
-  max-width: 100%;
-  font-size: 0.97rem;
-  line-height: 1.38;
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .interview-prep-saved-role-continue {
-  grid-column: 1;
-  grid-row: 5;
-  margin-top: 4px;
-  border: 2px solid #c4c1be;
+  margin-top: auto;
+  border: 1px solid #e2e8f0;
   border-radius: 999px;
   background: #fff;
-  color: #9a541f;
+  color: #ea580c;
   font-size: 0.9rem;
   font-weight: 700;
-  padding: 8px 22px;
+  padding: 8px 20px;
+  transition: all 180ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.interview-prep-saved-role-continue:hover {
+  background: #fffaf5;
+  border-color: #fbd38d;
+  color: #dd6b20;
 }
 
 .interview-detail-panel {
