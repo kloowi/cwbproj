@@ -348,7 +348,8 @@ let interviewDetailState = {
   roleLabel: DEFAULT_INTERVIEW_ROLE_LABEL,
   roleType: "software",
   activeQuestionIndex: 0,
-  questions: []
+  questions: [],
+  analysisContext: null
 };
 const roadmapProgressState = loadRoadmapProgressState();
 let savedInterviewRoles = loadSavedInterviewRoles();
@@ -391,7 +392,15 @@ function loadSavedInterviewRoles() {
         roleType: String(item.roleType || "").trim() || inferRoleType(String(item.roleLabel || ""), ""),
         score: Number.isFinite(Number(item.score)) ? Math.max(0, Math.min(100, Number(item.score))) : 0,
         preview: String(item.preview || "").trim(),
-        savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now()
+        savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now(),
+        analysisContext: item.analysisContext && typeof item.analysisContext === "object" ? {
+          matchScore: Number.isFinite(Number(item.analysisContext.matchScore)) ? Number(item.analysisContext.matchScore) : null,
+          strengths: Array.isArray(item.analysisContext.strengths) ? item.analysisContext.strengths : [],
+          missing: Array.isArray(item.analysisContext.missing) ? item.analysisContext.missing : [],
+          resumeSkills: Array.isArray(item.analysisContext.resumeSkills) ? item.analysisContext.resumeSkills : [],
+          jobSkills: Array.isArray(item.analysisContext.jobSkills) ? item.analysisContext.jobSkills : [],
+          experienceLevel: String(item.analysisContext.experienceLevel || "").trim() || null
+        } : null
       }))
       .sort((a, b) => b.savedAt - a.savedAt)
       .slice(0, 6);
@@ -457,6 +466,20 @@ function renderSavedInterviewRoleCards() {
   interviewPrepActionsEl.insertAdjacentHTML("afterbegin", cardsMarkup);
 }
 
+function buildAnalysisContext(sourceData) {
+  if (!sourceData) return null;
+  const matchScore = Number(sourceData.match?.score || 0);
+  const strengths = Array.isArray(sourceData.match?.strengths) ? sourceData.match.strengths : [];
+  const missing = Array.isArray(sourceData.match?.missing) ? sourceData.match.missing : [];
+  const resumeSkills = Array.isArray(sourceData.resume?.skills) ? sourceData.resume.skills : [];
+  const jobSkills = Array.isArray(sourceData.job?.skills) ? sourceData.job.skills : [];
+  const experienceLevel = String(sourceData.resume?.experience_level || "").trim() || null;
+
+  if (!matchScore && !strengths.length && !missing.length && !resumeSkills.length) return null;
+
+  return { matchScore, strengths, missing, resumeSkills, jobSkills, experienceLevel };
+}
+
 function saveInterviewRoleSnapshot(roleContext, options = {}) {
   if (!roleContext?.roleSlug) return;
 
@@ -466,6 +489,7 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
   const preview = String(sourceData?.input?.jobSnippet || previewFallback || "").replace(/\s+/g, " ").trim();
   const score = Number(sourceData?.match?.score || 0);
   const id = roleContext.id || options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const analysisContext = buildAnalysisContext(sourceData);
 
   const nextItem = {
     id,
@@ -474,7 +498,8 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
     roleType: roleContext.roleType || inferRoleType(roleContext.roleLabel || "", preview),
     score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
     preview,
-    savedAt: Date.now()
+    savedAt: Date.now(),
+    analysisContext
   };
 
   savedInterviewRoles = [
@@ -494,7 +519,8 @@ function openSavedInterviewRole(id) {
     id: target.id,
     roleSlug: target.roleSlug,
     roleLabel: target.roleLabel,
-    roleType: target.roleType
+    roleType: target.roleType,
+    analysisContext: target.analysisContext || null
   });
 }
 
@@ -785,37 +811,78 @@ function deriveInterviewRoleContext(options = {}) {
   const roleSlug = toRoleSlug(roleLabel);
   const roleType = inferRoleType(roleLabel, `${sourceData?.input?.jobSnippet || ""} ${sourceData?.match?.missing?.join(" ") || ""}`);
   const id = options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const analysisContext = buildAnalysisContext(sourceData);
 
   return {
     id,
     roleLabel,
     roleSlug,
-    roleType
+    roleType,
+    analysisContext
   };
 }
 
-function getInterviewReadinessStats(roleType) {
+function clampScore(value, min = 15, max = 98) {
+  return Math.max(min, Math.min(max, Math.round(value)));
+}
+
+function computeTechnicalReadiness(ctx) {
+  if (!ctx || ctx.matchScore == null) return 50;
+  const totalSkills = ctx.strengths.length + ctx.missing.length;
+  if (totalSkills > 0) {
+    const coverage = ctx.strengths.length / totalSkills;
+    return clampScore(0.6 * ctx.matchScore + 0.4 * coverage * 100);
+  }
+  return clampScore(ctx.matchScore);
+}
+
+function computeBehavioralConfidence(ctx) {
+  if (!ctx) return 50;
+  const levelMap = { junior: 45, mid: 62, senior: 78, lead: 88 };
+  const base = levelMap[ctx.experienceLevel] || 55;
+  const bonus = Math.min(12, ctx.strengths.length * 2);
+  return clampScore(base + bonus, 20, 95);
+}
+
+function computeIndustryKnowledge(ctx) {
+  if (!ctx || ctx.matchScore == null) return 50;
+  if (ctx.jobSkills.length > 0) {
+    const coverage = ctx.strengths.length / ctx.jobSkills.length;
+    return clampScore(coverage * 100);
+  }
+  return clampScore(ctx.matchScore * 0.9);
+}
+
+function getStatLabelsForRoleType(roleType) {
   if (roleType === "frontend") {
     return [
-      { label: "Technical Readiness", score: 85, tone: "is-blue", icon: "code" },
-      { label: "Behavioral Confidence", score: 72, tone: "is-green", icon: "groups" },
-      { label: "Industry Knowledge", score: 94, tone: "is-indigo", icon: "book_4" }
+      { label: "Technical Readiness", tone: "is-blue", icon: "code" },
+      { label: "Behavioral Confidence", tone: "is-green", icon: "groups" },
+      { label: "Industry Knowledge", tone: "is-indigo", icon: "book_4" }
     ];
   }
-
   if (roleType === "backend") {
     return [
-      { label: "Systems Depth", score: 81, tone: "is-blue", icon: "lan" },
-      { label: "Behavioral Confidence", score: 74, tone: "is-green", icon: "groups" },
-      { label: "Architecture Fluency", score: 89, tone: "is-indigo", icon: "schema" }
+      { label: "Systems Depth", tone: "is-blue", icon: "lan" },
+      { label: "Behavioral Confidence", tone: "is-green", icon: "groups" },
+      { label: "Architecture Fluency", tone: "is-indigo", icon: "schema" }
     ];
   }
-
   return [
-    { label: "Technical Readiness", score: 83, tone: "is-blue", icon: "code_blocks" },
-    { label: "Behavioral Confidence", score: 73, tone: "is-green", icon: "groups" },
-    { label: "Industry Knowledge", score: 90, tone: "is-indigo", icon: "book_4" }
+    { label: "Technical Readiness", tone: "is-blue", icon: "code_blocks" },
+    { label: "Behavioral Confidence", tone: "is-green", icon: "groups" },
+    { label: "Industry Knowledge", tone: "is-indigo", icon: "book_4" }
   ];
+}
+
+function computeInterviewReadinessStats(analysisContext, roleType) {
+  const labels = getStatLabelsForRoleType(roleType);
+  const scores = [
+    computeTechnicalReadiness(analysisContext),
+    computeBehavioralConfidence(analysisContext),
+    computeIndustryKnowledge(analysisContext)
+  ];
+  return labels.map((item, index) => ({ ...item, score: scores[index] }));
 }
 
 function buildRoleQuestions(roleType) {
@@ -848,6 +915,7 @@ function renderInterviewDetail(roleContext, options = {}) {
   const roleSlug = roleContext?.roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG;
   const roleLabel = roleContext?.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL;
   const roleType = roleContext?.roleType || "software";
+  const analysisContext = roleContext?.analysisContext || interviewDetailState.analysisContext || null;
   const shouldRefreshQuestions = options.regenerate || roleSlug !== interviewDetailState.roleSlug;
 
   if (shouldRefreshQuestions) {
@@ -858,15 +926,18 @@ function renderInterviewDetail(roleContext, options = {}) {
   interviewDetailState.roleSlug = roleSlug;
   interviewDetailState.roleLabel = roleLabel;
   interviewDetailState.roleType = roleType;
+  interviewDetailState.analysisContext = analysisContext;
 
   interviewDetailRoleLabelEl.textContent = roleLabel;
   interviewDetailTitleEl.textContent = `Interview Preparation: ${roleLabel}`;
   interviewDetailSubtitleEl.textContent = `Practice targeted questions for ${roleLabel} and sharpen structured responses before your next round.`;
 
-  const stats = getInterviewReadinessStats(roleType);
+  const hasAnalysis = Boolean(analysisContext);
+  const stats = computeInterviewReadinessStats(analysisContext, roleType);
+  const estimatedNote = hasAnalysis ? "" : `<p class="interview-detail-estimated-note">Scores are estimated. Run an analysis to see your actual readiness.</p>`;
   interviewDetailStatsEl.innerHTML = stats
     .map(
-      (stat) => `<article class="interview-detail-stat-card">
+      (stat) => `<article class="interview-detail-stat-card${hasAnalysis ? "" : " is-estimated"}">
         <div class="interview-detail-stat-top">
           <span class="interview-detail-stat-icon ${stat.tone}">
             <span class="material-symbols-outlined" aria-hidden="true">${stat.icon}</span>
@@ -877,7 +948,7 @@ function renderInterviewDetail(roleContext, options = {}) {
         <div class="interview-detail-stat-meter"><span style="width:${stat.score}%"></span></div>
       </article>`
     )
-    .join("");
+    .join("") + estimatedNote;
 
   renderInterviewDetailQuestions();
 }
@@ -920,7 +991,8 @@ function syncViewToCurrentRoute() {
       id: savedRole.id,
       roleSlug: savedRole.roleSlug,
       roleLabel: savedRole.roleLabel,
-      roleType: savedRole.roleType
+      roleType: savedRole.roleType,
+      analysisContext: savedRole.analysisContext || null
     });
   } else {
     const legacyRole = savedInterviewRoles.find(r => r.roleSlug === roleId);
@@ -929,12 +1001,13 @@ function syncViewToCurrentRoute() {
         id: legacyRole.id,
         roleSlug: legacyRole.roleSlug,
         roleLabel: legacyRole.roleLabel,
-        roleType: legacyRole.roleType
+        roleType: legacyRole.roleType,
+        analysisContext: legacyRole.analysisContext || null
       });
     } else {
       const roleLabel = roleLabelFromSlug(roleId);
       const roleType = inferRoleType(roleLabel, "");
-      renderInterviewDetail({ id: roleId, roleSlug: roleId, roleLabel, roleType });
+      renderInterviewDetail({ id: roleId, roleSlug: roleId, roleLabel, roleType, analysisContext: null });
     }
   }
 

@@ -769,6 +769,28 @@ body {
   background: linear-gradient(90deg, #ef7f2f, #eb9e2c);
 }
 
+.interview-detail-stat-card.is-estimated {
+  opacity: 0.62;
+}
+
+.interview-detail-stat-card.is-estimated .interview-detail-stat-meter span {
+  background: linear-gradient(90deg, #c4a78e, #d4b89a);
+}
+
+.interview-detail-estimated-note {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px dashed #e0ccba;
+  background: #fff9f3;
+  color: #8a6b54;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.5;
+}
+
 .interview-detail-questions {
   border-color: #ecdacb;
   border-radius: 26px;
