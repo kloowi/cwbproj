@@ -204,7 +204,10 @@ body {
   padding: 22px 26px 52px;
 }
 
-.dashboard-view {
+.dashboard-view,
+.analysis-view,
+.interview-prep-view,
+.interview-detail-view {
   padding: 0 22px;
 }
 
@@ -423,7 +426,7 @@ body {
   width: min(100%, 1320px);
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, 380px);
+  grid-template-columns: repeat(3, 1fr);
   justify-content: start;
   gap: 16px;
 }
