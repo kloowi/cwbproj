@@ -204,10 +204,7 @@ body {
   padding: 22px 26px 52px;
 }
 
-.dashboard-view,
-.analysis-view,
-.interview-prep-view,
-.interview-detail-view {
+.dashboard-view {
   padding: 0 22px;
 }
 
@@ -329,24 +326,28 @@ body {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .analysis-view .results-panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .interview-prep-view .panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .interview-detail-view .panel {
   background: transparent;
   border: 0;
   box-shadow: none;
+  padding: 20px 22px;
 }
 
 .view-hidden {
@@ -423,11 +424,8 @@ body {
 }
 
 .interview-prep-actions {
-  width: min(100%, 1320px);
-  margin: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  justify-content: start;
   gap: 16px;
 }
 
