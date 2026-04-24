@@ -206,6 +206,7 @@ app.innerHTML = `
       <section class="interview-prep-view view-hidden" id="interview-prep-view" aria-label="Interview Prep">
         <section class="panel" aria-label="Interview Prep Landing">
           <div class="interview-prep-intro">
+            <p class="analysis-kicker">CareerHive Interview</p>
             <h2>Start Your Interview Preparation</h2>
             <p>Choose a role to generate a tailored preparation session.</p>
           </div>
@@ -255,22 +256,14 @@ app.innerHTML = `
         </section>
       </section>
 
-      <section class="dashboard-report-view view-hidden" id="dashboard-report-view" aria-label="Saved Analysis Report Detail">
-        <section class="panel interview-detail-panel" aria-label="Saved Report Detail">
-          <button type="button" class="interview-detail-back-btn" id="dashboard-report-back-btn">
-            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-            Back to Dashboard
-          </button>
-          <p class="interview-detail-breadcrumb" id="dashboard-report-breadcrumb">
-            Dashboard <span class="interview-detail-breadcrumb-sep" aria-hidden="true">&gt;</span> <strong id="dashboard-report-role-label">Software Engineer</strong>
-          </p>
-          <header class="interview-detail-head">
-            <h2 id="dashboard-report-title">Analysis Report: Software Engineer</h2>
-            <p id="dashboard-report-subtitle">Review your latest role-fit snapshots and reopen any saved report.</p>
-          </header>
-
-          <div id="dashboard-report-content"></div>
-        </section>
+      <section class="dashboard-report-overlay is-hidden" id="dashboard-report-overlay" aria-hidden="true">
+        <div class="dashboard-report-dialog card-lite" role="dialog" aria-modal="true" aria-labelledby="saved-report-title">
+          <div class="dashboard-report-head">
+            <h3 id="saved-report-title">Saved Analysis Report</h3>
+            <button type="button" class="ghost-btn" id="close-saved-report-btn">Close</button>
+          </div>
+          <div id="saved-report-content"></div>
+        </div>
       </section>
     </main>
   </div>
@@ -307,12 +300,9 @@ const interviewQuestionListEl = document.querySelector("#interview-question-list
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
 const filterDateRangeEl = document.querySelector("#filter-date-range");
-const dashboardReportViewEl = document.querySelector("#dashboard-report-view");
-const dashboardReportContentEl = document.querySelector("#dashboard-report-content");
-const dashboardReportBackBtn = document.querySelector("#dashboard-report-back-btn");
-const dashboardReportRoleLabelEl = document.querySelector("#dashboard-report-role-label");
-const dashboardReportTitleEl = document.querySelector("#dashboard-report-title");
-const dashboardReportSubtitleEl = document.querySelector("#dashboard-report-subtitle");
+const dashboardReportOverlayEl = document.querySelector("#dashboard-report-overlay");
+const savedReportContentEl = document.querySelector("#saved-report-content");
+const closeSavedReportBtn = document.querySelector("#close-saved-report-btn");
 const resumeFileEl = document.querySelector("#resume-file");
 const resumeFileStatusEl = document.querySelector("#resume-file-status");
 const consentCheckboxEl = document.querySelector("#consent-checkbox");
@@ -480,7 +470,9 @@ function renderSavedInterviewRoleCards() {
         </div>
         <div class="interview-prep-saved-role-footer">
           <button type="button" class="interview-prep-saved-role-delete" data-action="delete-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Delete interview prep for ${escapeHtml(item.roleLabel)}" title="Delete Session">
-            <span class="material-symbols-outlined">delete</span>
+            <svg viewBox="0 0 24 24" role="presentation" focusable="false" aria-hidden="true">
+              <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z" />
+            </svg>
           </button>
           <button type="button" class="interview-prep-saved-role-continue" data-action="open-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}" tabindex="-1">
             <span class="material-symbols-outlined" style="font-size: 1rem;">play_circle</span>
@@ -902,21 +894,12 @@ function parseTopLevelRoute(pathnameValue = window.location.pathname) {
   return null;
 }
 
-function parseReportRoute(pathnameValue = window.location.pathname) {
-  const pathname = String(pathnameValue || "").trim();
-  const match = pathname.match(/^\/dashboard\/report\/([^/]+)$/);
-  if (!match) return null;
-  return match[1].trim();
-}
-
 function setPathForView(view, options = {}) {
   const route = view === "dashboard"
     ? "dashboard"
     : view === "interview-prep"
       ? "interview-prep"
-      : view === "dashboard-report"
-        ? `dashboard/report/${encodeURIComponent(options.analysisId || "")}`
-        : "analysis";
+      : "analysis";
   const nextPath = `/${route}`;
   const nextUrl = `${nextPath}${window.location.search}`;
 
@@ -1123,12 +1106,6 @@ function syncViewToCurrentRoute() {
     return true;
   }
 
-  const reportId = parseReportRoute(window.location.pathname);
-  if (reportId) {
-    openSavedAnalysis(reportId);
-    return true;
-  }
-
   const roleId = parseInterviewRoute(window.location.pathname);
   if (!roleId) return false;
 
@@ -1173,29 +1150,23 @@ function setActiveView(view) {
       ? "interview-detail"
       : view === "interview-prep"
         ? "interview-prep"
-        : view === "dashboard-report"
-          ? "dashboard-report"
-          : "analysis";
+        : "analysis";
 
   activeView = normalizedView;
 
   const showDashboard = normalizedView === "dashboard";
   const showInterviewPrep = normalizedView === "interview-prep";
   const showInterviewDetail = normalizedView === "interview-detail";
-  const showDashboardReport = normalizedView === "dashboard-report";
-
   dashboardViewEl.classList.toggle("view-hidden", !showDashboard);
-  analysisViewEl.classList.toggle("view-hidden", showDashboard || showInterviewPrep || showInterviewDetail || showDashboardReport);
+  analysisViewEl.classList.toggle("view-hidden", showDashboard || showInterviewPrep || showInterviewDetail);
   interviewPrepViewEl.classList.toggle("view-hidden", !showInterviewPrep);
   interviewDetailViewEl.classList.toggle("view-hidden", !showInterviewDetail);
-  dashboardReportViewEl.classList.toggle("view-hidden", !showDashboardReport);
-
-  navDashboardBtn.classList.toggle("nav-active", showDashboard || showDashboardReport);
-  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard && !showInterviewPrep && !showInterviewDetail && !showDashboardReport);
+  navDashboardBtn.classList.toggle("nav-active", showDashboard);
+  navNewAnalysisBtn.classList.toggle("nav-active", !showDashboard && !showInterviewPrep && !showInterviewDetail);
   navInterviewPrepBtn.classList.toggle("nav-active", showInterviewPrep || showInterviewDetail);
 
   try {
-    localStorage.setItem(ACTIVE_VIEW_KEY, (showInterviewDetail || showDashboardReport) ? (showInterviewDetail ? "interview-prep" : "dashboard") : normalizedView);
+    localStorage.setItem(ACTIVE_VIEW_KEY, showInterviewDetail ? "interview-prep" : normalizedView);
   } catch (_error) {
   }
 }
@@ -1370,26 +1341,17 @@ function getInitialView() {
   return "analysis";
 }
 
-function renderSavedAnalysisPage(data) {
-  latestSavedReportData = data;
-  const title = data.job?.title || "Role Analysis";
-  latestSavedReportOptions = {
-    title,
-    kicker: "Saved Snapshot",
-    includeInputPreview: true,
-    resumeSnippet: data.input?.resumeSnippet,
-    jobSnippet: data.input?.jobSnippet,
-    analysisId: data.meta?.analysisId || data.id || ""
-  };
+function hideSavedAnalysisOverlay() {
+  dashboardReportOverlayEl.classList.add("is-hidden");
+  dashboardReportOverlayEl.setAttribute("aria-hidden", "true");
+  savedReportContentEl.innerHTML = "";
+  openSavedAnalysisId = "";
+}
 
-  if (dashboardReportRoleLabelEl) dashboardReportRoleLabelEl.textContent = title;
-  if (dashboardReportTitleEl) dashboardReportTitleEl.textContent = `Analysis Report: ${title}`;
-  if (dashboardReportContentEl) {
-    dashboardReportContentEl.innerHTML = renderAnalysisReport(data, latestSavedReportOptions);
-  }
-
-  setActiveView("dashboard-report");
-  setPathForView("dashboard-report", { analysisId: latestSavedReportOptions.analysisId });
+function showSavedAnalysisOverlay(contentHtml) {
+  savedReportContentEl.innerHTML = contentHtml;
+  dashboardReportOverlayEl.classList.remove("is-hidden");
+  dashboardReportOverlayEl.setAttribute("aria-hidden", "false");
 }
 
 function parseScoreInput(value) {
@@ -1686,6 +1648,23 @@ function renderAnalysisReport(data, options = {}) {
   `;
 }
 
+function renderSavedAnalysisOverlay(data) {
+  latestSavedReportData = data;
+  latestSavedReportOptions = {
+    title: data.job?.title || "Role Analysis",
+    kicker: "Saved Snapshot",
+    includeInputPreview: true,
+    resumeSnippet: data.input?.resumeSnippet,
+    jobSnippet: data.input?.jobSnippet,
+    analysisId: data.meta?.analysisId || ""
+  };
+
+  showSavedAnalysisOverlay(
+    renderAnalysisReport(data, {
+      ...latestSavedReportOptions
+    })
+  );
+}
 
 function renderDashboard(items) {
   if (!items.length) {
@@ -2058,6 +2037,16 @@ async function openSavedAnalysis(id) {
 
     errorEl.textContent = "";
     openSavedAnalysisId = id;
+    setActiveView("dashboard");
+    showSavedAnalysisOverlay(`
+      <div class="loading-card card-lite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <strong>Loading saved report...</strong>
+          <p class="subtle">Retrieving analysis details from your history.</p>
+        </div>
+      </div>
+    `);
 
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/history/${encodeURIComponent(id)}?sessionId=${encodeURIComponent(sessionId)}`);
@@ -2069,9 +2058,10 @@ async function openSavedAnalysis(id) {
 
     const payload = await response.json();
     const data = mapStoredAnalysisToResult(payload.item || {});
-    renderSavedAnalysisPage(data);
+    renderSavedAnalysisOverlay(data);
   } catch (error) {
     errorEl.textContent = formatRequestError(error);
+    hideSavedAnalysisOverlay();
   }
 }
 
@@ -2191,18 +2181,23 @@ form.addEventListener("submit", async (event) => {
 });
 
 navDashboardBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setPathForView("dashboard");
 });
 
 navNewAnalysisBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setPathForView("analysis");
 });
 
 navInterviewPrepBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setPathForView("interview-prep");
 });
 
+
 interviewPrepBrowseRolesBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
   setPathForView("dashboard");
 });
 
@@ -2287,10 +2282,6 @@ interviewDetailBackBtn.addEventListener("click", () => {
   setPathForView("interview-prep");
 });
 
-dashboardReportBackBtn.addEventListener("click", () => {
-  setPathForView("dashboard");
-});
-
 resumeFileEl.addEventListener("change", () => {
   const file = resumeFileEl.files?.[0];
   if (!file) {
@@ -2331,9 +2322,19 @@ form.job.addEventListener("input", () => {
   updateSubmitAvailability();
 });
 
+closeSavedReportBtn.addEventListener("click", () => {
+  hideSavedAnalysisOverlay();
+});
+
+dashboardReportOverlayEl.addEventListener("click", (event) => {
+  if (event.target === dashboardReportOverlayEl) {
+    hideSavedAnalysisOverlay();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && activeView === "dashboard-report") {
-    setPathForView("dashboard");
+  if (event.key === "Escape" && !dashboardReportOverlayEl.classList.contains("is-hidden")) {
+    hideSavedAnalysisOverlay();
   }
 });
 
@@ -2373,12 +2374,13 @@ resultsEl.addEventListener("click", (event) => {
   if (!nextStepBtn) return;
 
   event.preventDefault();
+  hideSavedAnalysisOverlay();
   const roleContext = deriveInterviewRoleContext();
   saveInterviewRoleSnapshot(roleContext, { useSaved: false });
   openInterviewDetail(roleContext);
 });
 
-dashboardReportContentEl.addEventListener("click", (event) => {
+savedReportContentEl.addEventListener("click", (event) => {
   if (handleRoadmapInteraction(event)) return;
 
   const nextStepBtn = event.target.closest(".next-step-cta");
