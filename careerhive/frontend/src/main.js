@@ -217,6 +217,10 @@ app.innerHTML = `
               <span class="interview-prep-action-cta">Go to Dashboard <span class="material-symbols-outlined" aria-hidden="true">dashboard</span></span>
             </button>
           </div>
+          <div class="interview-prep-pagination" id="interview-prep-pagination" style="display: none;">
+            <button type="button" id="interview-prep-prev-btn" class="pagination-btn" aria-label="Previous page">&lt;</button>
+            <button type="button" id="interview-prep-next-btn" class="pagination-btn" aria-label="Next page">&gt;</button>
+          </div>
         </section>
       </section>
 
@@ -276,6 +280,9 @@ const navNewAnalysisBtn = document.querySelector("#nav-new-analysis");
 const navInterviewPrepBtn = document.querySelector("#nav-interview-prep");
 const interviewPrepActionsEl = document.querySelector(".interview-prep-actions");
 const interviewPrepBrowseRolesBtn = document.querySelector("#interview-prep-browse-roles-btn");
+const interviewPrepPaginationEl = document.querySelector("#interview-prep-pagination");
+const interviewPrepPrevBtn = document.querySelector("#interview-prep-prev-btn");
+const interviewPrepNextBtn = document.querySelector("#interview-prep-next-btn");
 const interviewDetailBackBtn = document.querySelector("#interview-detail-back-btn");
 const interviewDetailRoleLabelEl = document.querySelector("#interview-detail-role-label");
 const interviewDetailTitleEl = document.querySelector("#interview-detail-title");
@@ -303,6 +310,7 @@ let latestMainReportOptions = null;
 let latestSavedReportData = null;
 let latestSavedReportOptions = null;
 let activeView = "analysis";
+let currentInterviewPage = 0;
 let interviewDetailState = {
   roleId: "",
   roleSlug: DEFAULT_INTERVIEW_ROLE_SLUG,
@@ -358,8 +366,7 @@ function loadSavedInterviewRoles() {
         preview: String(item.preview || "").trim(),
         savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now()
       }))
-      .sort((a, b) => b.savedAt - a.savedAt)
-      .slice(0, 6);
+      .sort((a, b) => b.savedAt - a.savedAt);
   } catch (_error) {
     return [];
   }
@@ -392,9 +399,36 @@ function renderSavedInterviewRoleCards() {
     .querySelectorAll(".interview-prep-saved-role-card")
     .forEach((card) => card.remove());
 
-  if (!savedInterviewRoles.length) return;
+  const itemsPerPage = 6;
+  const totalItems = savedInterviewRoles.length + 1;
+  const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+  
+  if (currentInterviewPage > maxPage) {
+    currentInterviewPage = maxPage;
+  }
 
-  const cardsMarkup = savedInterviewRoles
+  if (interviewPrepPaginationEl) {
+    interviewPrepPaginationEl.style.display = totalItems > itemsPerPage ? "flex" : "none";
+  }
+  if (interviewPrepPrevBtn) {
+    interviewPrepPrevBtn.disabled = currentInterviewPage === 0;
+  }
+  if (interviewPrepNextBtn) {
+    interviewPrepNextBtn.disabled = currentInterviewPage >= maxPage;
+  }
+
+  const startIndex = currentInterviewPage * itemsPerPage;
+  const paginatedRoles = savedInterviewRoles.slice(startIndex, startIndex + itemsPerPage);
+
+  const isBrowseCardVisible = (totalItems - 1) >= startIndex && (totalItems - 1) < (startIndex + itemsPerPage);
+
+  if (interviewPrepBrowseRolesBtn) {
+    interviewPrepBrowseRolesBtn.style.display = isBrowseCardVisible ? "" : "none";
+  }
+
+  if (!paginatedRoles.length) return;
+
+  const cardsMarkup = paginatedRoles
     .map((item) => {
       const score = Math.round(Math.max(0, Math.min(100, Number(item.score) || 0)));
       const icon = getSavedRoleIcon(item.roleType);
@@ -447,7 +481,7 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
   savedInterviewRoles = [
     nextItem,
     ...savedInterviewRoles.filter((item) => item.id !== nextItem.id)
-  ].slice(0, 6);
+  ];
 
   persistSavedInterviewRoles();
   renderSavedInterviewRoleCards();
@@ -2107,6 +2141,27 @@ interviewPrepBrowseRolesBtn.addEventListener("click", () => {
   hideSavedAnalysisOverlay();
   setPathForView("dashboard");
 });
+
+if (interviewPrepPrevBtn) {
+  interviewPrepPrevBtn.addEventListener("click", () => {
+    if (currentInterviewPage > 0) {
+      currentInterviewPage -= 1;
+      renderSavedInterviewRoleCards();
+    }
+  });
+}
+
+if (interviewPrepNextBtn) {
+  interviewPrepNextBtn.addEventListener("click", () => {
+    const itemsPerPage = 6;
+    const totalItems = savedInterviewRoles.length + 1;
+    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    if (currentInterviewPage < maxPage) {
+      currentInterviewPage += 1;
+      renderSavedInterviewRoleCards();
+    }
+  });
+}
 
 interviewPrepActionsEl.addEventListener("click", (event) => {
   const savedRoleButton = event.target.closest("[data-action='open-saved-role']");
