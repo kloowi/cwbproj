@@ -432,24 +432,34 @@ function renderSavedInterviewRoleCards() {
     .map((item) => {
       const score = Math.round(Math.max(0, Math.min(100, Number(item.score) || 0)));
       const icon = getSavedRoleIcon(item.roleType);
-      const preview = shortenPreview(item.preview);
-      return `<button type="button" class="interview-prep-action-card interview-prep-saved-role-card" data-action="open-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 4px;">
+      const roleTypeLabel = item.roleType === 'frontend' ? 'Frontend' : item.roleType === 'backend' ? 'Backend' : 'General';
+      return `<div class="interview-prep-action-card interview-prep-saved-role-card">
+        <div class="ipc-top-row">
           <span class="interview-prep-saved-role-icon" aria-hidden="true">
             <span class="material-symbols-outlined">${icon}</span>
           </span>
-          <div style="text-align: right;">
-            <p class="interview-prep-saved-role-score-label">Match Score</p>
-            <p class="interview-prep-saved-role-score">${score}%</p>
-          </div>
+          <span class="ipc-score-badge">
+            <span class="ipc-score-badge-dot"></span>
+            ${score}% match
+          </span>
         </div>
-        <h3>${escapeHtml(item.roleLabel)}</h3>
-        <p class="interview-prep-saved-role-preview">${escapeHtml(preview)}</p>
-        <span class="interview-prep-saved-role-continue">
-          Continue
-          <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-left: 2px;">arrow_forward</span>
-        </span>
-      </button>`;
+        <div class="interview-prep-saved-role-content">
+          <h3>${escapeHtml(item.roleLabel)}</h3>
+          <span class="ipc-role-chip">
+            <span class="material-symbols-outlined" style="font-size: 0.85rem;">badge</span>
+            ${roleTypeLabel}
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-footer">
+          <button type="button" class="interview-prep-saved-role-delete" data-action="delete-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Delete interview prep for ${escapeHtml(item.roleLabel)}" title="Delete Session">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+          <button type="button" class="interview-prep-saved-role-continue" data-action="open-saved-role" data-id="${escapeHtml(item.id)}" aria-label="Continue interview prep for ${escapeHtml(item.roleLabel)}" tabindex="-1">
+            <span class="material-symbols-outlined" style="font-size: 1rem;">play_circle</span>
+            Prepare
+          </button>
+        </div>
+      </div>`;
     })
     .join("");
 
@@ -463,7 +473,7 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
   const sourceData = useSaved ? latestSavedReportData : latestMainReportData;
   const previewFallback = useSaved ? sourceData?.input?.jobSnippet : form?.job?.value;
   const preview = String(sourceData?.input?.jobSnippet || previewFallback || "").replace(/\s+/g, " ").trim();
-  const score = Number(sourceData?.match?.score || 0);
+  const score = Number(sourceData?.match?.score ?? roleContext?.analysisHints?.matchScore ?? 0);
   const id = roleContext.id || options.analysisId || sourceData?.meta?.analysisId || sourceData?.id || `role-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
   const nextItem = {
@@ -2164,6 +2174,31 @@ if (interviewPrepNextBtn) {
 }
 
 interviewPrepActionsEl.addEventListener("click", (event) => {
+  const deleteBtn = event.target.closest("[data-action='delete-saved-role']");
+  if (deleteBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    const roleId = String(deleteBtn.getAttribute("data-id") || "").trim();
+    if (!roleId) return;
+
+    if (!confirm("Are you sure you want to delete this interview preparation? This action cannot be undone.")) {
+      return;
+    }
+    
+    savedInterviewRoles = savedInterviewRoles.filter((item) => item.id !== roleId);
+    persistSavedInterviewRoles();
+    
+    const itemsPerPage = 6;
+    const totalItems = savedInterviewRoles.length + 1;
+    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    if (currentInterviewPage > maxPage) {
+      currentInterviewPage = maxPage;
+    }
+    
+    renderSavedInterviewRoleCards();
+    return;
+  }
+
   const savedRoleButton = event.target.closest("[data-action='open-saved-role']");
   if (!savedRoleButton) return;
 
