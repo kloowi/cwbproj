@@ -132,7 +132,11 @@ app.innerHTML = `
               </select>
             </label>
           </div>
-          <div id="dashboard-history"></div>
+          <div id="dashboard-history" class="dashboard-history-container"></div>
+          <div class="interview-prep-pagination" id="dashboard-history-pagination" style="display: none; margin-top: 24px;">
+            <button type="button" id="dashboard-history-prev-btn" class="pagination-btn" aria-label="Previous page">&lt;</button>
+            <button type="button" id="dashboard-history-next-btn" class="pagination-btn" aria-label="Next page">&gt;</button>
+          </div>
         </section>
       </section>
 
@@ -271,6 +275,9 @@ const resultsEl = document.querySelector("#results");
 const analysisResultsPanelEl = document.querySelector("#analysis-results-panel");
 const dashboardStatsEl = document.querySelector("#dashboard-stats");
 const dashboardHistoryEl = document.querySelector("#dashboard-history");
+const dashboardHistoryPaginationEl = document.querySelector("#dashboard-history-pagination");
+const dashboardHistoryPrevBtn = document.querySelector("#dashboard-history-prev-btn");
+const dashboardHistoryNextBtn = document.querySelector("#dashboard-history-next-btn");
 const dashboardViewEl = document.querySelector("#dashboard-view");
 const analysisViewEl = document.querySelector("#analysis-view");
 const interviewPrepViewEl = document.querySelector("#interview-prep-view");
@@ -311,6 +318,8 @@ let latestSavedReportData = null;
 let latestSavedReportOptions = null;
 let activeView = "analysis";
 let currentInterviewPage = 0;
+let currentDashboardPage = 0;
+let dashboardHistoryItems = [];
 let interviewDetailState = {
   roleId: "",
   roleSlug: DEFAULT_INTERVIEW_ROLE_SLUG,
@@ -1684,6 +1693,7 @@ function renderDashboard(items) {
     dashboardHistoryEl.innerHTML = hasActiveHistoryFilters()
       ? "<p class=\"empty\">No analyses match the current filters.</p>"
       : "<p class=\"empty\">No saved analyses are available yet.</p>";
+    if (dashboardHistoryPaginationEl) dashboardHistoryPaginationEl.style.display = "none";
     return;
   }
 
@@ -1726,7 +1736,34 @@ function renderDashboard(items) {
     </article>
   `;
 
-  dashboardHistoryEl.innerHTML = `<div class="history-grid">${items.slice(0, 8).map((item) => {
+  dashboardHistoryItems = items;
+  currentDashboardPage = 0;
+  renderDashboardHistory();
+}
+
+function renderDashboardHistory() {
+  const itemsPerPage = 5;
+  const totalItems = dashboardHistoryItems.length;
+  const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+
+  if (currentDashboardPage > maxPage) {
+    currentDashboardPage = maxPage;
+  }
+
+  if (dashboardHistoryPaginationEl) {
+    dashboardHistoryPaginationEl.style.display = totalItems > itemsPerPage ? "flex" : "none";
+  }
+  if (dashboardHistoryPrevBtn) {
+    dashboardHistoryPrevBtn.disabled = currentDashboardPage === 0;
+  }
+  if (dashboardHistoryNextBtn) {
+    dashboardHistoryNextBtn.disabled = currentDashboardPage >= maxPage;
+  }
+
+  const startIndex = currentDashboardPage * itemsPerPage;
+  const paginatedItems = dashboardHistoryItems.slice(startIndex, startIndex + itemsPerPage);
+
+  dashboardHistoryEl.innerHTML = `<div class="history-grid">${paginatedItems.map((item) => {
     const missing = (item.missingSkills || []).map(formatSkillDisplay);
     const date = formatHistoryDateTime(item.createdAt);
     const score = Math.max(0, Math.min(100, Number(item.matchScore || 0)));
@@ -2169,6 +2206,27 @@ if (interviewPrepNextBtn) {
     if (currentInterviewPage < maxPage) {
       currentInterviewPage += 1;
       renderSavedInterviewRoleCards();
+    }
+  });
+}
+
+if (dashboardHistoryPrevBtn) {
+  dashboardHistoryPrevBtn.addEventListener("click", () => {
+    if (currentDashboardPage > 0) {
+      currentDashboardPage -= 1;
+      renderDashboardHistory();
+    }
+  });
+}
+
+if (dashboardHistoryNextBtn) {
+  dashboardHistoryNextBtn.addEventListener("click", () => {
+    const itemsPerPage = 5;
+    const totalItems = dashboardHistoryItems.length;
+    const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
+    if (currentDashboardPage < maxPage) {
+      currentDashboardPage += 1;
+      renderDashboardHistory();
     }
   });
 }
