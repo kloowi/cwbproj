@@ -433,6 +433,8 @@ body {
   position: relative;
   overflow: hidden;
   height: 244px;
+  min-height: 244px;
+  max-height: 244px;
   border-radius: 28px;
   border: 1px solid #ecdacb;
   padding: 22px;
