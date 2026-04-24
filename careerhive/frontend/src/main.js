@@ -1723,7 +1723,7 @@ function renderDashboard(items) {
             <span style="--score:${score};--meter-color:${meterColor}"></span>
           </div>
           <strong>${score}%</strong>
-          <span class="history-open-label">Open report</span>
+          <span class="history-open-label"></span>
         </div>
       </article>
     `;
