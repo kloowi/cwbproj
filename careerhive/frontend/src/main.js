@@ -241,7 +241,6 @@ app.innerHTML = `
           <section class="interview-detail-questions card-lite" aria-label="Tailored Questions">
             <div class="interview-detail-questions-head">
               <h3>Tailored Questions</h3>
-              <button type="button" class="text-link-btn" id="interview-detail-regenerate-btn">Generate New</button>
             </div>
             <div class="interview-question-list" id="interview-question-list"></div>
           </section>
@@ -283,7 +282,6 @@ const interviewDetailTitleEl = document.querySelector("#interview-detail-title")
 const interviewDetailSubtitleEl = document.querySelector("#interview-detail-subtitle");
 const interviewDetailStatsEl = document.querySelector("#interview-detail-stats");
 const interviewQuestionListEl = document.querySelector("#interview-question-list");
-const interviewDetailRegenerateBtn = document.querySelector("#interview-detail-regenerate-btn");
 const filterMinScoreEl = document.querySelector("#filter-min-score");
 const filterMaxScoreEl = document.querySelector("#filter-max-score");
 const filterDateRangeEl = document.querySelector("#filter-date-range");
@@ -306,6 +304,7 @@ let latestSavedReportData = null;
 let latestSavedReportOptions = null;
 let activeView = "analysis";
 let interviewDetailState = {
+  roleId: "",
   roleSlug: DEFAULT_INTERVIEW_ROLE_SLUG,
   roleLabel: DEFAULT_INTERVIEW_ROLE_LABEL,
   roleType: "software",
@@ -355,6 +354,7 @@ function loadSavedInterviewRoles() {
         roleType: String(item.roleType || "").trim() || inferRoleType(String(item.roleLabel || ""), ""),
         score: Number.isFinite(Number(item.score)) ? Math.max(0, Math.min(100, Number(item.score))) : 0,
         readiness: normalizeReadinessSnapshot(item.readiness),
+        interviewQuestions: toTrimmedInterviewQuestions(item.interviewQuestions),
         preview: String(item.preview || "").trim(),
         savedAt: Number.isFinite(Number(item.savedAt)) ? Number(item.savedAt) : Date.now()
       }))
@@ -439,6 +439,7 @@ function saveInterviewRoleSnapshot(roleContext, options = {}) {
     roleType: roleContext.roleType || inferRoleType(roleContext.roleLabel || "", preview),
     score: Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
     readiness: normalizeReadinessSnapshot(roleContext.readiness),
+    interviewQuestions: toTrimmedInterviewQuestions(roleContext.analysisHints?.interviewQuestions),
     preview,
     savedAt: Date.now()
   };
@@ -461,7 +462,10 @@ function openSavedInterviewRole(id) {
     roleSlug: target.roleSlug,
     roleLabel: target.roleLabel,
     roleType: target.roleType,
-    readiness: target.readiness
+    readiness: target.readiness,
+    analysisHints: {
+      interviewQuestions: toTrimmedInterviewQuestions(target.interviewQuestions)
+    }
   });
 }
 
@@ -476,6 +480,18 @@ function toTrimmedArray(value) {
   return value
     .map((item) => String(item || "").trim())
     .filter(Boolean);
+}
+
+function toTrimmedInterviewQuestions(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      prompt: String(item?.prompt || "").trim(),
+      answer: String(item?.answer || "").trim(),
+      focusSkill: String(item?.focusSkill || item?.focus_skill || "").trim()
+    }))
+    .filter((item) => item.prompt && item.answer)
+    .slice(0, 4);
 }
 
 function normalizeReadinessSnapshot(readiness) {
@@ -503,7 +519,8 @@ function extractInterviewSignals(roleContext, options = {}) {
       roadmap: toTrimmedArray(roleContext.analysisHints.roadmap),
       reasoning: String(roleContext.analysisHints.reasoning || ""),
       resumeSnippet: String(roleContext.analysisHints.resumeSnippet || ""),
-      jobSnippet: String(roleContext.analysisHints.jobSnippet || "")
+      jobSnippet: String(roleContext.analysisHints.jobSnippet || ""),
+      interviewQuestions: toTrimmedInterviewQuestions(roleContext.analysisHints.interviewQuestions)
     };
   }
 
@@ -519,7 +536,8 @@ function extractInterviewSignals(roleContext, options = {}) {
     roadmap: toTrimmedArray(sourceData?.plan?.roadmap),
     reasoning: String(sourceData?.match?.reasoning || ""),
     resumeSnippet: String(sourceData?.input?.resumeSnippet || ""),
-    jobSnippet: String(sourceData?.input?.jobSnippet || "")
+    jobSnippet: String(sourceData?.input?.jobSnippet || ""),
+    interviewQuestions: toTrimmedInterviewQuestions(sourceData?.interview?.questions)
   };
 }
 
@@ -895,6 +913,10 @@ function getInterviewReadinessStats(roleContext, options = {}) {
 
 function buildRoleQuestions(roleContext, options = {}) {
   const signals = extractInterviewSignals(roleContext, options);
+  if (signals.interviewQuestions.length) {
+    return signals.interviewQuestions.map((item) => ({ ...item }));
+  }
+
   const roleLabel = roleContext?.roleLabel || signals.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL;
   const topGap = signals.missingSkills[0] || "a critical requirement from the job description";
   const secondGap = signals.missingSkills[1] || topGap;
@@ -948,16 +970,20 @@ function renderInterviewDetailQuestions() {
 }
 
 function renderInterviewDetail(roleContext, options = {}) {
+  const roleId = String(roleContext?.id || roleContext?.roleSlug || "").trim();
   const roleSlug = roleContext?.roleSlug || DEFAULT_INTERVIEW_ROLE_SLUG;
   const roleLabel = roleContext?.roleLabel || DEFAULT_INTERVIEW_ROLE_LABEL;
   const roleType = roleContext?.roleType || "software";
-  const shouldRefreshQuestions = options.regenerate || roleSlug !== interviewDetailState.roleSlug;
+  const shouldRefreshQuestions = roleId !== interviewDetailState.roleId
+    || roleSlug !== interviewDetailState.roleSlug
+    || !interviewDetailState.questions.length;
 
   if (shouldRefreshQuestions) {
     interviewDetailState.questions = buildRoleQuestions(roleContext, options);
     interviewDetailState.activeQuestionIndex = 0;
   }
 
+  interviewDetailState.roleId = roleId;
   interviewDetailState.roleSlug = roleSlug;
   interviewDetailState.roleLabel = roleLabel;
   interviewDetailState.roleType = roleType;
@@ -1025,7 +1051,10 @@ function syncViewToCurrentRoute() {
       id: savedRole.id,
       roleSlug: savedRole.roleSlug,
       roleLabel: savedRole.roleLabel,
-      roleType: savedRole.roleType
+      roleType: savedRole.roleType,
+      analysisHints: {
+        interviewQuestions: toTrimmedInterviewQuestions(savedRole.interviewQuestions)
+      }
     });
   } else {
     const legacyRole = savedInterviewRoles.find(r => r.roleSlug === roleId);
@@ -1034,7 +1063,10 @@ function syncViewToCurrentRoute() {
         id: legacyRole.id,
         roleSlug: legacyRole.roleSlug,
         roleLabel: legacyRole.roleLabel,
-        roleType: legacyRole.roleType
+        roleType: legacyRole.roleType,
+        analysisHints: {
+          interviewQuestions: toTrimmedInterviewQuestions(legacyRole.interviewQuestions)
+        }
       });
     } else {
       const roleLabel = roleLabelFromSlug(roleId);
@@ -1211,6 +1243,9 @@ function mapStoredAnalysisToResult(item) {
     },
     plan: {
       roadmap: Array.isArray(item?.roadmap) ? item.roadmap : []
+    },
+    interview: {
+      questions: toTrimmedInterviewQuestions(item?.interviewQuestions)
     },
     meta: {
       provider: item?.provider || "unknown",
@@ -2085,10 +2120,6 @@ interviewPrepActionsEl.addEventListener("click", (event) => {
 
 interviewDetailBackBtn.addEventListener("click", () => {
   setPathForView("interview-prep");
-});
-
-interviewDetailRegenerateBtn.addEventListener("click", () => {
-  renderInterviewDetail(interviewDetailState, { regenerate: true });
 });
 
 resumeFileEl.addEventListener("change", () => {

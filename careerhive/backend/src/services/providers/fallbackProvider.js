@@ -57,6 +57,47 @@ function buildRoadmap(missingSkills) {
   });
 }
 
+function inferJobTitle(jobText) {
+  const normalized = String(jobText || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "Software Engineer";
+  const firstLine = normalized.split(/[\n\.]/)[0].trim();
+  if (!firstLine) return "Software Engineer";
+  return firstLine.slice(0, 120);
+}
+
+function toQuestionSet({ title, missing, strengths, roadmap }) {
+  const roleTitle = String(title || "Software Engineer").trim() || "Software Engineer";
+  const topMissing = missing[0] || "a required capability for this role";
+  const secondMissing = missing[1] || topMissing;
+  const topStrength = strengths[0] || "a relevant project you delivered";
+  const roadmapFocus = roadmap[0] || `closing your highest-priority gap for ${roleTitle}`;
+
+  return {
+    questions: [
+      {
+        prompt: `For the ${roleTitle} role, how would you build competency in ${topMissing} during your first 60 days?`,
+        answer: `I would break ${topMissing} into weekly learning and delivery milestones, apply it to one scoped team objective, and review outcomes with stakeholders to prove progress and practical impact.`,
+        focusSkill: topMissing
+      },
+      {
+        prompt: `Tell me about a time your strength in ${topStrength} improved an outcome.`,
+        answer: "I would answer with context, constraints, actions, and measurable results, then explain the tradeoffs I made and what I would improve in the next iteration.",
+        focusSkill: topStrength
+      },
+      {
+        prompt: `If interviewers identify ${secondMissing} as a risk, how would you respond?`,
+        answer: `I would acknowledge the gap directly, share a concrete upskilling plan with timelines, and provide evidence from recent practice or project work to show execution momentum.`,
+        focusSkill: secondMissing
+      },
+      {
+        prompt: `What trends are most relevant to this role, and how would they influence your decisions around ${roadmapFocus}?`,
+        answer: "I would connect current industry trends to architecture and prioritization choices, then describe how those signals guide reliability, user impact, and delivery risk tradeoffs.",
+        focusSkill: roadmapFocus
+      }
+    ]
+  };
+}
+
 function createFallbackProvider() {
   return {
     name: "fallback-keyword",
@@ -68,6 +109,7 @@ function createFallbackProvider() {
     },
     async extractJob(jobText) {
       return {
+        title: inferJobTitle(jobText),
         skills: detectSkills(jobText),
         role_level: summarizeLevel(jobText)
       };
@@ -94,17 +136,30 @@ function createFallbackProvider() {
         roadmap: buildRoadmap(missingSkills)
       };
     },
+    async generateInterviewQuestions({ job, match, plan }) {
+      const missing = Array.isArray(match?.missing) ? match.missing : [];
+      const strengths = Array.isArray(match?.strengths) ? match.strengths : [];
+      const roadmap = Array.isArray(plan?.roadmap) ? plan.roadmap : [];
+      return toQuestionSet({
+        title: job?.title,
+        missing,
+        strengths,
+        roadmap
+      });
+    },
     async analyze({ resume, job }) {
       const resumeData = await this.extractResume(resume);
       const jobData = await this.extractJob(job);
       const matchData = await this.matchSkills({ resume: resumeData, job: jobData });
       const planData = await this.planRoadmap({ match: matchData });
+      const interviewData = await this.generateInterviewQuestions({ job: jobData, match: matchData, plan: planData });
 
       return {
         resume: resumeData,
         job: jobData,
         match: matchData,
         plan: planData,
+        interview: interviewData,
         meta: {
           provider: "fallback-keyword"
         }

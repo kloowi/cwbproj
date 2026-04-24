@@ -112,6 +112,16 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
     missingSkills: Array.isArray(result?.match?.missing) ? result.match.missing : [],
     strengths: Array.isArray(result?.match?.strengths) ? result.match.strengths : [],
     roadmap: Array.isArray(result?.plan?.roadmap) ? result.plan.roadmap : [],
+    interviewQuestions: Array.isArray(result?.interview?.questions)
+      ? result.interview.questions
+        .map((item) => ({
+          prompt: String(item?.prompt || "").trim(),
+          answer: String(item?.answer || "").trim(),
+          focusSkill: String(item?.focusSkill || item?.focus_skill || "").trim()
+        }))
+        .filter((item) => item.prompt && item.answer)
+        .slice(0, 4)
+      : [],
     provider: result?.meta?.provider || "unknown"
   };
 
@@ -174,6 +184,7 @@ async function getAnalysisById(id, sessionId) {
       missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
       strengths: Array.isArray(row.strengths) ? row.strengths : [],
       roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+      interviewQuestions: Array.isArray(row.interviewQuestions) ? row.interviewQuestions : [],
       provider: row.provider || "unknown"
     };
   }
@@ -193,8 +204,8 @@ async function getAnalysisById(id, sessionId) {
   if (!row) {
     const querySpec = {
       query: sessionId
-        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
-        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.provider FROM c WHERE c.source = @source AND c.id = @id",
+        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
+        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id",
       parameters: sessionId
         ? [
             { name: "@source", value: "analyze" },
@@ -225,6 +236,7 @@ async function getAnalysisById(id, sessionId) {
     missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
     strengths: Array.isArray(row.strengths) ? row.strengths : [],
     roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+    interviewQuestions: Array.isArray(row.interviewQuestions) ? row.interviewQuestions : [],
     provider: row.provider || "unknown"
   };
 }

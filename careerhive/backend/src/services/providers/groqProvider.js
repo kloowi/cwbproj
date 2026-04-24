@@ -30,6 +30,18 @@ function normalizeRoleTitle(value) {
   return title.slice(0, 120);
 }
 
+function normalizeInterviewQuestions(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      prompt: String(item?.prompt || "").trim(),
+      answer: String(item?.answer || "").trim(),
+      focusSkill: String(item?.focusSkill || item?.focus_skill || "").trim()
+    }))
+    .filter((item) => item.prompt && item.answer)
+    .slice(0, 4);
+}
+
 function buildResumeAgentPrompt(resume) {
   return [
     "You are Resume Agent.",
@@ -113,18 +125,41 @@ function buildPrompt(resume, job) {
     "Return strict JSON only with this shape:",
     "{",
     "  \"resume\": { \"skills\": string[], \"experience_level\": string },",
-    "  \"job\": { \"skills\": string[], \"role_level\": string },",
+    "  \"job\": { \"title\": string, \"skills\": string[], \"role_level\": string },",
     "  \"match\": { \"score\": number, \"missing\": string[], \"strengths\": string[], \"reasoning\": string },",
-    "  \"plan\": { \"roadmap\": string[] }",
+    "  \"plan\": { \"roadmap\": string[] },",
+    "  \"interview\": { \"questions\": [{ \"prompt\": string, \"answer\": string, \"focusSkill\": string }] }",
     "}",
     "Rules:",
     "- Score must be 0 to 100.",
     "- Skills must be lowercase concise tokens.",
+    "- Generate exactly 4 interview questions tied to role requirements and candidate gaps.",
     "- No markdown. No comments. No extra keys.",
     "Resume:",
     resume,
     "Job Description:",
     job
+  ].join("\n");
+}
+
+function buildInterviewAgentPrompt(context) {
+  return [
+    "You are Interview Prep Agent.",
+    "Generate role-correlated interview questions and concise model answers.",
+    "Return strict JSON only with this shape:",
+    "{",
+    "  \"questions\": [",
+    "    { \"prompt\": string, \"answer\": string, \"focusSkill\": string }",
+    "  ]",
+    "}",
+    "Rules:",
+    "- Generate exactly 4 questions.",
+    "- Questions must align to the target role title, required skills, missing skills, and strengths.",
+    "- Answers should be practical, concise, and interview-ready.",
+    "- focusSkill should point to the main competency tested by the question.",
+    "- No markdown, no extra keys.",
+    "Context:",
+    JSON.stringify(context)
   ].join("\n");
 }
 
@@ -209,23 +244,34 @@ function createGroqProvider() {
         roadmap: Array.isArray(raw.roadmap) ? raw.roadmap.map((step) => String(step).trim()).filter(Boolean).slice(0, 5) : []
       };
     },
+    async generateInterviewQuestions({ resume, job, match, plan }) {
+      const raw = await callAgent(buildInterviewAgentPrompt({ resume, job, match, plan }));
+      return {
+        questions: normalizeInterviewQuestions(raw.questions)
+      };
+    },
     async analyze({ resume, job }) {
       try {
         const resumeData = await this.extractResume(resume);
         const jobData = await this.extractJob(job);
         const matchData = await this.matchSkills({ resume: resumeData, job: jobData, resumeText: resume, jobText: job });
         const planData = await this.planRoadmap({ resume: resumeData, job: jobData, match: matchData });
+        const interviewData = await this.generateInterviewQuestions({ resume: resumeData, job: jobData, match: matchData, plan: planData });
 
         return {
           resume: resumeData,
           job: jobData,
           match: matchData,
           plan: planData,
+          interview: interviewData,
           meta: { provider: "groq" }
         };
       } catch (_err) {
         // Last-resort compatibility fallback: keep old single-shot behavior.
         const parsed = await callAgent(buildPrompt(resume, job));
+        parsed.interview = {
+          questions: normalizeInterviewQuestions(parsed?.interview?.questions)
+        };
         parsed.meta = { provider: "groq", fallback: true };
         return parsed;
       }

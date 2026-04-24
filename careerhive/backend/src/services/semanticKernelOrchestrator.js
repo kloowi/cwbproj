@@ -20,12 +20,16 @@ async function executeStaged(provider, input) {
     jobText: input.job
   });
   const plan = await provider.planRoadmap({ resume, job, match });
+  const interview = typeof provider.generateInterviewQuestions === "function"
+    ? await provider.generateInterviewQuestions({ resume, job, match, plan })
+    : { questions: [] };
 
   return {
     resume,
     job,
     match,
     plan,
+    interview,
     meta: {
       provider: provider.name,
       pipeline: "staged"

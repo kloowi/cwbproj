@@ -11,6 +11,21 @@ function normalizeRoleTitle(value) {
   return title.slice(0, 120);
 }
 
+function normalizeInterview(interview) {
+  const questions = Array.isArray(interview?.questions)
+    ? interview.questions
+      .map((item) => ({
+        prompt: String(item?.prompt || "").trim(),
+        answer: String(item?.answer || "").trim(),
+        focusSkill: String(item?.focusSkill || item?.focus_skill || "").trim()
+      }))
+      .filter((item) => item.prompt && item.answer)
+      .slice(0, 4)
+    : [];
+
+  return { questions };
+}
+
 function normalizeAnalysisResult(result, providerName) {
   const normalized = result && typeof result === "object" ? { ...result } : {};
   const match = normalized.match && typeof normalized.match === "object" ? { ...normalized.match } : {};
@@ -34,6 +49,7 @@ function normalizeAnalysisResult(result, providerName) {
   normalized.plan = normalized.plan && typeof normalized.plan === "object"
     ? { roadmap: normalizeArray(normalized.plan.roadmap) }
     : { roadmap: [] };
+  normalized.interview = normalizeInterview(normalized.interview);
   normalized.meta = {
     provider: normalized.meta?.provider || providerName
   };
