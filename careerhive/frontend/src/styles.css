@@ -2256,6 +2256,10 @@ ul {
 .dashboard-history-container {
 }
 
+#dashboard-report-content .report-title-row {
+  display: none;
+}
+
 .history-grid {
   margin-top: 18px;
   display: grid;
