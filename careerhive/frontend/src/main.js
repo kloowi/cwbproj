@@ -204,12 +204,13 @@ app.innerHTML = `
       </section>
 
       <section class="interview-prep-view view-hidden" id="interview-prep-view" aria-label="Interview Prep">
-        <section class="panel" aria-label="Interview Prep Landing">
-          <div class="interview-prep-intro">
-            <h2>Start Your Interview Preparation</h2>
-            <p>Choose a role to generate a tailored preparation session.</p>
-          </div>
+        <div class="interview-prep-intro">
+          <p class="analysis-kicker">CareerHive Interview</p>
+          <h2>Start Your Interview Preparation</h2>
+          <p>Choose a role to generate a tailored interview preparation session.</p>
+        </div>
 
+        <section class="dashboard-panel dashboard-overview-panel interview-prep-actions-panel" aria-label="Interview Prep Landing">
           <div class="interview-prep-actions" aria-label="Interview Prep Primary Actions">
 
             <button type="button" class="interview-prep-action-card interview-prep-browse-card" id="interview-prep-browse-roles-btn" aria-label="Browse predefined roles for interview preparation">
@@ -411,7 +412,7 @@ function renderSavedInterviewRoleCards() {
   const itemsPerPage = 6;
   const totalItems = savedInterviewRoles.length + 1;
   const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
-  
+
   if (currentInterviewPage > maxPage) {
     currentInterviewPage = maxPage;
   }
@@ -2242,17 +2243,17 @@ interviewPrepActionsEl.addEventListener("click", (event) => {
     if (!confirm("Are you sure you want to delete this interview preparation? This action cannot be undone.")) {
       return;
     }
-    
+
     savedInterviewRoles = savedInterviewRoles.filter((item) => item.id !== roleId);
     persistSavedInterviewRoles();
-    
+
     const itemsPerPage = 6;
     const totalItems = savedInterviewRoles.length + 1;
     const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
     if (currentInterviewPage > maxPage) {
       currentInterviewPage = maxPage;
     }
-    
+
     renderSavedInterviewRoleCards();
     return;
   }
