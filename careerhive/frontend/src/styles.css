@@ -204,10 +204,7 @@ body {
   padding: 22px 26px 52px;
 }
 
-.dashboard-view,
-.analysis-view,
-.interview-prep-view,
-.interview-detail-view {
+.dashboard-view {
   padding: 0 22px;
 }
 
@@ -231,6 +228,7 @@ body {
 }
 
 .dashboard-hero-kicker {
+  margin: 0;
   color: #ffc219;
   font-size: 0.7rem;
   font-weight: 700;
@@ -241,7 +239,6 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 4px 11px;
-  margin-top: 100px;
 }
 
 .dashboard-hero h2 {
@@ -407,7 +404,7 @@ body {
 .interview-prep-intro {
   text-align: center;
   max-width: 760px;
-  margin: 100px auto 32px;
+  margin: 80px auto 32px;
 }
 
 .interview-prep-intro h2 {
@@ -426,23 +423,19 @@ body {
   color: #536477;
 }
 
-.interview-prep-actions-panel {
-  padding: 20px;
-}
-
 .interview-prep-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  min-height: 416px;
-  align-content: start;
+  min-height: 504px;
+  /* Ensure 2 rows height for consistent pagination placement */
 }
 
 .interview-prep-pagination {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 60px;
 }
 
 .pagination-btn {
@@ -479,16 +472,16 @@ body {
 .interview-prep-action-card {
   position: relative;
   overflow: hidden;
-  height: 200px;
-  min-height: 200px;
-  max-height: 200px;
-  border-radius: 26px;
+  height: 244px;
+  min-height: 244px;
+  max-height: 244px;
+  border-radius: 28px;
   border: 1px solid #ecdacb;
-  padding: 18px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   text-align: left;
   box-shadow: 0 12px 26px rgba(102, 56, 33, 0.1);
   cursor: default;
@@ -525,9 +518,9 @@ body {
 }
 
 .interview-prep-action-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 18px;
+  width: 56px;
+  height: 56px;
+  border-radius: 20px;
   display: inline-grid;
   place-items: center;
 }
@@ -539,14 +532,14 @@ body {
 }
 
 .interview-prep-action-icon .material-symbols-outlined {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
 }
 
 .interview-prep-action-card h3 {
   margin: 0;
   font-family: "Plus Jakarta Sans", "Sora", sans-serif;
-  font-size: clamp(1.35rem, 1.75vw, 1.85rem);
+  font-size: clamp(1.55rem, 1.95vw, 2.05rem);
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
@@ -554,7 +547,7 @@ body {
 .interview-prep-action-card p {
   margin: 0;
   max-width: 360px;
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   line-height: 1.4;
 }
 
@@ -577,7 +570,7 @@ body {
 .interview-prep-browse-card .interview-prep-action-cta {
   color: #ffffff;
   background: rgba(0, 0, 0, 0.13);
-  padding: 8px 18px;
+  padding: 10px 20px;
   border-radius: 999px;
 }
 
@@ -623,9 +616,9 @@ body {
 }
 
 .interview-prep-saved-role-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   border: 1.5px solid rgba(242, 128, 19, 0.2);
   background: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
   color: #ea580c;
@@ -637,7 +630,7 @@ body {
 }
 
 .interview-prep-saved-role-icon .material-symbols-outlined {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 /* Score badge pill */
@@ -677,7 +670,7 @@ body {
   margin: 0;
   color: #12202e;
   font-family: "Plus Jakarta Sans", "Sora", sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.22rem;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -713,7 +706,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
+  padding: 9px 18px;
   border-radius: 999px;
   border: none;
   background: linear-gradient(120deg, #f28013, #f6b322);
@@ -2260,7 +2253,8 @@ ul {
   box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.12);
 }
 
-.dashboard-history-container {}
+.dashboard-history-container {
+}
 
 .history-grid {
   margin-top: 18px;
@@ -2723,6 +2717,21 @@ ul {
   to {
     border-left-color: #efb08f;
   }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-change {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (max-width: 1140px) {

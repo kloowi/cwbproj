@@ -204,13 +204,12 @@ app.innerHTML = `
       </section>
 
       <section class="interview-prep-view view-hidden" id="interview-prep-view" aria-label="Interview Prep">
-        <div class="interview-prep-intro">
-          <p class="analysis-kicker">CareerHive Interview</p>
-          <h2>Start Your Interview Preparation</h2>
-          <p>Choose a role to generate a tailored interview preparation session.</p>
-        </div>
+        <section class="panel" aria-label="Interview Prep Landing">
+          <div class="interview-prep-intro">
+            <h2>Start Your Interview Preparation</h2>
+            <p>Choose a role to generate a tailored preparation session.</p>
+          </div>
 
-        <section class="dashboard-panel dashboard-overview-panel interview-prep-actions-panel" aria-label="Interview Prep Landing">
           <div class="interview-prep-actions" aria-label="Interview Prep Primary Actions">
 
             <button type="button" class="interview-prep-action-card interview-prep-browse-card" id="interview-prep-browse-roles-btn" aria-label="Browse predefined roles for interview preparation">
@@ -402,8 +401,16 @@ function shortenPreview(text, maxLength = 92) {
   return `${normalized.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
+function triggerPageAnimation(el) {
+  if (!el) return;
+  el.classList.remove("animate-page-change");
+  void el.offsetWidth;
+  el.classList.add("animate-page-change");
+}
+
 function renderSavedInterviewRoleCards() {
   if (!interviewPrepActionsEl) return;
+  triggerPageAnimation(interviewPrepActionsEl);
 
   interviewPrepActionsEl
     .querySelectorAll(".interview-prep-saved-role-card")
@@ -1743,6 +1750,7 @@ function renderDashboard(items) {
 }
 
 function renderDashboardHistory() {
+  triggerPageAnimation(dashboardHistoryEl);
   const itemsPerPage = 5;
   const totalItems = dashboardHistoryItems.length;
   const maxPage = Math.max(0, Math.ceil(totalItems / itemsPerPage) - 1);
