@@ -17,10 +17,10 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "groq-sdk": "^1.1.2",
     "mammoth": "^1.9.0",
     "mongodb": "^5.9.2",
     "multer": "^2.0.2",
-    "openai": "^6.34.0",
     "pdf-parse": "^1.1.1"
   }
 }

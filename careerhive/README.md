@@ -4,7 +4,7 @@ This scaffold gives you a strict MVP flow:
 
 - Input resume + job description
 - Return match score + missing skills + roadmap
-- Support provider switching (groq, openai)
+- Support provider switching (groq)
 - Fallback to deterministic keyword matching when provider fails
 
 ## Structure
@@ -16,7 +16,7 @@ This scaffold gives you a strict MVP flow:
 
 1. Copy environment file:
    cp .env.example .env
-2. Set provider variables (Groq or OpenAI)
+2. Set provider variables (Groq)
 3. Run:
    npm run start
 
@@ -52,7 +52,7 @@ Response shape:
     "reasoning": "text"
   },
   "plan": { "roadmap": [] },
-  "meta": { "provider": "groq|openai|fallback-keyword" }
+  "meta": { "provider": "groq|fallback-keyword" }
 }
 
 ## Microsoft Framework Note

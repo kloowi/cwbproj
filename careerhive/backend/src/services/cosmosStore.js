@@ -112,6 +112,7 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
     missingSkills: Array.isArray(result?.match?.missing) ? result.match.missing : [],
     strengths: Array.isArray(result?.match?.strengths) ? result.match.strengths : [],
     roadmap: Array.isArray(result?.plan?.roadmap) ? result.plan.roadmap : [],
+    improvements: Array.isArray(result?.plan?.improvements) ? result.plan.improvements : [],
     interviewQuestions: Array.isArray(result?.interview?.questions)
       ? result.interview.questions
         .map((item) => ({
@@ -184,6 +185,7 @@ async function getAnalysisById(id, sessionId) {
       missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
       strengths: Array.isArray(row.strengths) ? row.strengths : [],
       roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+      improvements: Array.isArray(row.improvements) ? row.improvements : [],
       interviewQuestions: Array.isArray(row.interviewQuestions) ? row.interviewQuestions : [],
       provider: row.provider || "unknown"
     };
@@ -204,8 +206,8 @@ async function getAnalysisById(id, sessionId) {
   if (!row) {
     const querySpec = {
       query: sessionId
-        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
-        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id",
+        ? "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.improvements, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id AND c.sessionId = @sessionId"
+        : "SELECT TOP 1 c.id, c.sessionId, c.createdAt, c.jobTitle, c.resumeSnippet, c.jobSnippet, c.matchScore, c.matchReasoning, c.missingSkills, c.strengths, c.roadmap, c.improvements, c.interviewQuestions, c.provider FROM c WHERE c.source = @source AND c.id = @id",
       parameters: sessionId
         ? [
             { name: "@source", value: "analyze" },
@@ -236,6 +238,7 @@ async function getAnalysisById(id, sessionId) {
     missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
     strengths: Array.isArray(row.strengths) ? row.strengths : [],
     roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+    improvements: Array.isArray(row.improvements) ? row.improvements : [],
     interviewQuestions: Array.isArray(row.interviewQuestions) ? row.interviewQuestions : [],
     provider: row.provider || "unknown"
   };
@@ -307,7 +310,7 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
   }
 
   const querySpec = {
-    query: `SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.provider FROM c WHERE ${whereClauses.join(" AND ")} ORDER BY c.createdAt DESC`,
+    query: `SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.improvements, c.provider FROM c WHERE ${whereClauses.join(" AND ")} ORDER BY c.createdAt DESC`,
     parameters
   };
 
@@ -321,6 +324,7 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
     matchScore: Number(row.matchScore || 0),
     missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
     roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+    improvements: Array.isArray(row.improvements) ? row.improvements : [],
     provider: row.provider || "unknown"
   }));
 }

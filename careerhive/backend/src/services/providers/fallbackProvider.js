@@ -133,7 +133,8 @@ function createFallbackProvider() {
     async planRoadmap({ match }) {
       const missingSkills = Array.isArray(match?.missing) ? match.missing : [];
       return {
-        roadmap: buildRoadmap(missingSkills)
+        roadmap: buildRoadmap(missingSkills),
+        improvements: missingSkills.slice(0, 3).map((skill) => `Add concrete evidence of ${skill} with one measurable bullet.`)
       };
     },
     async generateInterviewQuestions({ job, match, plan }) {

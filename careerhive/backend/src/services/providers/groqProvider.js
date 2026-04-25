@@ -1,4 +1,4 @@
-const OpenAI = require("openai");
+const Groq = require("groq-sdk");
 const { canonicalizeSkillList } = require("../skillCanonicalizer");
 
 function parseJsonResponse(text) {
@@ -108,10 +108,12 @@ function buildPlannerAgentPrompt(context) {
     "Generate a focused roadmap based on missing skills.",
     "Return strict JSON only with this shape:",
     "{",
-    "  \"roadmap\": string[]",
+    "  \"roadmap\": string[],",
+    "  \"improvements\": string[]",
     "}",
     "Rules:",
-    "- 3 to 5 concise actionable steps.",
+    "- roadmap: 3 to 5 concise actionable steps.",
+    "- improvements: exactly 3 actionable resume edits (wording, keywords, formatting) to pass ATS.",
     "- prioritize high-impact missing skills first.",
     "- no markdown, no extra keys.",
     "Context:",
@@ -127,7 +129,7 @@ function buildPrompt(resume, job) {
     "  \"resume\": { \"skills\": string[], \"experience_level\": string },",
     "  \"job\": { \"title\": string, \"skills\": string[], \"role_level\": string },",
     "  \"match\": { \"score\": number, \"missing\": string[], \"strengths\": string[], \"reasoning\": string },",
-    "  \"plan\": { \"roadmap\": string[] },",
+    "  \"plan\": { \"roadmap\": string[], \"improvements\": string[] },",
     "  \"interview\": { \"questions\": [{ \"prompt\": string, \"answer\": string, \"focusSkill\": string }] }",
     "}",
     "Rules:",
@@ -170,9 +172,8 @@ function createGroqProvider() {
   }
 
   const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-  const client = new OpenAI({
-    apiKey,
-    baseURL: "https://api.groq.com/openai/v1"
+  const client = new Groq({
+    apiKey
   });
 
   async function callAgent(prompt) {
@@ -241,7 +242,8 @@ function createGroqProvider() {
     async planRoadmap({ resume, job, match }) {
       const raw = await callAgent(buildPlannerAgentPrompt({ resume, job, match }));
       return {
-        roadmap: Array.isArray(raw.roadmap) ? raw.roadmap.map((step) => String(step).trim()).filter(Boolean).slice(0, 5) : []
+        roadmap: Array.isArray(raw.roadmap) ? raw.roadmap.map((step) => String(step).trim()).filter(Boolean).slice(0, 5) : [],
+        improvements: Array.isArray(raw.improvements) ? raw.improvements.map((step) => String(step).trim()).filter(Boolean).slice(0, 3) : []
       };
     },
     async generateInterviewQuestions({ resume, job, match, plan }) {

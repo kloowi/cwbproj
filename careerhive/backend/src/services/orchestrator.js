@@ -47,8 +47,11 @@ function normalizeAnalysisResult(result, providerName) {
     reasoning: typeof match.reasoning === "string" ? match.reasoning : ""
   };
   normalized.plan = normalized.plan && typeof normalized.plan === "object"
-    ? { roadmap: normalizeArray(normalized.plan.roadmap) }
-    : { roadmap: [] };
+    ? { 
+        roadmap: normalizeArray(normalized.plan.roadmap),
+        improvements: normalizeArray(normalized.plan.improvements)
+      }
+    : { roadmap: [], improvements: [] };
   normalized.interview = normalizeInterview(normalized.interview);
   normalized.meta = {
     provider: normalized.meta?.provider || providerName

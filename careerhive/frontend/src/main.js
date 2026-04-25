@@ -1306,7 +1306,8 @@ function mapStoredAnalysisToResult(item) {
       reasoning: String(item?.matchReasoning || "")
     },
     plan: {
-      roadmap: Array.isArray(item?.roadmap) ? item.roadmap : []
+      roadmap: Array.isArray(item?.roadmap) ? item.roadmap : [],
+      improvements: Array.isArray(item?.improvements) ? item.improvements : []
     },
     interview: {
       questions: toTrimmedInterviewQuestions(item?.interviewQuestions)
@@ -1435,13 +1436,13 @@ function formatSkillList(items) {
     .filter(Boolean);
 }
 
-function buildActionableItems(missingSkills, roadmapItems) {
-  const fromRoadmap = roadmapItems
+function buildActionableItems(missingSkills, improvements) {
+  const fromImprovements = (improvements || [])
     .map((item) => toSentenceCase(String(item || "")))
     .filter(Boolean)
     .slice(0, 3);
 
-  if (fromRoadmap.length) return fromRoadmap;
+  if (fromImprovements.length) return fromImprovements;
 
   const fromGaps = missingSkills.slice(0, 3).map((skill) => `Add concrete evidence of ${skill} with one measurable bullet.`);
   if (fromGaps.length) return fromGaps;
@@ -1488,9 +1489,10 @@ function renderAnalysisReport(data, options = {}) {
   const profile = getScoreProfile(score);
   const missingSkills = formatSkillList(data.match?.missing);
   const strengths = formatSkillList(data.match?.strengths);
+  const improvements = (data.plan?.improvements || []).map((item) => String(item || ""));
   const roadmapItems = (data.plan?.roadmap || []).map((item) => String(item || ""));
   const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
-  const actionItems = buildActionableItems(missingSkills, roadmapItems);
+  const actionItems = buildActionableItems(missingSkills, improvements);
   const roadmapSteps = buildRoadmapSteps(roadmapItems, missingSkills);
   ensureRoadmapProgress(analysisId, roadmapSteps.length);
 
@@ -1518,7 +1520,6 @@ function renderAnalysisReport(data, options = {}) {
         <span class="action-icon" aria-hidden="true">${index === 0 ? "+" : index === 1 ? "#" : ">"}</span>
         <div>
           <p class="action-title">${escapeHtml(toSentenceCase(item))}</p>
-          <p class="action-sub">Tighten this area to improve role fit and ATS confidence.</p>
         </div>
       </li>`
     )
