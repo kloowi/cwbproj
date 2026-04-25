@@ -275,7 +275,7 @@ app.innerHTML = `
           <div id="saved-report-content"></div>
         </div>
       </section>
-    </main>
+    </u>
   </div>
 `;
 
@@ -1066,7 +1066,7 @@ function renderInterviewDetail(roleContext, options = {}) {
 
   interviewDetailRoleLabelEl.textContent = roleLabel;
   interviewDetailTitleEl.textContent = `Interview Preparation: ${roleLabel}`;
-  interviewDetailSubtitleEl.textContent = `Practice targeted questions for ${roleLabel} and sharpen structured responses before your next round.`;
+  interviewDetailSubtitleEl.textContent = `Practice targeted questions for ${roleLabel} and sharpen structured responses.`;
 
   const stats = getInterviewReadinessStats(roleContext, options);
   interviewDetailStatsEl.innerHTML = stats
