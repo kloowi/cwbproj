@@ -1166,7 +1166,7 @@ body {
 }
 
 .input-card-copy {
-  margin: 10px 0 14px;
+  margin: 10px 0 10px;
   color: #4f6273;
   font-size: 0.96rem;
   line-height: 1.4;
@@ -1210,6 +1210,41 @@ textarea.input-zone:focus {
   outline: none;
   border-color: #e28b52;
   box-shadow: 0 0 0 4px rgba(239, 144, 69, 0.18);
+}
+
+/* Job description URL input */
+.job-url-input {
+  width: 100%;
+  border: 1px solid #efd9c8;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 0.95rem;
+  background: #fffefd;
+  color: inherit;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.job-url-input:focus {
+  outline: none;
+  border-color: #e28b52;
+  box-shadow: 0 0 0 4px rgba(239, 144, 69, 0.18);
+}
+
+.job-url-input::placeholder {
+  color: #9f9389;
+}
+
+/* OR divider centered inside job card */
+.job-or-divider {
+  align-self: center;
+  margin: 5px 0;
+}
+
+/* Textarea height tuned to bottom-align with the resume upload zone */
+.job-textarea {
+  flex: 0 0 auto;
+  min-height: 180px;
 }
 
 .upload-zone {

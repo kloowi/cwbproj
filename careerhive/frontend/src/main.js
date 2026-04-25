@@ -162,7 +162,7 @@ app.innerHTML = `
               <p class="input-card-copy">PDF or DOCX (Max 5MB)</p>
               <div class="input-zone upload-zone">
                 <p class="upload-zone-copy">Drop your resume here</p>
-                <span class="upload-zone-divider" aria-hidden="true"><span></span><strong>or</strong><span></span></span>
+                <span class="upload-zone-divider" aria-hidden="true"><strong>or</strong></span>
                 <label class="browse-files-btn" for="resume-file">Browse Files</label>
                 <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
               </div>
@@ -180,8 +180,18 @@ app.innerHTML = `
                   Job Description
                 </h3>
               </div>
+              <p class="input-card-copy">Enter Job URL</p>
+              <input
+                id="job-url"
+                name="jobUrl"
+                type="url"
+                class="job-url-input"
+                placeholder="https://example.com/careers/job-posting"
+                autocomplete="off"
+              />
+              <span class="upload-zone-divider job-or-divider" aria-hidden="true"><strong>or</strong></span>
               <p class="input-card-copy">Enter job title only or full description.</p>
-              <textarea id="job" name="job" class="input-zone" placeholder="Example: We are looking for a Senior Product Designer with 5+ years of experience in Figma, React, and UX research. The ideal candidate must..."></textarea>
+              <textarea id="job" name="job" class="input-zone job-textarea" placeholder="Example: Looking for a UI Designer with 5 years experience in Figma..."></textarea>
             </section>
 
             <div class="form-actions consent-card">
@@ -1996,7 +2006,8 @@ function clearPipelineState() {
 
 function updateSubmitAvailability() {
   const hasResumeFile = Boolean(resumeFileEl.files?.[0]);
-  const hasJob = Boolean(form.job.value.trim());
+  const jobUrl = document.getElementById("job-url")?.value.trim() ?? "";
+  const hasJob = Boolean(jobUrl || form.job.value.trim());
   const hasConsent = Boolean(consentCheckboxEl.checked);
   submitBtn.disabled = !(hasResumeFile && hasJob && hasConsent && resumeFileIsValid);
 }
@@ -2104,15 +2115,16 @@ form.addEventListener("submit", async (event) => {
   resultsEl.innerHTML = "";
 
   const resumeFile = resumeFileEl.files?.[0];
-  const job = form.job.value.trim();
+  const jobUrl = document.getElementById("job-url").value.trim();
+  const jobText = form.job.value.trim();
 
   if (!apiBaseUrl) {
     errorEl.textContent = "API configuration is missing. Set VITE_API_URL to your backend URL and redeploy the frontend.";
     return;
   }
 
-  if (!resumeFile || !job) {
-    errorEl.textContent = "Please upload a resume file and complete the Job Description field.";
+  if (!resumeFile || (!jobUrl && !jobText)) {
+    errorEl.textContent = "Please upload a resume file and provide a job URL or description.";
     return;
   }
 
@@ -2149,6 +2161,25 @@ form.addEventListener("submit", async (event) => {
     const resume = String(extracted?.text || "").trim();
     if (!resume) {
       throw new Error("Resume extraction produced empty text. Please upload a text-based PDF or DOCX file.");
+    }
+
+    let job = jobText;
+
+    if (jobUrl) {
+      submitBtn.textContent = "Fetching Job Posting...";
+      const scrapeResponse = await fetch(`${apiBaseUrl}/analyze/scrape`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: jobUrl })
+      });
+      if (!scrapeResponse.ok) {
+        const payload = await scrapeResponse.json().catch(() => ({}));
+        const detail = payload.error || payload.message;
+        throw new Error(detail ? `Job URL fetch failed: ${detail}` : `Job URL fetch failed (${scrapeResponse.status}).`);
+      }
+      const scraped = await scrapeResponse.json();
+      job = String(scraped?.text || "").trim();
+      if (!job) throw new Error("The job URL returned no readable text. Please paste the description manually.");
     }
 
     submitBtn.textContent = "Analyzing...";
@@ -2320,6 +2351,10 @@ consentCheckboxEl.addEventListener("change", () => {
 });
 
 form.job.addEventListener("input", () => {
+  updateSubmitAvailability();
+});
+
+document.getElementById("job-url").addEventListener("input", () => {
   updateSubmitAvailability();
 });
 

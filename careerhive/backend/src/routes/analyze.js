@@ -10,6 +10,15 @@ let upload;
 let extractResumeText;
 let extractFeatureError;
 
+let scrapeJobUrl;
+let scrapeFeatureError;
+try {
+  ({ scrapeJobUrl } = require("../services/jobScraper"));
+} catch (error) {
+  scrapeFeatureError = error;
+  console.warn("Job scraping feature disabled:", error.message);
+}
+
 try {
   const multer = require("multer");
   ({ extractResumeText } = require("../services/resumeExtractor"));
@@ -74,6 +83,28 @@ if (upload && extractResumeText) {
       error: "Resume upload is temporarily unavailable. Please use pasted resume text for now.",
       detail: extractFeatureError?.message || "Extraction dependencies are unavailable."
     });
+  });
+}
+
+if (scrapeJobUrl) {
+  router.post("/scrape", async (req, res, next) => {
+    try {
+      const rawUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
+      if (!rawUrl) return res.status(400).json({ error: "A URL is required." });
+      const { text } = await scrapeJobUrl(rawUrl);
+      return res.json({ text });
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return res.status(504).json({ error: "Request to the job URL timed out. Check the URL or paste the description manually." });
+      }
+      const isUserError = ["Invalid URL", "Failed to fetch", "did not contain", "Only http"].some(m => error.message?.includes(m));
+      if (isUserError) return res.status(400).json({ error: error.message });
+      return next(error);
+    }
+  });
+} else {
+  router.post("/scrape", (_req, res) => {
+    return res.status(503).json({ error: "Job URL scraping is temporarily unavailable.", detail: scrapeFeatureError?.message });
   });
 }
 
