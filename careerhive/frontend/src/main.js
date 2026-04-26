@@ -267,19 +267,16 @@ app.innerHTML = `
       </section>
 
       <section class="saved-analysis-view view-hidden" id="saved-analysis-view" aria-label="Saved Analysis">
-        <section class="panel saved-analysis-panel" aria-label="Saved Analysis Report">
+        <section class="panel saved-analysis-panel results-panel" aria-label="Saved Analysis Report">
           <button type="button" class="interview-detail-back-btn" id="saved-analysis-back-btn">
             <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
             Back to Dashboard
           </button>
-          <p class="interview-detail-breadcrumb" id="saved-analysis-breadcrumb">
-            Dashboard <span class="interview-detail-breadcrumb-sep" aria-hidden="true">&gt;</span>
-            <strong id="saved-analysis-role-label"></strong>
-          </p>
-          <header class="interview-detail-head saved-analysis-head">
-            <h2 id="saved-analysis-title">Analysis Results</h2>
+          <div class="section-label">Dashboard &gt; <span id="saved-analysis-role-label"></span></div>
+          <div class="report-title-row">
+            <h3 id="saved-analysis-title">Analysis Results</h3>
             <p id="saved-analysis-subtitle">Cross-referenced against this role's key requirements to produce clear next actions.</p>
-          </header>
+          </div>
           <div id="saved-analysis-content"></div>
         </section>
       </section>
@@ -1638,11 +1635,12 @@ function renderAnalysisReport(data, options = {}) {
     </section>`;
 
   return `
+    ${!options.suppressTitleRow ? `
     ${options.kicker ? `<div class="saved-report-kicker">${escapeHtml(options.kicker)}</div>` : ""}
     <div class="report-title-row">
       <h3>${title}</h3>
       <p>Cross-referenced against this role's key requirements to produce clear next actions.</p>
-    </div>
+    </div>` : ""}
 
     <div class="report-grid" aria-live="polite">
       <section class="score-card card-lite report-card">
@@ -1738,10 +1736,11 @@ function renderSavedAnalysisPage(data) {
 
   const jobTitle = data.job?.title || "Role Analysis";
   savedAnalysisBreadcrumbRoleLabelEl.textContent = jobTitle.toUpperCase();
-  savedAnalysisTitleEl.textContent = `Analysis Results: ${jobTitle}`;
+  savedAnalysisTitleEl.textContent = jobTitle;
 
   savedAnalysisContentEl.innerHTML = renderAnalysisReport(data, {
-    ...latestSavedReportOptions
+    ...latestSavedReportOptions,
+    suppressTitleRow: true
   });
 }
 

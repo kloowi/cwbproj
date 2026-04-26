@@ -358,9 +358,20 @@ body {
 }
 
 .saved-analysis-panel {
-  display: grid;
-  gap: 16px;
+  display: block;
   padding: 0;
+}
+
+.saved-analysis-panel .interview-detail-back-btn {
+  margin-bottom: 12px;
+}
+
+.saved-analysis-panel .section-label {
+  margin-bottom: 4px;
+}
+
+.saved-analysis-panel .report-title-row {
+  margin-bottom: 20px;
 }
 
 .view-hidden {
