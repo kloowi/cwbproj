@@ -55,7 +55,14 @@ jobs:
             az webapp config appsettings set \
               --name jobmatch \
               --resource-group "$RG" \
-              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true WEBSITE_NODE_DEFAULT_VERSION=~20 RELEASE_COMMIT=${{ github.sha }}
+              --settings \
+                SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+                WEBSITE_NODE_DEFAULT_VERSION=~20 \
+                RELEASE_COMMIT=${{ github.sha }} \
+                AGENT_SERVICE_URL=https://careerhive-maf.azurewebsites.net \
+                AGENT_SERVICE_TIMEOUT_MS=60000 \
+                GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+                GROQ_MODEL=llama-3.3-70b-versatile
 
       - name: Deploy backend folder to App Service
         uses: azure/webapps-deploy@v3

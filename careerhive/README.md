@@ -55,7 +55,22 @@ Response shape:
   "meta": { "provider": "groq|fallback-keyword" }
 }
 
-## Microsoft Framework Note
+## Microsoft Agent Framework
 
-A semantic orchestration boundary exists in backend src/services/semanticKernelOrchestrator.js.
-You can replace this implementation with an official Microsoft agent SDK without changing the API contract.
+The staged orchestration boundary in `backend/src/services/semanticKernelOrchestrator.js`
+delegates to a Python sidecar (`agent-service/`) that runs the official
+[Microsoft Agent Framework](https://learn.microsoft.com/agent-framework/) (`agent-framework`
+Python package). The sidecar exposes `POST /pipeline` which runs five `ChatAgent`s
+(Resume → Job → Matching → Planner → Interview) backed by an OpenAI-compatible
+`OpenAIChatClient` pointed at Groq. The `POST /analyze` API contract is unchanged.
+
+### Run the sidecar
+
+    cd agent-service
+    cp .env.example .env   # set GROQ_API_KEY
+    pip install -e .       # or: uv sync
+    uvicorn app.main:app --port 7070
+
+Then start the backend with `AGENT_SERVICE_URL=http://localhost:7070` (already in
+`backend/.env.example`). If the sidecar is unset or unreachable, the backend
+transparently falls back to the in-process staged pipeline.

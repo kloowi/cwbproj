@@ -9,6 +9,37 @@ const COSMOS_CONTAINER_NAME = process.env.COSMOS_CONTAINER_NAME || "analyses";
 let container;
 let mongoCollection;
 
+// In-memory fallback used when COSMOS_CONNECTION_STRING is not set.
+const memStore = [];
+
+function memSave(doc) {
+  memStore.unshift(doc);
+}
+
+function memQuery(sessionId, safeLimit, normalizedFilters) {
+  return memStore
+    .filter((r) => {
+      if (r.source !== "analyze") return false;
+      if (sessionId && r.sessionId !== sessionId) return false;
+      if (normalizedFilters.minScore !== null && r.matchScore < normalizedFilters.minScore) return false;
+      if (normalizedFilters.maxScore !== null && r.matchScore > normalizedFilters.maxScore) return false;
+      if (normalizedFilters.sinceIso && r.createdAt < normalizedFilters.sinceIso) return false;
+      return true;
+    })
+    .slice(0, safeLimit);
+}
+
+function memFindById(id, sessionId) {
+  return memStore.find((r) => r.id === id && (!sessionId || r.sessionId === sessionId) && r.source === "analyze") || null;
+}
+
+function memDelete(id, sessionId) {
+  const idx = memStore.findIndex((r) => r.id === id && r.sessionId === sessionId && r.source === "analyze");
+  if (idx === -1) return false;
+  memStore.splice(idx, 1);
+  return true;
+}
+
 function detectApiType(connectionString) {
   if (!connectionString) return "none";
   if (connectionString.startsWith("mongodb")) return "mongo";
@@ -126,6 +157,11 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
     provider: result?.meta?.provider || "unknown"
   };
 
+  if (apiType === "none") {
+    memSave(doc);
+    return { id, sessionId };
+  }
+
   if (apiType === "mongo") {
     const collection = await getMongoCollection();
     await collection.insertOne({ ...doc, _id: id });
@@ -139,8 +175,8 @@ async function saveAnalysisRecord({ sessionId, resume, job, result }) {
 
 function normalizeHistoryFilters(filters) {
   const input = filters && typeof filters === "object" ? filters : {};
-  const minScoreRaw = Number(input.minScore);
-  const maxScoreRaw = Number(input.maxScore);
+  const minScoreRaw = input.minScore != null ? Number(input.minScore) : NaN;
+  const maxScoreRaw = input.maxScore != null ? Number(input.maxScore) : NaN;
   const minScore = Number.isFinite(minScoreRaw) ? Math.max(0, Math.min(100, minScoreRaw)) : null;
   const maxScore = Number.isFinite(maxScoreRaw) ? Math.max(0, Math.min(100, maxScoreRaw)) : null;
   const dateRange = String(input.dateRange || "all").toLowerCase();
@@ -164,6 +200,27 @@ async function getAnalysisById(id, sessionId) {
   if (!cleanId) return null;
 
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
+
+  if (apiType === "none") {
+    const row = memFindById(cleanId, sessionId);
+    if (!row) return null;
+    return {
+      id: row.id,
+      sessionId: row.sessionId,
+      createdAt: row.createdAt,
+      jobTitle: row.jobTitle || "",
+      resumeSnippet: row.resumeSnippet || "",
+      jobSnippet: row.jobSnippet || "",
+      matchScore: Number(row.matchScore || 0),
+      matchReasoning: row.matchReasoning || "",
+      missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
+      strengths: Array.isArray(row.strengths) ? row.strengths : [],
+      roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+      improvements: Array.isArray(row.improvements) ? row.improvements : [],
+      interviewQuestions: Array.isArray(row.interviewQuestions) ? row.interviewQuestions : [],
+      provider: row.provider || "unknown"
+    };
+  }
 
   if (apiType === "mongo") {
     const collection = await getMongoCollection();
@@ -248,6 +305,21 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
   const safeLimit = Math.max(1, Math.min(Number(limit) || 5, 20));
   const normalizedFilters = normalizeHistoryFilters(filters);
+
+  if (apiType === "none") {
+    return memQuery(sessionId, safeLimit, normalizedFilters).map((row) => ({
+      id: row.id,
+      sessionId: row.sessionId,
+      createdAt: row.createdAt,
+      jobTitle: row.jobTitle || "",
+      jobSnippet: row.jobSnippet || "",
+      matchScore: Number(row.matchScore || 0),
+      missingSkills: Array.isArray(row.missingSkills) ? row.missingSkills : [],
+      roadmap: Array.isArray(row.roadmap) ? row.roadmap : [],
+      improvements: Array.isArray(row.improvements) ? row.improvements : [],
+      provider: row.provider || "unknown"
+    }));
+  }
 
   if (apiType === "mongo") {
     const collection = await getMongoCollection();
@@ -335,6 +407,10 @@ async function deleteAnalysisById(id, sessionId) {
   if (!cleanId || !cleanSessionId) return false;
 
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
+
+  if (apiType === "none") {
+    return memDelete(cleanId, cleanSessionId);
+  }
 
   if (apiType === "mongo") {
     const collection = await getMongoCollection();
