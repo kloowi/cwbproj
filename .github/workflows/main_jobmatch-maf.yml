@@ -1,0 +1,63 @@
+name: Deploy MAF Service to Azure Web App - jobmatch-maf
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "careerhive/maf-service/**"
+      - ".github/workflows/main_jobmatch-maf.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_MAF }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_MAF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_MAF }}
+
+      - name: Configure App Service runtime settings
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            RG=$(az webapp list --query "[?name=='jobmatch-maf'].resourceGroup | [0]" -o tsv)
+            if [ -z "$RG" ]; then
+              echo "Unable to resolve resource group for app 'jobmatch-maf'."
+              exit 1
+            fi
+
+            az webapp config set \
+              --name jobmatch-maf \
+              --resource-group "$RG" \
+              --startup-file "bash startup.sh"
+
+            az webapp config appsettings set \
+              --name jobmatch-maf \
+              --resource-group "$RG" \
+              --settings \
+                GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+                GROQ_MODEL=llama-3.3-70b-versatile \
+                SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+                RELEASE_COMMIT=${{ github.sha }}
+
+      - name: Deploy maf-service to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: jobmatch-maf
+          slot-name: Production
+          package: ./careerhive/maf-service
