@@ -350,19 +350,6 @@ body {
   padding: 20px 22px;
 }
 
-.saved-analysis-view .panel {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  padding: 20px 22px;
-}
-
-.saved-analysis-panel {
-  display: grid;
-  gap: 16px;
-  padding: 0;
-}
-
 .view-hidden {
   display: none;
 }
@@ -1254,10 +1241,9 @@ textarea.input-zone:focus {
   margin: 5px 0;
 }
 
-/* Textarea height tuned to bottom-align with the resume upload zone */
-textarea.job-textarea {
+/* Keep textarea height aligned with the resume upload zone */
+.job-textarea {
   flex: 0 0 auto;
-  min-height: 131px;
 }
 
 .upload-zone {
@@ -2984,8 +2970,7 @@ ul {
 
   .input-zone,
   textarea.input-zone {
-    flex: 0 0 auto;
-    min-height: 0px;
+    min-height: 205px;
   }
 
   .score-card,
