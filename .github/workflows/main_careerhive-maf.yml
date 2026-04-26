@@ -62,14 +62,16 @@ jobs:
         uses: azure/cli@v2
         with:
           inlineScript: |
+            RG=$(az webapp list --query "[?name=='careerhive-maf'].resourceGroup | [0]" -o tsv)
+
             az webapp config set \
               --name careerhive-maf \
-              --resource-group $(az webapp list --query "[?name=='careerhive-maf'].resourceGroup | [0]" -o tsv) \
+              --resource-group "$RG" \
               --startup-file "python -m uvicorn app.main:app --host 0.0.0.0 --port \$PORT"
 
             az webapp config appsettings set \
               --name careerhive-maf \
-              --resource-group $(az webapp list --query "[?name=='careerhive-maf'].resourceGroup | [0]" -o tsv) \
+              --resource-group "$RG" \
               --settings \
                 SCM_DO_BUILD_DURING_DEPLOYMENT=true \
                 GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
@@ -82,3 +84,4 @@ jobs:
         with:
           app-name: 'careerhive-maf'
           slot-name: 'Production'
+          package: careerhive/agent-service
