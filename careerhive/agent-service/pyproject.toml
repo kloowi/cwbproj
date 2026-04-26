@@ -1,0 +1,19 @@
+[project]
+name = "careerhive-agent-service"
+version = "0.1.0"
+description = "Microsoft Agent Framework sidecar for CareerHive analysis pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "agent-framework>=1.0.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.6",
+    "python-dotenv>=1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
