@@ -2516,6 +2516,18 @@ savedReportContentEl.addEventListener("click", (event) => {
   openInterviewDetail(roleContext);
 });
 
+savedAnalysisContentEl.addEventListener("click", (event) => {
+  if (handleRoadmapInteraction(event)) return;
+
+  const nextStepBtn = event.target.closest(".next-step-cta");
+  if (!nextStepBtn) return;
+
+  event.preventDefault();
+  const roleContext = deriveInterviewRoleContext({ useSaved: true });
+  saveInterviewRoleSnapshot(roleContext, { useSaved: true });
+  openInterviewDetail(roleContext);
+});
+
 interviewQuestionListEl.addEventListener("click", (event) => {
   const trigger = event.target.closest("[data-interview-question-index]");
   if (!trigger) return;
