@@ -1257,6 +1257,7 @@ const SKILL_DISPLAY_MAP = {
   aws: "AWS",
   azure: "Azure",
   cicd: "CI/CD",
+  devops: "DevOps",
   gcp: "GCP",
   gke: "GKE",
   github: "GitHub",
