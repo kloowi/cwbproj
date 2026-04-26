@@ -10,46 +10,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python version
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install dependencies
-        working-directory: ./careerhive/agent-service
-        run: |
-          python -m venv antenv
-          source antenv/bin/activate
-          pip install -r requirements.txt
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            careerhive/agent-service
-            !careerhive/agent-service/antenv/
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
+      - uses: actions/checkout@v4
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -84,4 +52,4 @@ jobs:
         with:
           app-name: 'careerhive-maf'
           slot-name: 'Production'
-          package: careerhive/agent-service
+          package: ./careerhive/agent-service
