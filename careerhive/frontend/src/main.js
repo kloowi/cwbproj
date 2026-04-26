@@ -1844,12 +1844,21 @@ async function loadHistory() {
 
     const sessionId = getSessionId();
     const response = await fetch(`${apiBaseUrl}/history?${buildHistoryQuery(sessionId)}`);
-    if (!response.ok) throw new Error("History fetch failed");
+    if (!response.ok) {
+      let errorMessage = "History fetch failed";
+      try {
+        const payload = await response.json();
+        errorMessage = payload?.detail || payload?.error || errorMessage;
+      } catch (_parseError) {
+      }
+      throw new Error(errorMessage);
+    }
     const payload = await response.json();
     renderDashboard(Array.isArray(payload.items) ? payload.items : []);
-  } catch (_error) {
-    dashboardStatsEl.innerHTML = "<p class=\"empty\">Dashboard is temporarily unavailable.</p>";
-    dashboardHistoryEl.innerHTML = "<p class=\"empty\">History is temporarily unavailable.</p>";
+  } catch (error) {
+    const message = escapeHtml(formatRequestError(error));
+    dashboardStatsEl.innerHTML = `<p class="empty">${message}</p>`;
+    dashboardHistoryEl.innerHTML = `<p class="empty">${message}</p>`;
   }
 }
 
