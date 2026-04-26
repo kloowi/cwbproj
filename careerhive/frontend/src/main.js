@@ -1630,7 +1630,12 @@ function renderAnalysisReport(data, options = {}) {
         <p class="next-step-subtext">Practice real interview scenarios with AI-generated questions.</p>
       </div>
       <div class="next-step-actions">
-        <button class="next-step-cta" type="button">Prepare Now →</button>
+        <button class="next-step-cta" type="button">
+          <span class="next-step-cta-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">play_circle</span>
+          </span>
+          <span>Prepare Now</span>
+        </button>
       </div>
     </section>`;
 

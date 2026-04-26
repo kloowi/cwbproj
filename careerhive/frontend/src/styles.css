@@ -1768,7 +1768,7 @@ input[type="file"]:hover {
 
 .action-title {
   margin: 0;
-  font-weight: 400;
+  font-weight: 700;
   font-size: var(--report-body-size);
   line-height: 1.35;
 }
@@ -2060,7 +2060,7 @@ input[type="file"]:hover {
 
 .roadmap-title {
   margin: 0;
-  font-weight: 400;
+  font-weight: 700;
   font-size: clamp(0.86rem, 1.05vw, 1.02rem);
   line-height: 1.24;
   letter-spacing: -0.01em;
@@ -2076,13 +2076,14 @@ input[type="file"]:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  font-weight: 700;
 }
 
 .priority-pill {
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -2130,9 +2131,6 @@ input[type="file"]:hover {
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
   padding: 0;
   cursor: pointer;
   transition: color 150ms ease;
@@ -2207,28 +2205,50 @@ input[type="file"]:hover {
 }
 
 .next-step-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(180deg, #f28a2c, #ef7d22);
+  background: linear-gradient(120deg, #f28013, #f6b322);
   color: #fff9f3;
   font: inherit;
   font-size: clamp(0.95rem, 1.4vw, 1.05rem);
   font-weight: 650;
   line-height: 1;
   letter-spacing: 0.01em;
-  padding: 14px 34px;
+  padding: 12px 18px 12px 14px;
   min-height: 50px;
   cursor: pointer;
-  box-shadow: none;
+  box-shadow: 0 4px 14px rgba(242, 128, 19, 0.3);
+  transition: all 180ms ease;
 }
 
 .next-step-cta:hover {
-  background: linear-gradient(180deg, #f3953f, #f08028);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(242, 128, 19, 0.4);
+  filter: brightness(1.06);
 }
 
 .next-step-cta:focus-visible {
   outline: 2px solid rgba(242, 138, 44, 0.42);
   outline-offset: 2px;
+}
+
+.next-step-cta-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.next-step-cta-icon .material-symbols-outlined {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #fff;
 }
 
 .strength-list {
