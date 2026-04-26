@@ -842,23 +842,17 @@ function normalizeRoleLabel(value) {
     .replace(/\s+/g, " ")
     .trim();
   if (!cleaned) return DEFAULT_INTERVIEW_ROLE_LABEL;
-  return cleaned
+  const titleCased = cleaned
     .split(" ")
     .map((part) => {
       const lower = part.toLowerCase();
-      if (lower === "ui") return "UI";
-      if (lower === "ux") return "UX";
-      if (lower === "qa") return "QA";
-      if (lower === "ml") return "ML";
-      if (lower === "ai") return "AI";
-      if (lower === "devops") return "DevOps";
-      if (lower === "sre") return "SRE";
       if (lower === "fe") return "Frontend";
       if (lower === "be") return "Backend";
       if (lower === "eng") return "Engineer";
       return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
     })
     .join(" ");
+  return applyTechCapitalization(titleCased);
 }
 
 function toRoleSlug(value) {
@@ -1250,6 +1244,55 @@ function toTitleCase(text) {
     .join(" ");
 }
 
+const TECH_CAPS_RULES = [
+  [/\bdevops\b/gi, "DevOps"],
+  [/\bkubernetes\b/gi, "Kubernetes"],
+  [/\bdocker\b/gi, "Docker"],
+  [/\blinux\b/gi, "Linux"],
+  [/\bpython\b/gi, "Python"],
+  [/\bjavascript\b/gi, "JavaScript"],
+  [/\btypescript\b/gi, "TypeScript"],
+  [/\breact\b/gi, "React"],
+  [/\bnode\.?js\b/gi, "Node.js"],
+  [/\baws\b/gi, "AWS"],
+  [/\bgcp\b/gi, "GCP"],
+  [/\bazure\b/gi, "Azure"],
+  [/\bgithub\b/gi, "GitHub"],
+  [/\bgit\b/gi, "Git"],
+  [/\bterraform\b/gi, "Terraform"],
+  [/\bjenkins\b/gi, "Jenkins"],
+  [/\bansible\b/gi, "Ansible"],
+  [/\bpuppet\b/gi, "Puppet"],
+  [/\bkafka\b/gi, "Kafka"],
+  [/\bnginx\b/gi, "Nginx"],
+  [/\bpostgresql\b/gi, "PostgreSQL"],
+  [/\bpostgres\b/gi, "PostgreSQL"],
+  [/\bmysql\b/gi, "MySQL"],
+  [/\bmongodb\b/gi, "MongoDB"],
+  [/\bredis\b/gi, "Redis"],
+  [/\bgraphql\b/gi, "GraphQL"],
+  [/\brestful\b/gi, "RESTful"],
+  [/\brest\s+api[s]?\b/gi, (m) => m.replace(/rest/i, "REST").replace(/api/i, "API")],
+  [/\bjava\b/gi, "Java"],
+  [/\bci\/cd\b/gi, "CI/CD"],
+  [/\bcicd\b/gi, "CI/CD"],
+  [/\bai\b/gi, "AI"],
+  [/\bml\b/gi, "ML"],
+  [/\bnlp\b/gi, "NLP"],
+  [/\bsre\b/gi, "SRE"],
+  [/\bsql\b/gi, "SQL"],
+  [/\bnosql\b/gi, "NoSQL"],
+];
+
+function applyTechCapitalization(text) {
+  if (!text) return text;
+  let result = text;
+  for (const [pattern, replacement] of TECH_CAPS_RULES) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
 const SKILL_DISPLAY_MAP = {
   ai: "AI",
   api: "API",
@@ -1508,7 +1551,7 @@ function buildActionableItems(missingSkills, improvements) {
 
 function buildRoadmapSteps(roadmapItems, missingSkills) {
   const normalizedRoadmap = roadmapItems
-    .map((item) => toSentenceCase(String(item || "")))
+    .map((item) => applyTechCapitalization(toSentenceCase(String(item || ""))))
     .filter(Boolean);
 
   const fallbackRoadmap = missingSkills.slice(0, 3).map((skill) => `Build project proof for ${skill}.`);
@@ -1540,7 +1583,7 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
 
 function renderAnalysisReport(data, options = {}) {
   const analysisId = resolveAnalysisId(data, options);
-  const title = escapeHtml(options.title || data.job?.title || "Role Analysis");
+  const title = escapeHtml(applyTechCapitalization(options.title || data.job?.title || "Role Analysis"));
   const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
   const profile = getScoreProfile(score);
   const missingSkills = formatSkillList(data.match?.missing);
@@ -1575,7 +1618,7 @@ function renderAnalysisReport(data, options = {}) {
       (item, index) => `<li class="action-item">
         <span class="action-icon" aria-hidden="true">${index === 0 ? "+" : index === 1 ? "#" : ">"}</span>
         <div>
-          <p class="action-title">${escapeHtml(toSentenceCase(item))}</p>
+          <p class="action-title">${escapeHtml(applyTechCapitalization(toSentenceCase(item)))}</p>
         </div>
       </li>`
     )
