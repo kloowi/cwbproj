@@ -65,7 +65,7 @@ jobs:
             az webapp config set \
               --name careerhive-maf \
               --resource-group $(az webapp list --query "[?name=='careerhive-maf'].resourceGroup | [0]" -o tsv) \
-              --startup-file "python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+              --startup-file "python -m uvicorn app.main:app --host 0.0.0.0 --port \$PORT"
 
             az webapp config appsettings set \
               --name careerhive-maf \
