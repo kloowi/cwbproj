@@ -1541,6 +1541,13 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
 function renderAnalysisReport(data, options = {}) {
   const analysisId = resolveAnalysisId(data, options);
   const title = escapeHtml(options.title || data.job?.title || "Role Analysis");
+  const providerUsedRaw = String(data?.meta?.provider || "").trim();
+  const requestedProviderRaw = String(data?.meta?.requestedProvider || "").trim();
+  const usedFallback = Boolean(data?.meta?.fallback);
+  const fallbackReasonRaw = String(data?.meta?.fallbackReason || "").trim();
+  const providerUsed = escapeHtml(providerUsedRaw || "unknown");
+  const requestedProvider = escapeHtml(requestedProviderRaw || providerUsedRaw || "unknown");
+  const fallbackReason = escapeHtml(fallbackReasonRaw);
   const score = Math.max(0, Math.min(100, Number(data.match?.score || 0)));
   const profile = getScoreProfile(score);
   const missingSkills = formatSkillList(data.match?.missing);
@@ -1646,6 +1653,8 @@ function renderAnalysisReport(data, options = {}) {
     <div class="report-title-row">
       <h3>${title}</h3>
       <p>Cross-referenced against this role's key requirements to produce clear next actions.</p>
+      <p class="meta">${usedFallback ? `Provider fallback active. Requested ${requestedProvider}, served by ${providerUsed}.` : `Provider: ${providerUsed}.`}</p>
+      ${usedFallback && fallbackReason ? `<p class="meta">Fallback reason: ${fallbackReason}</p>` : ""}
     </div>` : ""}
 
     <div class="report-grid" aria-live="polite">
