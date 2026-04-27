@@ -1,6 +1,7 @@
 import json
 import re
 
+from openai import AsyncOpenAI
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import (
     OpenAIChatCompletion,
@@ -11,11 +12,15 @@ from semantic_kernel.contents.chat_history import ChatHistory
 
 def build_kernel(api_key: str, model: str) -> Kernel:
     kernel = Kernel()
+    client = AsyncOpenAI(
+        api_key=api_key,
+        base_url="https://api.groq.com/openai/v1",
+    )
     kernel.add_service(
         OpenAIChatCompletion(
             ai_model_id=model,
             api_key=api_key,
-            base_url="https://api.groq.com/openai/v1",
+            async_client=client,
         )
     )
     return kernel
