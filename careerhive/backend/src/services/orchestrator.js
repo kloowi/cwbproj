@@ -60,35 +60,15 @@ function normalizeAnalysisResult(result, providerName) {
   return normalized;
 }
 
-function resolveRequestedProviderName() {
-  return String(process.env.LLM_PROVIDER || "groq").trim().toLowerCase() || "groq";
-}
-
 async function runAnalysis({ resume, job }) {
-  const requestedProvider = resolveRequestedProviderName();
-
   try {
     const provider = createProvider();
     const result = await runAgentPipeline(provider, { resume, job });
-    const normalized = normalizeAnalysisResult(result, provider.name);
-    normalized.meta = {
-      ...normalized.meta,
-      requestedProvider,
-      fallback: false
-    };
-    return normalized;
+    return normalizeAnalysisResult(result, provider.name);
   } catch (error) {
-    console.warn(`Primary provider failed, using fallback.`, error.message);
     const fallbackProvider = createFallbackProvider();
     const result = await fallbackProvider.analyze({ resume, job });
-    const normalized = normalizeAnalysisResult(result, fallbackProvider.name);
-    normalized.meta = {
-      ...normalized.meta,
-      requestedProvider,
-      fallback: true,
-      fallbackReason: String(error?.message || "Primary provider failed")
-    };
-    return normalized;
+    return normalizeAnalysisResult(result, fallbackProvider.name);
   }
 }
 
