@@ -61,3 +61,4 @@ jobs:
           app-name: jobmatch-maf
           slot-name: Production
           package: ./careerhive/maf-service
+          enable-oryx-build: true

@@ -68,3 +68,4 @@ jobs:
           app-name: jobmatch
           slot-name: Production
           package: ./careerhive/backend
+          enable-oryx-build: true
