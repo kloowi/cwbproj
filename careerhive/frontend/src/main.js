@@ -347,6 +347,7 @@ let latestMainReportData = null;
 let latestMainReportOptions = null;
 let latestSavedReportData = null;
 let latestSavedReportOptions = null;
+let sessionResumeText = "";
 let activeView = "analysis";
 let currentInterviewPage = 0;
 let currentDashboardPage = 0;
@@ -823,6 +824,9 @@ function updateRoadmapCardUi(roadmapCardEl, analysisId) {
   if (progressEl) {
     progressEl.textContent = `${completedCount} of ${rows.length} completed`;
   }
+
+  const reportContainer = roadmapCardEl.closest(".report-grid")?.parentElement;
+  syncResumeDownloadButton(reportContainer, analysisId);
 }
 
 function setResumeFileStatus(message, state) {
@@ -1625,20 +1629,36 @@ function renderAnalysisReport(data, options = {}) {
     : "";
 
   const nextStepMarkup = `<div class="section-label">Next Step</div>
-    <section class="card-lite report-card next-step-card" aria-label="Next step">
-      <div class="next-step-content">
-        <h3 class="next-step-title">Interview Preparation</h3>
-        <p class="next-step-subtext">Practice real interview scenarios with AI-generated questions.</p>
-      </div>
-      <div class="next-step-actions">
-        <button class="next-step-cta" type="button">
-          <span class="next-step-cta-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">play_circle</span>
-          </span>
-          <span>Prepare Now</span>
-        </button>
-      </div>
-    </section>`;
+    <div class="next-step-grid">
+      <section class="card-lite next-step-card" aria-label="Resume Enhancement">
+        <div class="next-step-content">
+          <h3 class="next-step-title">Resume Enhancement</h3>
+          <p class="next-step-subtext">Complete your application roadmap to get a personalized resume perfect for your role!</p>
+        </div>
+        <div class="next-step-actions">
+          <button class="next-step-cta next-step-cta--resume" type="button" disabled>
+            <span class="next-step-cta-icon" aria-hidden="true">
+              <span class="material-symbols-outlined">download</span>
+            </span>
+            <span>Download</span>
+          </button>
+        </div>
+      </section>
+      <section class="card-lite next-step-card" aria-label="Interview Preparation">
+        <div class="next-step-content">
+          <h3 class="next-step-title">Interview Preparation</h3>
+          <p class="next-step-subtext">Practice real interview scenarios with AI-generated questions!</p>
+        </div>
+        <div class="next-step-actions">
+          <button class="next-step-cta" type="button">
+            <span class="next-step-cta-icon" aria-hidden="true">
+              <span class="material-symbols-outlined">play_circle</span>
+            </span>
+            <span>Prepare Now</span>
+          </button>
+        </div>
+      </section>
+    </div>`;
 
   return `
     ${!options.suppressTitleRow ? `
@@ -1727,6 +1747,7 @@ function renderSavedAnalysisOverlay(data) {
       ...latestSavedReportOptions
     })
   );
+  syncResumeDownloadButton(savedReportContentEl, latestSavedReportOptions.analysisId);
 }
 
 function renderSavedAnalysisPage(data) {
@@ -1748,6 +1769,7 @@ function renderSavedAnalysisPage(data) {
     ...latestSavedReportOptions,
     suppressTitleRow: true
   });
+  syncResumeDownloadButton(savedAnalysisContentEl, latestSavedReportOptions.analysisId);
 }
 
 function renderDashboard(items) {
@@ -2119,6 +2141,7 @@ function renderResults(data, options = {}) {
   };
 
   resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
+  syncResumeDownloadButton(resultsEl, latestMainReportOptions.analysisId);
 }
 
 async function openSavedAnalysis(id) {
@@ -2251,6 +2274,7 @@ form.addEventListener("submit", async (event) => {
     if (!resume) {
       throw new Error("Resume extraction produced empty text. Please upload a text-based PDF or DOCX file.");
     }
+    sessionResumeText = resume;
 
     let job = jobText;
 
@@ -2506,6 +2530,70 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+function syncResumeDownloadButton(containerEl, analysisId) {
+  if (!containerEl || !analysisId) return;
+  const downloadBtn = containerEl.querySelector(".next-step-cta--resume");
+  if (!downloadBtn || downloadBtn.dataset.loading) return;
+
+  const steps = roadmapProgressState[analysisId] || {};
+  const keys = Object.keys(steps);
+  const allComplete = keys.length > 0 && keys.every((k) => steps[k] === true);
+
+  downloadBtn.disabled = !(allComplete && Boolean(sessionResumeText));
+}
+
+async function handleResumeDownload(containerEl) {
+  const btn = containerEl?.querySelector(".next-step-cta--resume");
+  if (!btn || btn.disabled || btn.dataset.loading) return;
+
+  const labelEl = btn.querySelector("span:last-child");
+  const originalLabel = labelEl?.textContent || "Download";
+
+  btn.dataset.loading = "1";
+  btn.disabled = true;
+  if (labelEl) labelEl.textContent = "Generating…";
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/analyze/enhance-resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        resume: sessionResumeText,
+        jobTitle: latestMainReportData?.job?.title || "",
+        jobSkills: latestMainReportData?.job?.skills || [],
+        missing: latestMainReportData?.match?.missing || [],
+        strengths: latestMainReportData?.match?.strengths || [],
+        improvements: latestMainReportData?.plan?.improvements || [],
+        roadmap: latestMainReportData?.plan?.roadmap || []
+      })
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Enhancement failed (${response.status}).`);
+    }
+
+    const { enhancedResume } = await response.json();
+    const blob = new Blob([enhancedResume], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const slug = (latestMainReportData?.job?.title || "resume").replace(/\s+/g, "-").toLowerCase();
+    a.href = url;
+    a.download = `${slug}-enhanced-resume.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    errorEl.textContent = formatRequestError(error);
+  } finally {
+    delete btn.dataset.loading;
+    if (labelEl) labelEl.textContent = originalLabel;
+    const analysisId = latestMainReportOptions?.analysisId || "";
+    syncResumeDownloadButton(containerEl, analysisId);
+  }
+}
+
 function handleRoadmapInteraction(event) {
   const completeButton = event.target.closest("[data-roadmap-action='complete']");
   if (completeButton) {
@@ -2538,6 +2626,12 @@ function handleRoadmapInteraction(event) {
 resultsEl.addEventListener("click", (event) => {
   if (handleRoadmapInteraction(event)) return;
 
+  if (event.target.closest(".next-step-cta--resume")) {
+    event.preventDefault();
+    handleResumeDownload(resultsEl);
+    return;
+  }
+
   const nextStepBtn = event.target.closest(".next-step-cta");
   if (!nextStepBtn) return;
 
@@ -2551,6 +2645,12 @@ resultsEl.addEventListener("click", (event) => {
 savedReportContentEl.addEventListener("click", (event) => {
   if (handleRoadmapInteraction(event)) return;
 
+  if (event.target.closest(".next-step-cta--resume")) {
+    event.preventDefault();
+    handleResumeDownload(savedReportContentEl);
+    return;
+  }
+
   const nextStepBtn = event.target.closest(".next-step-cta");
   if (!nextStepBtn) return;
 
@@ -2562,6 +2662,12 @@ savedReportContentEl.addEventListener("click", (event) => {
 
 savedAnalysisContentEl.addEventListener("click", (event) => {
   if (handleRoadmapInteraction(event)) return;
+
+  if (event.target.closest(".next-step-cta--resume")) {
+    event.preventDefault();
+    handleResumeDownload(savedAnalysisContentEl);
+    return;
+  }
 
   const nextStepBtn = event.target.closest(".next-step-cta");
   if (!nextStepBtn) return;
