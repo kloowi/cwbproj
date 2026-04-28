@@ -72,13 +72,13 @@ app.innerHTML = `
         </div>
       </div>
       <nav class="nav-group" aria-label="Primary Navigation">
-        <button class="nav-item" type="button" id="nav-dashboard">
-          <span class="material-symbols-outlined nav-icon" aria-hidden="true">dashboard</span>
-          <span class="nav-label">Dashboard</span>
-        </button>
         <button class="nav-item nav-active" type="button" id="nav-new-analysis">
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">analytics</span>
           <span class="nav-label">Add Analysis</span>
+        </button>
+        <button class="nav-item" type="button" id="nav-dashboard">
+          <span class="material-symbols-outlined nav-icon" aria-hidden="true">dashboard</span>
+          <span class="nav-label">Dashboard</span>
         </button>
         <button class="nav-item" type="button" id="nav-interview-prep">
           <span class="material-symbols-outlined nav-icon" aria-hidden="true">psychology</span>
