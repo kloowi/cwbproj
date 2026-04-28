@@ -2445,10 +2445,16 @@ consentCheckboxEl.addEventListener("change", () => {
 });
 
 form.job.addEventListener("input", () => {
+  if (form.job.value.trim()) {
+    document.getElementById("job-url").value = "";
+  }
   updateSubmitAvailability();
 });
 
 document.getElementById("job-url").addEventListener("input", () => {
+  if (document.getElementById("job-url").value.trim()) {
+    form.job.value = "";
+  }
   updateSubmitAvailability();
 });
 
