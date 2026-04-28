@@ -2440,6 +2440,37 @@ resumeFileEl.addEventListener("change", () => {
   updateSubmitAvailability();
 });
 
+const uploadZone = document.querySelector(".upload-zone");
+if (uploadZone) {
+  uploadZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    uploadZone.style.backgroundColor = "#f0e9e2";
+    uploadZone.style.borderColor = "#e2c7b7";
+  });
+
+  uploadZone.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    uploadZone.style.backgroundColor = "";
+    uploadZone.style.borderColor = "";
+  });
+
+  uploadZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    uploadZone.style.backgroundColor = "";
+    uploadZone.style.borderColor = "";
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      resumeFileEl.files = files;
+      const changeEvent = new Event("change", { bubbles: true });
+      resumeFileEl.dispatchEvent(changeEvent);
+    }
+  });
+}
+
 consentCheckboxEl.addEventListener("change", () => {
   updateSubmitAvailability();
 });
