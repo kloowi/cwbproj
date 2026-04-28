@@ -2158,21 +2158,44 @@ input[type="file"]:hover {
   margin-top: 16px;
 }
 
+.next-step-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .next-step-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .next-step-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
   gap: 20px;
-  min-height: 162px;
+  min-height: 180px;
   padding: 24px 28px;
-  box-shadow: none;
-  background:
-    radial-gradient(circle at 88% 12%, rgba(247, 166, 58, 0.2), transparent 30%),
-    linear-gradient(180deg, #ffffff, #fff8ef);
+  box-shadow: var(--shadow-card);
+  background: #ffffff;
 }
 
 .next-step-card::after {
   display: none;
+}
+
+.next-step-cta--resume:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.next-step-cta--resume[data-loading] {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .next-step-content {
