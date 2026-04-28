@@ -9,7 +9,7 @@ const SAVED_INTERVIEW_ROLES_KEY = "careerhive_saved_interview_roles_v1";
 const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
 const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_RESUME_EXTENSIONS = [".pdf", ".docx"];
+const ALLOWED_RESUME_EXTENSIONS = [".pdf", ".docx", ".txt"];
 const DEFAULT_INTERVIEW_ROLE_SLUG = "software-eng";
 const DEFAULT_INTERVIEW_ROLE_LABEL = "Software Engineer";
 
@@ -164,7 +164,7 @@ app.innerHTML = `
                 <p class="upload-zone-copy">Drop your resume here</p>
                 <span class="upload-zone-divider" aria-hidden="true"><strong>or</strong></span>
                 <label class="browse-files-btn" for="resume-file">Browse Files</label>
-                <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <input id="resume-file" name="resumeFile" class="sr-only-file" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" />
               </div>
               <p class="file-status-pill is-idle" id="resume-file-status" role="status" aria-live="polite">No file selected</p>
             </section>
@@ -2419,10 +2419,11 @@ resumeFileEl.addEventListener("change", () => {
 
   const isAllowedType = hasAllowedResumeExtension(file.name)
     || file.type === "application/pdf"
-    || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    || file.type === "text/plain";
   if (!isAllowedType) {
     resumeFileIsValid = false;
-    setResumeFileStatus("Unsupported format. Use PDF or DOCX.", "is-error");
+    setResumeFileStatus("Unsupported format. Use PDF, DOCX, or TXT.", "is-error");
     updateSubmitAvailability();
     return;
   }

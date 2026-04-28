@@ -2,7 +2,7 @@ const path = require("path");
 const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 
-const SUPPORTED_EXTENSIONS = new Set([".pdf", ".docx"]);
+const SUPPORTED_EXTENSIONS = new Set([".pdf", ".docx", ".txt"]);
 
 function normalizeExtractedText(text) {
   return String(text || "")
@@ -32,7 +32,7 @@ async function extractResumeText({ buffer, mimeType, fileName }) {
   }
 
   if (!SUPPORTED_EXTENSIONS.has(extension)) {
-    throw new Error("Unsupported file type. Please upload a PDF or DOCX file.");
+    throw new Error("Unsupported file type. Please upload a PDF, DOCX, or TXT file.");
   }
 
   if (isPdfType(mimeType, extension)) {
@@ -51,7 +51,14 @@ async function extractResumeText({ buffer, mimeType, fileName }) {
     };
   }
 
-  throw new Error("Unsupported file type. Please upload a PDF or DOCX file.");
+  if (extension === ".txt") {
+    return {
+      text: normalizeExtractedText(buffer.toString("utf8")),
+      format: "txt"
+    };
+  }
+
+  throw new Error("Unsupported file type. Please upload a PDF, DOCX, or TXT file.");
 }
 
 module.exports = {
