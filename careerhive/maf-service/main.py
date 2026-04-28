@@ -15,6 +15,7 @@ from agents import (
     match_skills,
     plan_roadmap,
     generate_interview_questions,
+    enhance_resume,
 )
 
 load_dotenv()
@@ -42,6 +43,16 @@ class PipelineRequest(BaseModel):
     job: str
 
 
+class EnhanceResumeRequest(BaseModel):
+    resume: str
+    jobTitle: str = ""
+    jobSkills: list = []
+    missing: list = []
+    strengths: list = []
+    improvements: list = []
+    roadmap: list = []
+
+
 @app.get("/health")
 async def health():
     return {"ok": True, "service": "maf-service", "time": datetime.now(timezone.utc).isoformat()}
@@ -66,5 +77,23 @@ async def run_pipeline(req: PipelineRequest):
             "interview": interview,
             "meta": {"provider": "maf-sk", "pipeline": "staged"},
         }
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/enhance-resume")
+async def run_enhance_resume(req: EnhanceResumeRequest):
+    try:
+        result = await enhance_resume(
+            _kernel,
+            req.resume,
+            req.jobTitle,
+            req.jobSkills,
+            req.missing,
+            req.strengths,
+            req.improvements,
+            req.roadmap,
+        )
+        return result
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

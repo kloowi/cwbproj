@@ -265,3 +265,47 @@ async def generate_interview_questions(
         "plan": plan,
     }))
     return {"questions": _normalize_interview_questions(raw.get("questions"))}
+
+
+async def enhance_resume(
+    kernel: Kernel,
+    resume_text: str,
+    job_title: str,
+    job_skills: list,
+    missing: list,
+    strengths: list,
+    improvements: list,
+    roadmap: list,
+) -> dict:
+    skills_line = ", ".join(job_skills) if job_skills else "not specified"
+    strengths_line = ", ".join(strengths) if strengths else "none identified"
+    missing_line = ", ".join(missing) if missing else "none"
+    improvements_block = "\n".join(f"- {i}" for i in improvements) if improvements else "- No specific improvements listed"
+    roadmap_block = "\n".join(f"- {r}" for r in roadmap) if roadmap else "- No roadmap items"
+
+    prompt = f"""You are a professional resume writer. Rewrite the resume below so it is tailored to the target role.
+
+Target role: {job_title}
+Required skills for the role: {skills_line}
+Candidate's existing strengths (already present): {strengths_line}
+Skills to incorporate or highlight more strongly: {missing_line}
+Specific improvements to apply:
+{improvements_block}
+Roadmap achievements to reflect where applicable:
+{roadmap_block}
+
+Original resume:
+\"\"\"
+{resume_text}
+\"\"\"
+
+Rules:
+- Do NOT invent jobs, degrees, company names, dates, or credentials that are not in the original.
+- Rewrite existing bullet points to emphasise relevance to the target role.
+- Naturally weave in the listed skills only where they honestly apply to real experience shown.
+- Apply every specific improvement listed above.
+- Output a clean, plain-text resume with standard sections: Summary, Experience, Skills, Education (and any other sections present in the original).
+- Return JSON with a single key: {{"enhancedResume": "<full resume as a plain-text string with \\n line breaks>"}}"""
+
+    raw = await call_agent(kernel, prompt)
+    return {"enhancedResume": str(raw.get("enhancedResume", "")).strip()}

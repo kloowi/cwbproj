@@ -141,4 +141,32 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+router.post("/enhance-resume", async (req, res, next) => {
+  try {
+    const resume = typeof req.body?.resume === "string" ? req.body.resume.trim() : "";
+    if (!resume) return res.status(400).json({ error: "Resume text is required." });
+
+    const mafUrl = process.env.MAF_SERVICE_URL;
+    if (!mafUrl) return res.status(503).json({ error: "Enhancement service is not configured." });
+
+    const { jobTitle = "", jobSkills = [], missing = [], strengths = [], improvements = [], roadmap = [] } = req.body || {};
+
+    const mafRes = await fetch(`${mafUrl}/enhance-resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resume, jobTitle, jobSkills, missing, strengths, improvements, roadmap }),
+      signal: AbortSignal.timeout(90_000)
+    });
+
+    if (!mafRes.ok) {
+      const body = await mafRes.json().catch(() => ({}));
+      throw new Error(`Enhancement failed: ${body.detail || mafRes.statusText}`);
+    }
+
+    return res.json(await mafRes.json());
+  } catch (error) {
+    return next(error);
+  }
+});
+
 module.exports = router;
