@@ -1,26 +1,22 @@
 import json
 import re
 
-from openai import AsyncOpenAI
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import (
-    OpenAIChatCompletion,
-    OpenAIChatPromptExecutionSettings,
+    AzureChatCompletion,
+    AzureChatPromptExecutionSettings,
 )
 from semantic_kernel.contents.chat_history import ChatHistory
 
 
-def build_kernel(api_key: str, model: str) -> Kernel:
+def build_kernel(endpoint: str, api_key: str, deployment: str, api_version: str) -> Kernel:
     kernel = Kernel()
-    client = AsyncOpenAI(
-        api_key=api_key,
-        base_url="https://api.groq.com/openai/v1",
-    )
     kernel.add_service(
-        OpenAIChatCompletion(
-            ai_model_id=model,
+        AzureChatCompletion(
+            deployment_name=deployment,
+            endpoint=endpoint,
             api_key=api_key,
-            async_client=client,
+            api_version=api_version,
         )
     )
     return kernel
@@ -31,8 +27,8 @@ async def call_agent(kernel: Kernel, prompt: str) -> dict:
     history.add_system_message("You return JSON only.")
     history.add_user_message(prompt)
 
-    service: OpenAIChatCompletion = kernel.get_service()
-    settings = OpenAIChatPromptExecutionSettings(
+    service: AzureChatCompletion = kernel.get_service()
+    settings = AzureChatPromptExecutionSettings(
         temperature=0.2,
         response_format={"type": "json_object"},
     )
@@ -52,7 +48,7 @@ def _parse_json(text: str) -> dict:
         return json.loads(m.group(0))
 
 
-# --- normalizers (mirror groqProvider.js) ---
+# --- normalizers ---
 
 def _normalize_array(value) -> list[str]:
     if not isinstance(value, list):
@@ -94,7 +90,7 @@ def _normalize_interview_questions(value) -> list[dict]:
     return result[:4]
 
 
-# --- prompt builders (verbatim from groqProvider.js) ---
+# --- prompt builders ---
 
 def _build_resume_prompt(resume: str) -> str:
     return "\n".join([
