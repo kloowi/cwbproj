@@ -1637,7 +1637,7 @@ function renderAnalysisReport(data, options = {}) {
             <span class="next-step-cta-icon" aria-hidden="true">
               <span class="material-symbols-outlined">download</span>
             </span>
-            <span>Download</span>
+            <span class="next-step-cta-label">Download</span>
           </button>
         </div>
       </section>
@@ -1651,7 +1651,7 @@ function renderAnalysisReport(data, options = {}) {
             <span class="next-step-cta-icon" aria-hidden="true">
               <span class="material-symbols-outlined">play_circle</span>
             </span>
-            <span>Prepare Now</span>
+            <span class="next-step-cta-label">Prepare Now</span>
           </button>
         </div>
       </section>
@@ -2543,7 +2543,7 @@ async function handleResumeDownload(containerEl) {
   const btn = containerEl?.querySelector(".next-step-cta--resume");
   if (!btn || btn.disabled || btn.dataset.loading) return;
 
-  const labelEl = btn.querySelector("span:last-child");
+  const labelEl = btn.querySelector(".next-step-cta-label");
   const originalLabel = labelEl?.textContent || "Download";
 
   btn.dataset.loading = "1";
