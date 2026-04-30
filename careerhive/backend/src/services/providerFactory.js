@@ -1,13 +1,8 @@
-const { createGroqProvider } = require("./providers/groqProvider");
 const { createFallbackProvider } = require("./providers/fallbackProvider");
 const { createMafProvider } = require("./providers/mafProvider");
 
 function createProvider() {
-  const providerName = (process.env.LLM_PROVIDER || "groq").toLowerCase();
-
-  if (providerName === "groq") {
-    return createGroqProvider();
-  }
+  const providerName = (process.env.LLM_PROVIDER || "maf").toLowerCase();
 
   if (providerName === "maf") {
     return createMafProvider();

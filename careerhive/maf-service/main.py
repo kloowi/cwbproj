@@ -20,8 +20,10 @@ from agents import (
 
 load_dotenv()
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "")
+AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
 
 _kernel: Kernel | None = None
 
@@ -29,9 +31,12 @@ _kernel: Kernel | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _kernel
-    if not GROQ_API_KEY:
-        raise RuntimeError("GROQ_API_KEY is not configured.")
-    _kernel = build_kernel(GROQ_API_KEY, GROQ_MODEL)
+    if not AZURE_OPENAI_ENDPOINT or not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_DEPLOYMENT:
+        raise RuntimeError(
+            "Azure OpenAI configuration is incomplete "
+            "(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT required)."
+        )
+    _kernel = build_kernel(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT, AZURE_OPENAI_API_VERSION)
     yield
 
 
