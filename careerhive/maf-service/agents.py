@@ -29,7 +29,6 @@ async def call_agent(kernel: Kernel, prompt: str) -> dict:
 
     service: AzureChatCompletion = kernel.get_service()
     settings = AzureChatPromptExecutionSettings(
-        temperature=0.2,
         response_format={"type": "json_object"},
     )
     result = await service.get_chat_message_contents(history, settings=settings)
