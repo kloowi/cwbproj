@@ -71,8 +71,10 @@ async def run_pipeline(req: PipelineRequest):
             extract_job(_kernel, req.job),
         )
         match = await match_skills(_kernel, resume, job)
-        plan = await plan_roadmap(_kernel, resume, job, match)
-        interview = await generate_interview_questions(_kernel, resume, job, match, plan)
+        plan, interview = await asyncio.gather(
+            plan_roadmap(_kernel, resume, job, match),
+            generate_interview_questions(_kernel, resume, job, match),
+        )
 
         return {
             "resume": resume,
