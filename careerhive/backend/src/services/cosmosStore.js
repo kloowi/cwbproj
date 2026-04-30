@@ -244,9 +244,10 @@ async function getAnalysisById(id, sessionId) {
   };
 }
 
-async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
+async function getRecentAnalyses(sessionId, limit = null, filters = {}) {
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 5, 20));
+  const numericLimit = Number(limit);
+  const safeLimit = Number.isFinite(numericLimit) && numericLimit > 0 ? Math.floor(numericLimit) : null;
   const normalizedFilters = normalizeHistoryFilters(filters);
 
   if (apiType === "mongo") {
@@ -263,11 +264,11 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
       query.createdAt = { $gte: normalizedFilters.sinceIso };
     }
 
-    const rows = await collection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(safeLimit)
-      .toArray();
+    let cursor = collection.find(query).sort({ createdAt: -1 });
+    if (safeLimit !== null) {
+      cursor = cursor.limit(safeLimit);
+    }
+    const rows = await cursor.toArray();
 
     return rows.map((row) => ({
       id: row.id || row._id,
@@ -284,10 +285,7 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
 
   const dbContainer = getContainer();
   const whereClauses = ["c.source = @source"];
-  const parameters = [
-    { name: "@limit", value: safeLimit },
-    { name: "@source", value: "analyze" }
-  ];
+  const parameters = [{ name: "@source", value: "analyze" }];
 
   if (sessionId) {
     whereClauses.push("c.sessionId = @sessionId");
@@ -309,8 +307,13 @@ async function getRecentAnalyses(sessionId, limit = 5, filters = {}) {
     parameters.push({ name: "@sinceIso", value: normalizedFilters.sinceIso });
   }
 
+  const selectFields = "c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.improvements, c.provider";
+  if (safeLimit !== null) {
+    parameters.push({ name: "@limit", value: safeLimit });
+  }
+
   const querySpec = {
-    query: `SELECT TOP @limit c.id, c.sessionId, c.createdAt, c.jobTitle, c.jobSnippet, c.matchScore, c.missingSkills, c.roadmap, c.improvements, c.provider FROM c WHERE ${whereClauses.join(" AND ")} ORDER BY c.createdAt DESC`,
+    query: `${safeLimit !== null ? "SELECT TOP @limit" : "SELECT"} ${selectFields} FROM c WHERE ${whereClauses.join(" AND ")} ORDER BY c.createdAt DESC`,
     parameters
   };
 

@@ -1441,10 +1441,7 @@ function hasActiveHistoryFilters() {
 
 function buildHistoryQuery(sessionId) {
   const filters = getHistoryFilters();
-  const query = new URLSearchParams({
-    sessionId,
-    limit: "20"
-  });
+  const query = new URLSearchParams({ sessionId });
 
   if (filters.minScore !== null) query.set("minScore", String(filters.minScore));
   if (filters.maxScore !== null) query.set("maxScore", String(filters.maxScore));

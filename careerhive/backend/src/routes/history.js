@@ -8,7 +8,9 @@ router.get("/", async (req, res, next) => {
     const sessionId = typeof req.query?.sessionId === "string" && req.query.sessionId.trim()
       ? req.query.sessionId.trim()
       : "";
-    const limit = Number(req.query?.limit || 5);
+    const limit = typeof req.query?.limit === "string" && req.query.limit.trim()
+      ? Number(req.query.limit)
+      : null;
     const minScore = typeof req.query?.minScore === "string" && req.query.minScore.trim()
       ? Number(req.query.minScore)
       : null;
