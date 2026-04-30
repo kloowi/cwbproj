@@ -161,8 +161,8 @@ def _build_planner_prompt(context: dict) -> str:
         '  "improvements": string[]',
         "}",
         "Rules:",
-        "- roadmap: 3 to 5 concise actionable steps.",
-        "- improvements: exactly 3 actionable resume edits (wording, keywords, formatting) to pass ATS.",
+        "- roadmap: exactly 3 actionable steps. Each step must be one sentence, 15 words or fewer.",
+        "- improvements: exactly 3 resume edits (wording, keywords, formatting). Each edit must be one sentence, 15 words or fewer.",
         "- prioritize high-impact missing skills first.",
         "- no markdown, no extra keys.",
         "Context:",
@@ -251,13 +251,13 @@ async def generate_interview_questions(
     resume: dict,
     job: dict,
     match_result: dict,
-    plan: dict,
+    plan: dict | None = None,
 ) -> dict:
     raw = await call_agent(kernel, _build_interview_prompt({
         "resume": resume,
         "job": job,
         "match": match_result,
-        "plan": plan,
+        **({"plan": plan} if plan else {}),
     }))
     return {"questions": _normalize_interview_questions(raw.get("questions"))}
 
