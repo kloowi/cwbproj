@@ -1555,13 +1555,47 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
   return steps;
 }
 
-async function loadBrowseJobs(analysisId, jobRole) {
+function browseJobsSkeleton() {
+  return [0, 1, 2].map(() => `
+    <div class="interview-prep-action-card interview-prep-saved-role-card">
+      <div class="ipc-top-row">
+        <span class="interview-prep-saved-role-icon" aria-hidden="true">
+          <span class="material-symbols-outlined">work</span>
+        </span>
+      </div>
+      <div class="interview-prep-saved-role-content">
+        <h3 style="background:#e5e7eb;border-radius:4px;color:transparent;width:70%">Loading</h3>
+        <span class="ipc-role-chip" style="background:#e5e7eb;color:transparent;border-radius:4px;width:50%">Loading</span>
+      </div>
+      <div class="interview-prep-saved-role-footer">
+        <button type="button" class="interview-prep-saved-role-continue" disabled>
+          <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
+          View
+        </button>
+      </div>
+    </div>`).join("");
+}
+
+function wireJobRefresh(analysisId, jobRole) {
+  const btn = document.getElementById(`browse-jobs-refresh--${analysisId}`);
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const grid = document.getElementById(`browse-jobs-grid--${analysisId}`);
+    if (grid) grid.innerHTML = browseJobsSkeleton();
+    const nextPage = Math.floor(Math.random() * 9) + 1;
+    loadBrowseJobs(analysisId, jobRole, nextPage);
+  });
+}
+
+async function loadBrowseJobs(analysisId, jobRole, page = 0) {
   const grid = document.getElementById(`browse-jobs-grid--${analysisId}`);
   if (!grid) return;
 
   try {
-    const params = jobRole ? `?role=${encodeURIComponent(jobRole)}` : "";
-    const res = await fetch(`${apiBaseUrl}/jobs${params}`);
+    const params = new URLSearchParams();
+    if (jobRole) params.set("role", jobRole);
+    if (page) params.set("page", String(page));
+    const res = await fetch(`${apiBaseUrl}/jobs?${params}`);
     const { jobs } = await res.json();
 
     if (!jobs?.length) {
@@ -1721,26 +1755,15 @@ function renderAnalysisReport(data, options = {}) {
         </div>
       </section>
     </div>
-    <div class="section-label" style="margin-top: 28px;">Browse Job Listings</div>
+    <div class="browse-jobs-header">
+      <div class="section-label">Browse Job Listings</div>
+      <button type="button" class="browse-jobs-refresh" id="browse-jobs-refresh--${analysisId}"
+        aria-label="Refresh job listings">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+    </div>
     <div class="browse-jobs-grid" id="browse-jobs-grid--${analysisId}">
-      ${[0, 1, 2].map(() => `
-      <div class="interview-prep-action-card interview-prep-saved-role-card">
-        <div class="ipc-top-row">
-          <span class="interview-prep-saved-role-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">work</span>
-          </span>
-        </div>
-        <div class="interview-prep-saved-role-content">
-          <h3 style="background:#e5e7eb;border-radius:4px;color:transparent;width:70%">Loading</h3>
-          <span class="ipc-role-chip" style="background:#e5e7eb;color:transparent;border-radius:4px;width:50%">Loading</span>
-        </div>
-        <div class="interview-prep-saved-role-footer">
-          <button type="button" class="interview-prep-saved-role-continue" disabled>
-            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
-            View
-          </button>
-        </div>
-      </div>`).join("")}
+      ${browseJobsSkeleton()}
     </div>`;
 
   return `
@@ -1832,6 +1855,7 @@ function renderSavedAnalysisOverlay(data) {
   );
   syncResumeDownloadButton(savedReportContentEl, latestSavedReportOptions.analysisId);
   loadBrowseJobs(latestSavedReportOptions.analysisId, data.job?.title);
+  wireJobRefresh(latestSavedReportOptions.analysisId, data.job?.title);
 }
 
 function renderSavedAnalysisPage(data) {
@@ -1855,6 +1879,7 @@ function renderSavedAnalysisPage(data) {
   });
   syncResumeDownloadButton(savedAnalysisContentEl, latestSavedReportOptions.analysisId);
   loadBrowseJobs(latestSavedReportOptions.analysisId, data.job?.title);
+  wireJobRefresh(latestSavedReportOptions.analysisId, data.job?.title);
 }
 
 function renderDashboard(items) {
@@ -2232,6 +2257,7 @@ function renderResults(data, options = {}) {
   resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
   syncResumeDownloadButton(resultsEl, latestMainReportOptions.analysisId);
   loadBrowseJobs(latestMainReportOptions.analysisId, data.job?.title);
+  wireJobRefresh(latestMainReportOptions.analysisId, data.job?.title);
 }
 
 async function openSavedAnalysis(id) {
