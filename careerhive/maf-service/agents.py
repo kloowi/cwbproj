@@ -142,7 +142,7 @@ def _build_matching_prompt(resume_data: dict, job_data: dict) -> str:
         "Rules:",
         "- missing: required skills not shown in resume. Always return at least 2; if fewer are genuinely missing, include the least-evidenced required skills as areas to deepen.",
         "- strengths: overlapping skills. Always return at least 2; if fewer overlap exactly, include adjacent resume skills most relevant to the role.",
-        "- reasoning must be concise and factual.",
+        "- reasoning must be 10-15 words, one sentence, factual. No more.",
         "- no markdown, no extra keys.",
         "Resume Data:",
         json.dumps(resume_data),

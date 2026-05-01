@@ -1564,7 +1564,9 @@ function renderAnalysisReport(data, options = {}) {
   const strengths = formatSkillList(data.match?.strengths);
   const improvements = (data.plan?.improvements || []).map((item) => String(item || ""));
   const roadmapItems = (data.plan?.roadmap || []).map((item) => String(item || ""));
-  const reasoning = escapeHtml(toSentenceCase(data.match?.reasoning || ""));
+  const rawReasoning = (data.match?.reasoning || "").trim();
+  const truncated = rawReasoning.split(/\s+/).slice(0, 15).join(" ");
+  const reasoning = escapeHtml(toSentenceCase(truncated));
   const actionItems = buildActionableItems(missingSkills, improvements);
   const roadmapSteps = buildRoadmapSteps(roadmapItems, missingSkills);
   ensureRoadmapProgress(analysisId, roadmapSteps.length);
