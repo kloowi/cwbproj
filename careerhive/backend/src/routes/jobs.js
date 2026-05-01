@@ -36,14 +36,9 @@ router.get("/", async (req, res) => {
 
     if (role) {
       const keywords = roleKeywords(role);
-      const matched = mapped.filter((j) =>
-        keywords.some((kw) => j.title.toLowerCase().includes(kw))
-      );
-      // Fill up to 3 with non-matching results if needed
-      const filler = mapped.filter((j) =>
-        !keywords.some((kw) => j.title.toLowerCase().includes(kw))
-      );
-      const jobs = [...matched, ...filler].slice(0, 3);
+      const jobs = mapped
+        .filter((j) => keywords.some((kw) => j.title.toLowerCase().includes(kw)))
+        .slice(0, 3);
       return res.json({ jobs });
     }
 

@@ -455,10 +455,48 @@ body {
   /* Ensure 2 rows height for consistent pagination placement */
 }
 
+.browse-jobs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  margin-bottom: 0;
+}
+
+.browse-jobs-header .section-label {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.browse-jobs-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #d1dbe8;
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: #8192a8;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.browse-jobs-refresh:hover {
+  color: #3b5bdb;
+  border-color: #3b5bdb;
+  background: #f0f3ff;
+}
+
+.browse-jobs-refresh .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
 .browse-jobs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  margin-top: 12px;
 }
 
 .browse-jobs-grid .ipc-top-row {
