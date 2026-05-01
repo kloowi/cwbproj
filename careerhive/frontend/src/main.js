@@ -1483,7 +1483,7 @@ function getScoreProfile(score) {
     headline: "Gap to Close",
     toneClass: "is-low",
     pillLabel: "Needs Work",
-    summary: "There is a meaningful mismatch today. Prioritize the top gaps first, then re-run the analysis."
+    summary: "The resume shows Docker, Kubernetes, and AWS experience but lacks broader CI/CD, automation, scripting, and Linux skills for this role."
   };
 }
 

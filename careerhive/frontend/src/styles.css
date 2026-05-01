@@ -1506,10 +1506,11 @@ input[type="file"]:hover {
 .results-panel {
   --report-heading-size: clamp(1.55rem, 2.1vw, 1.9rem);
   --report-card-heading-size: clamp(1.25rem, 1.45vw, 1.55rem);
-  --report-card-heading-color: #3d332f;
+  --report-card-heading-color: #313131;
   --report-body-size: 0.92rem;
   background: transparent;
   border: 0;
+  font-weight: 100;
 }
 
 .results-panel #results {
@@ -1768,8 +1769,9 @@ input[type="file"]:hover {
 
 .action-title {
   margin: 0;
-  font-weight: 700;
-  font-size: var(--report-body-size);
+  font-weight: 500;
+
+  font-size: clamp(0.56rem, 0.95vw, 0.92rem);
   line-height: 1.35;
 }
 
@@ -1844,7 +1846,7 @@ input[type="file"]:hover {
   padding: 8px 12px;
   background: #fff;
   font-size: var(--report-body-size);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .gaps-card .gap-cloud li {
@@ -2023,7 +2025,7 @@ input[type="file"]:hover {
   color: #9b5220;
   font: inherit;
   font-size: 0.73rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   cursor: pointer;
@@ -2060,8 +2062,8 @@ input[type="file"]:hover {
 
 .roadmap-title {
   margin: 0;
-  font-weight: 700;
-  font-size: clamp(0.86rem, 1.05vw, 1.02rem);
+  font-weight: 500;
+  font-size: clamp(0.56rem, 0.95vw, 0.92rem);
   line-height: 1.24;
   letter-spacing: -0.01em;
 }
@@ -2076,14 +2078,14 @@ input[type="file"]:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .priority-pill {
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -2178,11 +2180,44 @@ input[type="file"]:hover {
   min-height: 180px;
   padding: 24px 28px;
   box-shadow: var(--shadow-card);
-  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #eee1d8;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(247, 166, 58, 0.22), transparent 32%),
+    linear-gradient(180deg, #ffffff, #fff8ef);
+}
+
+.next-step-card::before,
+.next-step-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.next-step-card::before {
+  width: 200px;
+  height: 200px;
+  top: -60px;
+  right: -50px;
+  background: radial-gradient(circle, rgba(247, 166, 58, 0.35), transparent 10%);
+  filter: blur(50px);
+  opacity: 01;
 }
 
 .next-step-card::after {
-  display: none;
+  left: -40px;
+  bottom: -70px;
+  width: 220px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(239, 90, 60, 0.22), transparent 10%);
+  filter: blur(200px);
+  opacity: 0.25;
+}
+
+.next-step-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .next-step-cta--resume:disabled {
@@ -2371,8 +2406,6 @@ ul {
   border-color: #e58246;
   box-shadow: 0 0 0 3px rgba(239, 90, 60, 0.12);
 }
-
-.dashboard-history-container {}
 
 .history-grid {
   margin-top: 18px;
