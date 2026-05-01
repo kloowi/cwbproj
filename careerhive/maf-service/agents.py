@@ -140,8 +140,8 @@ def _build_matching_prompt(resume_data: dict, job_data: dict) -> str:
         '  "reasoning": string',
         "}",
         "Rules:",
-        "- missing: required skills not shown in resume.",
-        "- strengths: overlapping skills.",
+        "- missing: required skills not shown in resume. Always return at least 2; if fewer are genuinely missing, include the least-evidenced required skills as areas to deepen.",
+        "- strengths: overlapping skills. Always return at least 2; if fewer overlap exactly, include adjacent resume skills most relevant to the role.",
         "- reasoning must be concise and factual.",
         "- no markdown, no extra keys.",
         "Resume Data:",
@@ -226,7 +226,18 @@ async def match_skills(kernel: Kernel, resume: dict, job: dict) -> dict:
     ))
 
     missing = [s for s in job_skills if s not in strengths]
-    overlap_score = 55 if not job_skills else round(len(strengths) / len(job_skills) * 100)
+
+    # Ensure at least 2 strengths using real resume skills
+    if len(strengths) < 2:
+        extra = [s for s in resume_skills if s not in set(strengths)]
+        strengths = strengths + extra[:2 - len(strengths)]
+
+    # Ensure at least 2 missing using real job skills
+    if len(missing) < 2:
+        extra = [s for s in job_skills if s not in set(missing)]
+        missing = missing + extra[:2 - len(missing)]
+
+    overlap_score = 55 if not job_skills else round(len([s for s in strengths if s in job_skills]) / len(job_skills) * 100)
 
     return {
         "score": overlap_score,
