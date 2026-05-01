@@ -8,7 +8,8 @@ function normalizeArray(value) {
 function normalizeRoleTitle(value) {
   const title = String(value || "").trim();
   if (!title) return "";
-  return title.slice(0, 120);
+  const trimmed = title.slice(0, 120);
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
 function normalizeInterview(interview) {
