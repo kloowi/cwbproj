@@ -1510,7 +1510,6 @@ input[type="file"]:hover {
   --report-body-size: 0.92rem;
   background: transparent;
   border: 0;
-  font-weight: 100;
 }
 
 .results-panel #results {
