@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const analyzeRouter = require("./src/routes/analyze");
 const historyRouter = require("./src/routes/history");
+const jobsRouter = require("./src/routes/jobs");
 const smokeRouter = require("./src/routes/smoke");
 const { getCosmosStatus } = require("./src/services/cosmosStore");
 
@@ -26,6 +27,7 @@ app.get("/health", (_req, res) => {
 app.use("/smoke", smokeRouter);
 app.use("/analyze", analyzeRouter);
 app.use("/history", historyRouter);
+app.use("/jobs", jobsRouter);
 
 app.use((err, _req, res, _next) => {
 	console.error("Unhandled error", err);
