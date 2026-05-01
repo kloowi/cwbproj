@@ -1555,12 +1555,13 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
   return steps;
 }
 
-async function loadBrowseJobs(analysisId) {
+async function loadBrowseJobs(analysisId, jobRole) {
   const grid = document.getElementById(`browse-jobs-grid--${analysisId}`);
   if (!grid) return;
 
   try {
-    const res = await fetch(`${apiBaseUrl}/jobs`);
+    const params = jobRole ? `?role=${encodeURIComponent(jobRole)}` : "";
+    const res = await fetch(`${apiBaseUrl}/jobs${params}`);
     const { jobs } = await res.json();
 
     if (!jobs?.length) {
@@ -1830,7 +1831,7 @@ function renderSavedAnalysisOverlay(data) {
     })
   );
   syncResumeDownloadButton(savedReportContentEl, latestSavedReportOptions.analysisId);
-  loadBrowseJobs(latestSavedReportOptions.analysisId);
+  loadBrowseJobs(latestSavedReportOptions.analysisId, data.job?.title);
 }
 
 function renderSavedAnalysisPage(data) {
@@ -1853,7 +1854,7 @@ function renderSavedAnalysisPage(data) {
     suppressTitleRow: true
   });
   syncResumeDownloadButton(savedAnalysisContentEl, latestSavedReportOptions.analysisId);
-  loadBrowseJobs(latestSavedReportOptions.analysisId);
+  loadBrowseJobs(latestSavedReportOptions.analysisId, data.job?.title);
 }
 
 function renderDashboard(items) {
@@ -2230,7 +2231,7 @@ function renderResults(data, options = {}) {
 
   resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
   syncResumeDownloadButton(resultsEl, latestMainReportOptions.analysisId);
-  loadBrowseJobs(latestMainReportOptions.analysisId);
+  loadBrowseJobs(latestMainReportOptions.analysisId, data.job?.title);
 }
 
 async function openSavedAnalysis(id) {
