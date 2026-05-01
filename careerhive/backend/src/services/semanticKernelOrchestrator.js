@@ -11,8 +11,10 @@ function supportsStagedPipeline(provider) {
 }
 
 async function executeStaged(provider, input) {
-  const resume = await provider.extractResume(input.resume);
-  const job = await provider.extractJob(input.job);
+  const [resume, job] = await Promise.all([
+    provider.extractResume(input.resume),
+    provider.extractJob(input.job)
+  ]);
   const match = await provider.matchSkills({
     resume,
     job,

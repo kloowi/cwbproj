@@ -12,9 +12,7 @@ from agents import (
     build_kernel,
     extract_resume,
     extract_job,
-    match_skills,
-    plan_roadmap,
-    generate_interview_questions,
+    analyze_combined,
     enhance_resume,
 )
 
@@ -70,18 +68,14 @@ async def run_pipeline(req: PipelineRequest):
             extract_resume(_kernel, req.resume),
             extract_job(_kernel, req.job),
         )
-        match = await match_skills(_kernel, resume, job)
-        plan, interview = await asyncio.gather(
-            plan_roadmap(_kernel, resume, job, match),
-            generate_interview_questions(_kernel, resume, job, match),
-        )
+        combined = await analyze_combined(_kernel, resume, job)
 
         return {
             "resume": resume,
             "job": job,
-            "match": match,
-            "plan": plan,
-            "interview": interview,
+            "match": combined["match"],
+            "plan": combined["plan"],
+            "interview": combined["interview"],
             "meta": {"provider": "maf-sk", "pipeline": "staged"},
         }
     except Exception as exc:

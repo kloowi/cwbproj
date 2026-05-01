@@ -191,6 +191,81 @@ def _build_interview_prompt(context: dict) -> str:
     ])
 
 
+def _build_combined_analysis_prompt(resume_data: dict, job_data: dict) -> str:
+    return "\n".join([
+        "You are Combined Analysis Agent.",
+        "Produce match analysis, a roadmap, and interview prep in one response.",
+        "Return strict JSON only with this shape:",
+        "{",
+        '  "missing": string[],',
+        '  "strengths": string[],',
+        '  "reasoning": string,',
+        '  "roadmap": string[],',
+        '  "improvements": string[],',
+        '  "questions": [',
+        '    { "prompt": string, "answer": string, "focusSkill": string }',
+        "  ]",
+        "}",
+        "Rules:",
+        "- missing: required skills not shown in resume. Always return at least 2; if fewer are genuinely missing, include the least-evidenced required skills as areas to deepen.",
+        "- strengths: overlapping skills. Always return at least 2; if fewer overlap exactly, include adjacent resume skills most relevant to the role.",
+        "- reasoning must be 10-15 words, one sentence, factual. No more.",
+        "- roadmap: exactly 3 actionable steps. Each step must be one sentence, 15 words or fewer.",
+        "- improvements: exactly 3 resume edits (wording, keywords, formatting). Each edit must be one sentence, 15 words or fewer.",
+        "- questions: exactly 4 questions aligned to the target role title, required skills, missing skills, strengths, and roadmap.",
+        "- Answers should be practical, concise, and interview-ready.",
+        "- focusSkill should point to the main competency tested by the question.",
+        "- no markdown, no extra keys.",
+        "Resume Data:",
+        json.dumps(resume_data),
+        "Job Data:",
+        json.dumps(job_data),
+    ])
+
+
+def _postprocess_match_result(raw: dict, resume: dict, job: dict) -> dict:
+    resume_skills = _normalize_array(resume.get("skills"))
+    job_skills = _normalize_array(job.get("skills"))
+
+    llm_strengths = _normalize_array(raw.get("strengths"))
+    exact_strengths = [s for s in resume_skills if s in job_skills]
+    strengths = list(dict.fromkeys(
+        exact_strengths + [s for s in llm_strengths if s in resume_skills and s in job_skills]
+    ))
+
+    missing = [s for s in job_skills if s not in strengths]
+
+    if len(strengths) < 2:
+        extra = [s for s in resume_skills if s not in set(strengths)]
+        strengths = strengths + extra[:2 - len(strengths)]
+
+    if len(missing) < 2:
+        extra = [s for s in job_skills if s not in set(missing)]
+        missing = missing + extra[:2 - len(missing)]
+
+    overlap_score = 55 if not job_skills else round(len([s for s in strengths if s in job_skills]) / len(job_skills) * 100)
+
+    return {
+        "score": overlap_score,
+        "missing": missing,
+        "strengths": strengths,
+        "reasoning": str(raw.get("reasoning") or f"Matched {len(strengths)} of {len(job_skills) or 1} required skills.").strip(),
+    }
+
+
+def _postprocess_plan_result(raw: dict) -> dict:
+    roadmap = raw.get("roadmap")
+    improvements = raw.get("improvements")
+    return {
+        "roadmap": [str(s).strip() for s in roadmap if str(s).strip()][:3] if isinstance(roadmap, list) else [],
+        "improvements": [str(s).strip() for s in improvements if str(s).strip()][:3] if isinstance(improvements, list) else [],
+    }
+
+
+def _postprocess_interview_result(raw: dict) -> dict:
+    return {"questions": _normalize_interview_questions(raw.get("questions"))}
+
+
 # --- agent functions ---
 
 async def extract_resume(kernel: Kernel, resume_text: str) -> dict:
@@ -211,50 +286,16 @@ async def extract_job(kernel: Kernel, job_text: str) -> dict:
 
 
 async def match_skills(kernel: Kernel, resume: dict, job: dict) -> dict:
-    resume_skills = _normalize_array(resume.get("skills"))
-    job_skills = _normalize_array(job.get("skills"))
-
     raw = await call_agent(kernel, _build_matching_prompt(
-        {**resume, "skills": resume_skills},
-        {**job, "skills": job_skills},
+        {**resume, "skills": _normalize_array(resume.get("skills"))},
+        {**job, "skills": _normalize_array(job.get("skills"))},
     ))
-
-    llm_strengths = _normalize_array(raw.get("strengths"))
-    exact_strengths = [s for s in resume_skills if s in job_skills]
-    strengths = list(dict.fromkeys(
-        exact_strengths + [s for s in llm_strengths if s in resume_skills and s in job_skills]
-    ))
-
-    missing = [s for s in job_skills if s not in strengths]
-
-    # Ensure at least 2 strengths using real resume skills
-    if len(strengths) < 2:
-        extra = [s for s in resume_skills if s not in set(strengths)]
-        strengths = strengths + extra[:2 - len(strengths)]
-
-    # Ensure at least 2 missing using real job skills
-    if len(missing) < 2:
-        extra = [s for s in job_skills if s not in set(missing)]
-        missing = missing + extra[:2 - len(missing)]
-
-    overlap_score = 55 if not job_skills else round(len([s for s in strengths if s in job_skills]) / len(job_skills) * 100)
-
-    return {
-        "score": overlap_score,
-        "missing": missing,
-        "strengths": strengths,
-        "reasoning": str(raw.get("reasoning") or f"Matched {len(strengths)} of {len(job_skills) or 1} required skills.").strip(),
-    }
+    return _postprocess_match_result(raw, resume, job)
 
 
 async def plan_roadmap(kernel: Kernel, resume: dict, job: dict, match_result: dict) -> dict:
     raw = await call_agent(kernel, _build_planner_prompt({"resume": resume, "job": job, "match": match_result}))
-    roadmap = raw.get("roadmap")
-    improvements = raw.get("improvements")
-    return {
-        "roadmap": [str(s).strip() for s in roadmap if str(s).strip()][:5] if isinstance(roadmap, list) else [],
-        "improvements": [str(s).strip() for s in improvements if str(s).strip()][:3] if isinstance(improvements, list) else [],
-    }
+    return _postprocess_plan_result(raw)
 
 
 async def generate_interview_questions(
@@ -270,7 +311,24 @@ async def generate_interview_questions(
         "match": match_result,
         **({"plan": plan} if plan else {}),
     }))
-    return {"questions": _normalize_interview_questions(raw.get("questions"))}
+    return _postprocess_interview_result(raw)
+
+
+async def analyze_combined(kernel: Kernel, resume: dict, job: dict) -> dict:
+    raw = await call_agent(kernel, _build_combined_analysis_prompt(
+        {**resume, "skills": _normalize_array(resume.get("skills"))},
+        {**job, "skills": _normalize_array(job.get("skills"))},
+    ))
+
+    match = _postprocess_match_result(raw, resume, job)
+    plan = _postprocess_plan_result(raw)
+    interview = _postprocess_interview_result(raw)
+
+    return {
+        "match": match,
+        "plan": plan,
+        "interview": interview,
+    }
 
 
 async def enhance_resume(
