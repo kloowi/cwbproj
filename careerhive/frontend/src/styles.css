@@ -1685,7 +1685,7 @@ input[type="file"]:hover {
 
 .explain-strip {
   margin-top: 12px;
-  border-radius: 14px;
+  border-radius: 20px;
   border: 1px solid #eee1d8;
   background: #fffcf9;
   padding: 10px;
@@ -1765,7 +1765,7 @@ input[type="file"]:hover {
   gap: 10px;
   align-items: center;
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: 20px;
   background: #fffbf7;
   border: 1px solid #f3e5d8;
   flex: 1;
@@ -2079,7 +2079,7 @@ input[type="file"]:hover {
   margin: 0;
   font-weight: 500;
   font-size: clamp(0.56rem, 0.95vw, 0.92rem);
-  line-height: 1.24;
+  line-height: 1.35;
   letter-spacing: -0.01em;
 }
 
