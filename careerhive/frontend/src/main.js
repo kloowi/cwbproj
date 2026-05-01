@@ -5,6 +5,7 @@ const apiBaseUrl = (configuredApiBaseUrl || (window.location.hostname === "local
 const SESSION_KEY = "jobpilot_session_id";
 const ACTIVE_VIEW_KEY = "jobpilot_active_view";
 const ROADMAP_PROGRESS_KEY = "jobpilot_roadmap_progress_v1";
+const RESUME_TEXT_KEY = "jobpilot_resume_texts_v1";
 const SAVED_INTERVIEW_ROLES_KEY = "careerhive_saved_interview_roles_v1";
 const PIPELINE_STAGE_DURATION_MS = 1100;
 const PIPELINE_REVEAL_DELAY_MS = 280;
@@ -383,6 +384,21 @@ function persistRoadmapProgressState() {
     localStorage.setItem(ROADMAP_PROGRESS_KEY, JSON.stringify(roadmapProgressState));
   } catch (_error) {
   }
+}
+
+function getStoredResumeTexts() {
+  try { return JSON.parse(localStorage.getItem(RESUME_TEXT_KEY)) || {}; } catch { return {}; }
+}
+
+function storeResumeText(analysisId, text) {
+  if (!analysisId || !text) return;
+  const map = getStoredResumeTexts();
+  map[analysisId] = text;
+  try { localStorage.setItem(RESUME_TEXT_KEY, JSON.stringify(map)); } catch { }
+}
+
+function getStoredResumeText(analysisId) {
+  return analysisId ? (getStoredResumeTexts()[analysisId] || "") : "";
 }
 
 function loadSavedInterviewRoles() {
@@ -2137,6 +2153,10 @@ function renderResults(data, options = {}) {
     analysisId: options.analysisId || data.meta?.analysisId || data.id || ""
   };
 
+  if (latestMainReportOptions.analysisId && sessionResumeText) {
+    storeResumeText(latestMainReportOptions.analysisId, sessionResumeText);
+  }
+
   resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
   syncResumeDownloadButton(resultsEl, latestMainReportOptions.analysisId);
 }
@@ -2536,12 +2556,19 @@ function syncResumeDownloadButton(containerEl, analysisId) {
   const keys = Object.keys(steps);
   const allComplete = keys.length > 0 && keys.every((k) => steps[k] === true);
 
-  downloadBtn.disabled = !(allComplete && Boolean(sessionResumeText));
+  const resumeText = sessionResumeText || getStoredResumeText(analysisId);
+  downloadBtn.disabled = !(allComplete && Boolean(resumeText));
 }
 
 async function handleResumeDownload(containerEl) {
   const btn = containerEl?.querySelector(".next-step-cta--resume");
   if (!btn || btn.disabled || btn.dataset.loading) return;
+
+  const isSavedView = containerEl === savedAnalysisContentEl || containerEl === savedReportContentEl;
+  const reportData = isSavedView ? latestSavedReportData : latestMainReportData;
+  const reportOptions = isSavedView ? latestSavedReportOptions : latestMainReportOptions;
+  const analysisId = reportOptions?.analysisId || "";
+  const resumeText = sessionResumeText || getStoredResumeText(analysisId);
 
   const labelEl = btn.querySelector(".next-step-cta-label");
   const originalLabel = labelEl?.textContent || "Download";
@@ -2555,13 +2582,13 @@ async function handleResumeDownload(containerEl) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        resume: sessionResumeText,
-        jobTitle: latestMainReportData?.job?.title || "",
-        jobSkills: latestMainReportData?.job?.skills || [],
-        missing: latestMainReportData?.match?.missing || [],
-        strengths: latestMainReportData?.match?.strengths || [],
-        improvements: latestMainReportData?.plan?.improvements || [],
-        roadmap: latestMainReportData?.plan?.roadmap || []
+        resume: resumeText,
+        jobTitle: reportData?.job?.title || "",
+        jobSkills: reportData?.job?.skills || [],
+        missing: reportData?.match?.missing || [],
+        strengths: reportData?.match?.strengths || [],
+        improvements: reportData?.plan?.improvements || [],
+        roadmap: reportData?.plan?.roadmap || []
       })
     });
 
@@ -2574,7 +2601,7 @@ async function handleResumeDownload(containerEl) {
     const blob = new Blob([enhancedResume], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const slug = (latestMainReportData?.job?.title || "resume").replace(/\s+/g, "-").toLowerCase();
+    const slug = (reportData?.job?.title || "resume").replace(/\s+/g, "-").toLowerCase();
     a.href = url;
     a.download = `${slug}-enhanced-resume.txt`;
     document.body.appendChild(a);
@@ -2586,7 +2613,6 @@ async function handleResumeDownload(containerEl) {
   } finally {
     delete btn.dataset.loading;
     if (labelEl) labelEl.textContent = originalLabel;
-    const analysisId = latestMainReportOptions?.analysisId || "";
     syncResumeDownloadButton(containerEl, analysisId);
   }
 }

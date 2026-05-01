@@ -95,8 +95,8 @@ async function runSmokeTest(sessionId = "demo-session") {
   };
 }
 
-async function saveAnalysisRecord({ sessionId, resume, job, result }) {
-  const id = crypto.randomUUID();
+async function saveAnalysisRecord({ id: providedId, sessionId, resume, job, result }) {
+  const id = providedId || crypto.randomUUID();
   const apiType = detectApiType(COSMOS_CONNECTION_STRING);
 
   const doc = {
