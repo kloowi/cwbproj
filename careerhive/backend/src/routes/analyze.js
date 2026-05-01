@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const express = require("express");
 const { runAnalysis } = require("../services/orchestrator");
 const { saveAnalysisRecord } = require("../services/cosmosStore");
@@ -131,11 +132,12 @@ router.post("/", async (req, res, next) => {
     const data = await runAnalysis({ resume, job });
 
     // Persistence should not block response; failures are logged for observability.
-    saveAnalysisRecord({ sessionId, resume, job, result: data }).catch((error) => {
+    const analysisId = crypto.randomUUID();
+    saveAnalysisRecord({ id: analysisId, sessionId, resume, job, result: data }).catch((error) => {
       console.warn("Failed to persist analysis record", error.message);
     });
 
-    return res.json(data);
+    return res.json({ ...data, id: analysisId });
   } catch (error) {
     return next(error);
   }
