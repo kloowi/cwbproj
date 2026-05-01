@@ -1555,6 +1555,52 @@ function buildRoadmapSteps(roadmapItems, missingSkills) {
   return steps;
 }
 
+async function loadBrowseJobs(analysisId) {
+  const grid = document.getElementById(`browse-jobs-grid--${analysisId}`);
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`${apiBaseUrl}/jobs`);
+    const { jobs } = await res.json();
+
+    if (!jobs?.length) {
+      grid.innerHTML = `<p class="browse-jobs-empty">No listings available right now.</p>`;
+      return;
+    }
+
+    grid.innerHTML = jobs.map((job) => `
+      <div class="interview-prep-action-card interview-prep-saved-role-card">
+        <div class="ipc-top-row">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">work</span>
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-content">
+          <h3>${escapeHtml(job.title)}</h3>
+          <span class="ipc-role-chip">
+            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
+            ${escapeHtml(job.location)}
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-footer">
+          <button type="button" class="interview-prep-saved-role-continue"
+            ${job.url ? `data-job-url="${escapeHtml(job.url)}"` : "disabled"}>
+            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
+            View
+          </button>
+        </div>
+      </div>`).join("");
+
+    grid.querySelectorAll("[data-job-url]").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        window.open(btn.dataset.jobUrl, "_blank", "noopener,noreferrer")
+      );
+    });
+  } catch {
+    grid.innerHTML = `<p class="browse-jobs-empty">Could not load listings.</p>`;
+  }
+}
+
 function renderAnalysisReport(data, options = {}) {
   const analysisId = resolveAnalysisId(data, options);
   const title = escapeHtml(options.title || data.job?.title || "Role Analysis");
@@ -1675,67 +1721,25 @@ function renderAnalysisReport(data, options = {}) {
       </section>
     </div>
     <div class="section-label" style="margin-top: 28px;">Browse Job Listings</div>
-    <div class="browse-jobs-grid">
+    <div class="browse-jobs-grid" id="browse-jobs-grid--${analysisId}">
+      ${[0, 1, 2].map(() => `
       <div class="interview-prep-action-card interview-prep-saved-role-card">
         <div class="ipc-top-row">
           <span class="interview-prep-saved-role-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">local_hospital</span>
+            <span class="material-symbols-outlined">work</span>
           </span>
         </div>
         <div class="interview-prep-saved-role-content">
-          <h3>Nurse</h3>
-          <span class="ipc-role-chip">
-            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
-            Pasig, Philippines
-          </span>
+          <h3 style="background:#e5e7eb;border-radius:4px;color:transparent;width:70%">Loading</h3>
+          <span class="ipc-role-chip" style="background:#e5e7eb;color:transparent;border-radius:4px;width:50%">Loading</span>
         </div>
         <div class="interview-prep-saved-role-footer">
-          <button type="button" class="interview-prep-saved-role-continue">
+          <button type="button" class="interview-prep-saved-role-continue" disabled>
             <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
             View
           </button>
         </div>
-      </div>
-      <div class="interview-prep-action-card interview-prep-saved-role-card">
-        <div class="ipc-top-row">
-          <span class="interview-prep-saved-role-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">palette</span>
-          </span>
-        </div>
-        <div class="interview-prep-saved-role-content">
-          <h3>UI Designer</h3>
-          <span class="ipc-role-chip">
-            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
-            Pasig, Philippines
-          </span>
-        </div>
-        <div class="interview-prep-saved-role-footer">
-          <button type="button" class="interview-prep-saved-role-continue">
-            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
-            View
-          </button>
-        </div>
-      </div>
-      <div class="interview-prep-action-card interview-prep-saved-role-card">
-        <div class="ipc-top-row">
-          <span class="interview-prep-saved-role-icon" aria-hidden="true">
-            <span class="material-symbols-outlined">dns</span>
-          </span>
-        </div>
-        <div class="interview-prep-saved-role-content">
-          <h3>DevOps Engineer</h3>
-          <span class="ipc-role-chip">
-            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
-            Pasig, Philippines
-          </span>
-        </div>
-        <div class="interview-prep-saved-role-footer">
-          <button type="button" class="interview-prep-saved-role-continue">
-            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
-            View
-          </button>
-        </div>
-      </div>
+      </div>`).join("")}
     </div>`;
 
   return `
@@ -1826,6 +1830,7 @@ function renderSavedAnalysisOverlay(data) {
     })
   );
   syncResumeDownloadButton(savedReportContentEl, latestSavedReportOptions.analysisId);
+  loadBrowseJobs(latestSavedReportOptions.analysisId);
 }
 
 function renderSavedAnalysisPage(data) {
@@ -1848,6 +1853,7 @@ function renderSavedAnalysisPage(data) {
     suppressTitleRow: true
   });
   syncResumeDownloadButton(savedAnalysisContentEl, latestSavedReportOptions.analysisId);
+  loadBrowseJobs(latestSavedReportOptions.analysisId);
 }
 
 function renderDashboard(items) {
@@ -2224,6 +2230,7 @@ function renderResults(data, options = {}) {
 
   resultsEl.innerHTML = renderAnalysisReport(data, latestMainReportOptions);
   syncResumeDownloadButton(resultsEl, latestMainReportOptions.analysisId);
+  loadBrowseJobs(latestMainReportOptions.analysisId);
 }
 
 async function openSavedAnalysis(id) {
