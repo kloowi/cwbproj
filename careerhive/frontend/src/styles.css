@@ -455,6 +455,22 @@ body {
   /* Ensure 2 rows height for consistent pagination placement */
 }
 
+.browse-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.browse-jobs-grid .ipc-top-row {
+  justify-content: flex-start;
+}
+
+@media (max-width: 700px) {
+  .browse-jobs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .interview-prep-pagination {
   display: flex;
   justify-content: center;
