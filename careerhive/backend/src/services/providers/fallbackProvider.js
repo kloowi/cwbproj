@@ -117,8 +117,21 @@ function createFallbackProvider() {
     async matchSkills({ resume, job }) {
       const resumeSkills = canonicalizeSkillList(Array.isArray(resume?.skills) ? resume.skills : []);
       const jobSkills = canonicalizeSkillList(Array.isArray(job?.skills) ? job.skills : []);
-      const strengths = resumeSkills.filter((skill) => jobSkills.includes(skill));
-      const missing = jobSkills.filter((skill) => !resumeSkills.includes(skill));
+      let strengths = resumeSkills.filter((skill) => jobSkills.includes(skill));
+      let missing = jobSkills.filter((skill) => !resumeSkills.includes(skill));
+
+      // Ensure at least 2 strengths using real resume skills
+      if (strengths.length < 2) {
+        const extra = resumeSkills.filter((s) => !strengths.includes(s));
+        strengths = [...strengths, ...extra.slice(0, 2 - strengths.length)];
+      }
+
+      // Ensure at least 2 missing using real job skills
+      if (missing.length < 2) {
+        const extra = jobSkills.filter((s) => !missing.includes(s));
+        missing = [...missing, ...extra.slice(0, 2 - missing.length)];
+      }
+
       const score = jobSkills.length === 0
         ? 60
         : Math.round((strengths.length / jobSkills.length) * 100);
