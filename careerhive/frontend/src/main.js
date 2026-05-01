@@ -1673,6 +1673,69 @@ function renderAnalysisReport(data, options = {}) {
           </button>
         </div>
       </section>
+    </div>
+    <div class="section-label" style="margin-top: 28px;">Browse Job Listings</div>
+    <div class="browse-jobs-grid">
+      <div class="interview-prep-action-card interview-prep-saved-role-card">
+        <div class="ipc-top-row">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">local_hospital</span>
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-content">
+          <h3>Nurse</h3>
+          <span class="ipc-role-chip">
+            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
+            Pasig, Philippines
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-footer">
+          <button type="button" class="interview-prep-saved-role-continue">
+            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
+            View
+          </button>
+        </div>
+      </div>
+      <div class="interview-prep-action-card interview-prep-saved-role-card">
+        <div class="ipc-top-row">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">palette</span>
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-content">
+          <h3>UI Designer</h3>
+          <span class="ipc-role-chip">
+            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
+            Pasig, Philippines
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-footer">
+          <button type="button" class="interview-prep-saved-role-continue">
+            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
+            View
+          </button>
+        </div>
+      </div>
+      <div class="interview-prep-action-card interview-prep-saved-role-card">
+        <div class="ipc-top-row">
+          <span class="interview-prep-saved-role-icon" aria-hidden="true">
+            <span class="material-symbols-outlined">dns</span>
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-content">
+          <h3>DevOps Engineer</h3>
+          <span class="ipc-role-chip">
+            <span class="material-symbols-outlined" style="font-size: 0.85rem;">location_on</span>
+            Pasig, Philippines
+          </span>
+        </div>
+        <div class="interview-prep-saved-role-footer">
+          <button type="button" class="interview-prep-saved-role-continue">
+            <span class="material-symbols-outlined" style="font-size: 1rem;">north_west</span>
+            View
+          </button>
+        </div>
+      </div>
     </div>`;
 
   return `
