@@ -20,7 +20,8 @@ app.get("/health", (_req, res) => {
 		service: "careerhive-backend",
 		time: new Date().toISOString(),
 		releaseCommit: process.env.RELEASE_COMMIT || "unknown",
-		cosmos: getCosmosStatus()
+		cosmos: getCosmosStatus(),
+		museRateLimit: jobsRouter.museRateLimit
 	});
 });
 

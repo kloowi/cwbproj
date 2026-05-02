@@ -6,6 +6,14 @@ const STOP_WORDS = new Set(["a", "an", "the", "and", "or", "of", "to", "in", "fo
 const MAX_JOBS = 3;
 const PAGE_MOD = 10;
 
+const museRateLimit = {
+  remaining: null,
+  limit: null,
+  reset: null,
+};
+
+router.museRateLimit = museRateLimit;
+
 function roleKeywords(role) {
   return role
     .toLowerCase()
@@ -16,6 +24,13 @@ function roleKeywords(role) {
 async function fetchPage(apiKey, page) {
   const url = `${MUSE_API_BASE}?api_key=${encodeURIComponent(apiKey)}&page=${page}&descending=true`;
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  
+  if (response.headers.has('x-ratelimit-remaining')) {
+    museRateLimit.remaining = response.headers.get('x-ratelimit-remaining');
+    museRateLimit.limit = response.headers.get('x-ratelimit-limit');
+    museRateLimit.reset = response.headers.get('x-ratelimit-reset');
+  }
+
   if (!response.ok) throw new Error(`Muse API ${response.status}`);
   const data = await response.json();
   return (data.results ?? []).map((j) => ({
