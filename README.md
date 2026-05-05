@@ -12,7 +12,7 @@
 
 </div>
 
-> AI-powered career assistant — resume analysis, job matching, and interview prep. No recruiter required.
+> AI-powered career assistant — from resume analysis, job matching, interview preparation, and to browsing actual jobs. No recruiter required.
 
 ---
 
