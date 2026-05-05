@@ -16,8 +16,31 @@
 
 ---
 
-## Problem
+## Live Demo
+**[CareerHive Live Demo](https://blue-desert-0dd81d900.7.azurestaticapps.net)**
+## Demo Video
+[Youtube](youtube.com)
+## Live Walkthrough
+### Landing
+![Filled Landing](docs/images/filled-landing.png)
+### Pipeline
+The multi-agent pipeline shows how each agent works with each other to create a personalized report.
+![Pipeline](docs/images/agentpipeline.png)
+### Results
+![Results 1](docs/images/results-p1.png) ![Results 2](docs/images/results-p2.png)
+### Interview Preparation
+![Interview1](docs/images/interviewprep1.png)![Interview2](docs/images/interviewprep2.png)
+### Dashboard
+![Dashboard](docs/images/dashboard.png) ![Dashboard](docs/images/dashboard2.png) ![Dashboard](docs/images/dashboardcontent.png)
+### Browse Job Listings
+Browse **live** job listings from The Muse API.
+![Job Listing](docs/images/joblistings.png)
+### Enhanced Resume
+![Enhanced](docs/images/enhanced-resume2.png)
 
+---
+
+## Problem
 Job seekers operate largely in the dark. This creates real friction:
 
 - **No resume feedback** — candidates don't know why they're being rejected or what's missing
@@ -77,20 +100,23 @@ Every analysis is stored in Azure Cosmos DB so your history is always there.
 ```
 1. Upload resume (PDF / DOCX)
         ↓
-2. Enter job title → browse live Muse API listings
+2. Browse jobs or enter job title 
         ↓
 3. Select a job → Cheerio scrapes the full description
         ↓
-4. MAF pipeline fires (5 sequential agents):
+4. Option: run App Agent → automatically enhance the uploaded resume for the selected job (automated rewrite + metrics)
+        ↓
+5. MAF pipeline fires (5 sequential agents):
    extract_resume → extract_job → analyze_combined → plan → enhance_resume
         ↓
-5. Results returned:
+6. Results returned:
    • Match score + skill gap breakdown
    • Short-term career roadmap
    • Tailored interview questions
-   • Resume rewrite suggestions
+   • Enhanced resume with automated edits applied
+   • Browse live job listings from The Muse
         ↓
-6. Session saved to Cosmos DB → accessible from history
+7. Session saved to Cosmos DB → accessible from history
 ```
 
 ---
