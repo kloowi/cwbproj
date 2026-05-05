@@ -1,64 +1,183 @@
+<div align="center">
+
 # CareerHive
 
-CareerHive is an AI-powered career assistant platform designed to bridge the gap between job seekers and their ideal roles. By leveraging advanced natural language processing and a multi-agent framework, CareerHive analyzes resumes, discovers matching job opportunities, provides targeted interview preparation, and offers actionable resume enhancements.
+![Azure](https://img.shields.io/badge/Azure-OpenAI-0078D4?logo=microsoftazure&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?logo=nodedotjs&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?logo=vite&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Semantic Kernel](https://img.shields.io/badge/Semantic%20Kernel-1.17-5C2D91?logo=microsoft&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## ☁️ Azure Services Leveraged
+</div>
 
-CareerHive is deeply integrated with the Microsoft Azure ecosystem to achieve robust scalability, performance, and advanced AI capabilities:
+> AI-powered career assistant — resume analysis, job matching, and interview prep. No recruiter required.
 
-* **Azure Static Web Apps (SWA)**: Hosts the frontend Vite application. The `staticwebapp.config.json` is natively configured to handle SPA routing, seamlessly deploying the client-side UI on global Azure infrastructure.
-* **Azure Foundry OpenAI**: The brain behind the application. It powers all the sophisticated reasoning, natural language parsing, and conversational agents used across the pipeline (via Semantic Kernel), running securely inside Azure boundaries.
-* **Azure Cosmos DB**: Used as our high-performance, globally distributed database for saving user session histories and analysis results. The backend dynamically supports connecting via both the **Cosmos DB NoSQL API** and **Cosmos DB for MongoDB API**.
-* **Azure App Service / Container Apps (Target)**: While running locally today, the Node.js backend and Python MAF service are container/PaaS-ready for hosting environments like Azure App Service.
+---
 
-## 🔌 Third-Party Integrations
+## Problem
 
-* **Document Parsing**: Incorporates **Mammoth** (`.docx`) and **pdf-parse** (`.pdf`) via Multer to safely and accurately handle direct resume uploads.
-* **Job Intelligence**: Harvests rich, live job data using **The Muse API** and couples it with **Cheerio** internally to scrape the deep semantic context of related HTML job detail pages.
+Job seekers operate largely in the dark. This creates real friction:
 
-## 🏗 System Architecture
+- **No resume feedback** — candidates don't know why they're being rejected or what's missing
+- **Manual job hunting** — scrolling dozens of boards with no relevance scoring or gap analysis
+- **No interview prep** — walking into interviews blind to your own skill gaps vs. the job requirements
+- **Resume guesswork** — generic templates that aren't tailored to the specific role or domain
+- **Disconnected tools** — parsing, matching, coaching, and editing all live in separate products
 
-The project is structured into three primary components:
+Employers face the mirror problem: inbound applications that don't map to what the role actually needs.
 
-### 1. Frontend
-A fast, lightweight, and responsive user interface built with Vite, Vanilla JavaScript, HTML, and CSS. 
-* Designed to be deployed as an **Azure Static Web App** (`staticwebapp.config.json`).
-* Provides users with a seamless interface to upload resumes, find related job listings, and view detailed match analytics.
+---
 
-### 2. Backend (Node.js/Express)
-The core API and orchestration layer, responsible for routing requests, managing data, and interfacing with the Python AI service.
+## Solution
 
-**Key Routes:**
-* `POST /analyze` - Triggers the core pipeline.
-  * `/analyze/extract`: Accepts document uploads (in-memory) and automatically parses PDF and DOCX files.
-  * `/analyze/scrape`: Extracts full job description contents from specific job URLs.
-  * `/analyze/enhance-resume`: Suggests actionable updates for resume content based on missing strengths and improvements.
-* `GET /history` - Retrieves past session insights.
-* `GET /jobs` - Discovers and curates job listings by job role via direct API queries.
-* `GET /smoke` - Validates the health and connectivity of Azure integrations.
+CareerHive puts a full AI career coaching pipeline into a single upload. Paste a job URL, drop your resume, and get a complete readout in seconds — skill gaps scored, interview questions generated, resume rewrites suggested, all grounded in the actual job description.
 
-### 3. MAF Service (Multi-Agent Framework)
-A Python-based FastAPI microservice using **Semantic Kernel** to establish an intricate AI pipeline for reasoning tasks.
-* **Pipeline Agents**: Segregates processes into sequential agents (`extract_resume`, `extract_job`, `analyze_combined`, and `enhance_resume`).
-* Executed via standard HTTP triggers from the Node.js backend (`/pipeline` and `/enhance-resume` routes) as an advanced orchestration engine.
+- Upload resume (PDF or DOCX) → extract skills, experience, metrics automatically
+- Paste a job URL → scrape and parse the full posting with Cheerio
+- 5-stage MAF pipeline → match, plan, prep, and enhance in one round trip
 
-## 🚀 Key Features & Pipeline Steps
+Every analysis is stored in Azure Cosmos DB so your history is always there.
 
-The system features a rigorous 5-step evaluation pipeline for candidates:
-1. **Extract**: Automatically grabs canonical skills, experiences, and metrics from parsed resume representations and extracts criteria requirements from job postings.
-2. **Match**: Maps the generated profile text against the target job requirements to calculate similarities, strengths, and identify missing gap skills.
-3. **Plan**: Formulates customized short-term career roadmaps depending on the candidate's specific background and the job's expectations.
-4. **Interview Guidance**: Prepares the user with highly tailored technical and behavioral interview questions mapped against their specific weak points.
-5. **Enhance Resume**: Generates concrete rewrite suggestions targeting the specific job domain.
+---
 
-## 🛠 Getting Started
+## Core Features
 
-### Prerequisites
-* Node.js v18+
-* Python 3.10+
-* Active Azure Subscription with Azure OpenAI deployments and a Cosmos DB instance available.
+### Resume Analysis
 
-### Installation
-1. **Backend**: Navigate to `/backend`, run `npm install`. Add your `.env` containing `COSMOS_CONNECTION_STRING` and `MUSE_API_KEY`. Start via `npm run dev`.
-2. **MAF Service**: Navigate to `/maf-service`. Define `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT` in a `.env`. Setup Python dependencies via `pip install -r requirements.txt`, and boot the app using `sh startup.sh`.
-3. **Frontend**: Move to the `/frontend` directory, install packages with `npm install`, and serve it locally with `npm run dev`.
+- **PDF & DOCX upload** — in-memory parsing via pdf-parse and Mammoth, no storage required
+- **Skill extraction** — canonical skill normalization across synonyms and aliases
+- **Gap scoring** — maps your profile against the job's requirements with match percentages
+- **Experience parsing** — pulls out roles, timelines, and measurable metrics automatically
+
+### Job Discovery
+
+- **Live listings** — The Muse API delivers fresh postings filtered by role
+- **Deep scraping** — Cheerio extracts full job description context beyond the API summary
+- **Match ranking** — listings scored against your extracted resume profile
+- **Memo field** — log what you applied for, visible in history
+
+### Interview Prep
+
+- **Tailored questions** — technical and behavioral questions mapped to your specific gaps
+- **Role-aware depth** — questions reflect the seniority and domain of the target job
+- **Weakness targeting** — hardest questions focus on the skills you're missing, not ones you have
+
+### Resume Enhancement
+
+- **Rewrite suggestions** — concrete line-level edits targeting the job domain
+- **Strength-gap bridging** — surfaces transferable skills you're underselling
+- **Per-job targeting** — each enhancement run is scoped to a specific posting, not generic advice
+
+---
+
+## App Flow
+
+```
+1. Upload resume (PDF / DOCX)
+        ↓
+2. Enter job title → browse live Muse API listings
+        ↓
+3. Select a job → Cheerio scrapes the full description
+        ↓
+4. MAF pipeline fires (5 sequential agents):
+   extract_resume → extract_job → analyze_combined → plan → enhance_resume
+        ↓
+5. Results returned:
+   • Match score + skill gap breakdown
+   • Short-term career roadmap
+   • Tailored interview questions
+   • Resume rewrite suggestions
+        ↓
+6. Session saved to Cosmos DB → accessible from history
+```
+
+---
+
+## Next Phase
+
+- [ ] Real-time streaming responses — show pipeline progress as each agent completes
+- [ ] Multi-resume comparison — run two resume versions against the same job side-by-side
+- [ ] LinkedIn import — parse profile URL as an alternative to file upload
+- [ ] Saved job board — bookmark listings and track application status
+- [ ] Auth + user accounts — persistent profiles with cross-device history
+- [ ] Cover letter generation — draft from the same gap analysis already computed
+- [ ] Bulk apply mode — run the full pipeline across multiple jobs in one session
+
+---
+
+## Local Setup
+
+Prerequisites: Node.js v18+, Python 3.10+, active Azure subscription with OpenAI and Cosmos DB deployed.
+
+<details>
+<summary><strong>Backend (Node.js / Express)</strong></summary>
+
+```bash
+cd careerhive/backend
+npm install
+```
+
+Create `.env`:
+
+```env
+COSMOS_CONNECTION_STRING=your_cosmos_connection_string
+COSMOS_DB_NAME=jobpilot
+COSMOS_CONTAINER_NAME=analyses
+MAF_SERVICE_URL=http://localhost:8000
+LLM_PROVIDER=maf
+MUSE_API_KEY=your_muse_api_key
+```
+
+```bash
+npm run dev
+# Runs on http://localhost:3000
+```
+
+</details>
+
+<details>
+<summary><strong>MAF Service (Python / FastAPI)</strong></summary>
+
+```bash
+cd careerhive/maf-service
+pip install -r requirements.txt
+```
+
+Create `.env`:
+
+```env
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_DEPLOYMENT=gpt-4
+AZURE_OPENAI_API_VERSION=2024-12-01-preview
+```
+
+```bash
+sh startup.sh
+# Runs on http://localhost:8000
+```
+
+</details>
+
+<details>
+<summary><strong>Frontend (Vite)</strong></summary>
+
+```bash
+cd careerhive/frontend
+npm install
+```
+
+Create `.env`:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+```bash
+npm run dev
+# Runs on http://localhost:5173
+```
+
+</details>
