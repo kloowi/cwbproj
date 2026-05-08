@@ -22,13 +22,14 @@
 [Youtube](youtube.com)
 ## Live Walkthrough
 ### Landing
-![Filled Landing](docs/images/filled-landing.png)
+![alt text](docs/images/landing.png)
 ### Pipeline
 The multi-agent pipeline shows how each agent works with each other to create a personalized report.
 ![Pipeline](docs/images/agentpipeline.png)
 ### Results
 ![Results 1](docs/images/results-p1.png) ![Results 2](docs/images/results-p2.png)
 ### Interview Preparation
+![INTERVIEW AND DASHBOARD](docs/images/screens.png)
 ![Interview1](docs/images/interviewprep1.png)![Interview2](docs/images/interviewprep2.png)
 ### Dashboard
 ![Dashboard](docs/images/dashboard.png) ![Dashboard](docs/images/dashboard2.png) ![Dashboard](docs/images/dashboardcontent.png)
