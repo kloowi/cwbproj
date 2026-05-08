@@ -19,7 +19,7 @@
 ## Live Demo
 **[CareerHive Live Demo](https://blue-desert-0dd81d900.7.azurestaticapps.net)**
 ## Demo Video
-[CareerHive Video Demo on Youtube](https://youtu.be/1ZuhSkrYGKo)**
+**[CareerHive Video Demo on Youtube](https://youtu.be/1ZuhSkrYGKo)**
 ## Live Walkthrough
 ### Landing
 ![alt text](docs/images/landing.png)
