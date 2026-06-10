@@ -15,9 +15,6 @@
 > AI-powered career assistant — from CV analysis, job matching, interview preparation, and to browse actual jobs. No recruiter required.
 
 ---
-
-## Live Demo
-**[CareerHive Live Demo](https://blue-desert-0dd81d900.7.azurestaticapps.net)**
 ## Demo Video
 **[CareerHive Video Demo on Youtube](https://youtu.be/1ZuhSkrYGKo)**
 ## Live Walkthrough
